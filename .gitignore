@@ -1,0 +1,13 @@
+# Builds
+/Builds
+/Build
+
+# VS files
+*.csproj
+*.sln
+
+# Some random obj thingy
+/obj
+
+# Library
+/Library
