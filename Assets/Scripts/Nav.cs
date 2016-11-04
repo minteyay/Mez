@@ -27,6 +27,7 @@ class Nav
 		switch (dir)
 		{
 			case 0:
+			case 4:
 				return Dir.W;
 			case 1:
 				return Dir.N;
@@ -40,5 +41,21 @@ class Nav
 		}
 
 		return Dir.N;
+	}
+
+	public static float GetRotation(Dir facing)
+	{
+		switch (facing)
+		{
+			case Dir.N:
+				return 0.0f;
+			case Dir.E:
+				return 90.0f;
+			case Dir.S:
+				return 180.0f;
+			case Dir.W:
+				return -90.0f;
+		}
+		return 0.0f;
 	}
 }

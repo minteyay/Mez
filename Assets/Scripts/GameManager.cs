@@ -42,6 +42,14 @@ public class GameManager : MonoBehaviour
 		GenerateLevel();
 	}
 
+	void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.N))
+		{
+			GenerateLevel();
+		}
+	}
+
 	public void GenerateLevel()
 	{
 		if (maze)
@@ -55,13 +63,14 @@ public class GameManager : MonoBehaviour
 				Quaternion.Euler(maze.startRotation));
 			playerInstance.name = "Player";
 			player = playerInstance.GetComponent<Player>();
+			player.maze = maze;
 		}
 		else
 		{
+			player.maze = maze;
 			playerInstance.transform.position = new Vector3();
 			playerInstance.transform.rotation = Quaternion.Euler(maze.startRotation);
 			player.Reset();
 		}
-		player.maze = maze;
 	}
 }

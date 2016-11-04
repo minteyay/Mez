@@ -1,13 +1,13 @@
-# Builds
+# Unity folders
 /Builds
 /Build
+/Library
+/Temp
 
 # VS files
 *.csproj
 *.sln
+*.suo
 
 # Some random obj thingy
 /obj
-
-# Library
-/Library

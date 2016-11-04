@@ -8,11 +8,13 @@ public class MazeGenerator : MonoBehaviour
 
 	public Vector2 roomDim;
 
-	public GameObject uRoom = null;
-	public GameObject cornerRoom = null;
-	public GameObject straightRoom = null;
-	public GameObject tRoom = null;
-	public GameObject xRoom = null;
+	public GameObject uFloor = null;
+	public GameObject cornerFloor = null;
+	public GameObject straightFloor = null;
+	public GameObject tFloor = null;
+	public GameObject xFloor = null;
+	public GameObject wall = null;
+	public GameObject ceiling = null;
 
 	public GameObject endPoint = null;
 	private int endPointDist = 0;
@@ -36,21 +38,21 @@ public class MazeGenerator : MonoBehaviour
 	{
 		rnd = new System.Random();
 
-		roomPrefabs.Add(1, new RoomPrefab(uRoom, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(2, new RoomPrefab(uRoom, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(3, new RoomPrefab(cornerRoom, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(4, new RoomPrefab(uRoom, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(5, new RoomPrefab(straightRoom, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(6, new RoomPrefab(cornerRoom, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(7, new RoomPrefab(tRoom, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(8, new RoomPrefab(uRoom, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(9, new RoomPrefab(cornerRoom, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(10, new RoomPrefab(straightRoom, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(11, new RoomPrefab(tRoom, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(12, new RoomPrefab(cornerRoom, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(13, new RoomPrefab(tRoom, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(14, new RoomPrefab(tRoom, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(15, new RoomPrefab(xRoom, new Vector3(0.0f, 0.0f, 0.0f)));
+		roomPrefabs.Add(1, new RoomPrefab(uFloor, new Vector3(0.0f, 0.0f, 0.0f)));
+		roomPrefabs.Add(2, new RoomPrefab(uFloor, new Vector3(0.0f, 90.0f, 0.0f)));
+		roomPrefabs.Add(3, new RoomPrefab(cornerFloor, new Vector3(0.0f, 0.0f, 0.0f)));
+		roomPrefabs.Add(4, new RoomPrefab(uFloor, new Vector3(0.0f, 180.0f, 0.0f)));
+		roomPrefabs.Add(5, new RoomPrefab(straightFloor, new Vector3(0.0f, 90.0f, 0.0f)));
+		roomPrefabs.Add(6, new RoomPrefab(cornerFloor, new Vector3(0.0f, 90.0f, 0.0f)));
+		roomPrefabs.Add(7, new RoomPrefab(tFloor, new Vector3(0.0f, 90.0f, 0.0f)));
+		roomPrefabs.Add(8, new RoomPrefab(uFloor, new Vector3(0.0f, -90.0f, 0.0f)));
+		roomPrefabs.Add(9, new RoomPrefab(cornerFloor, new Vector3(0.0f, -90.0f, 0.0f)));
+		roomPrefabs.Add(10, new RoomPrefab(straightFloor, new Vector3(0.0f, 0.0f, 0.0f)));
+		roomPrefabs.Add(11, new RoomPrefab(tFloor, new Vector3(0.0f, 0.0f, 0.0f)));
+		roomPrefabs.Add(12, new RoomPrefab(cornerFloor, new Vector3(0.0f, 180.0f, 0.0f)));
+		roomPrefabs.Add(13, new RoomPrefab(tFloor, new Vector3(0.0f, -90.0f, 0.0f)));
+		roomPrefabs.Add(14, new RoomPrefab(tFloor, new Vector3(0.0f, 180.0f, 0.0f)));
+		roomPrefabs.Add(15, new RoomPrefab(xFloor, new Vector3(0.0f, 0.0f, 0.0f)));
 	}
 
 	public Maze GenerateMaze(int width, int height)
@@ -122,14 +124,61 @@ public class MazeGenerator : MonoBehaviour
 		{
 			for (int x = 0; x < grid.GetLength(1); x++)
 			{
-				GameObject roomInstance = (GameObject)Instantiate(roomPrefabs[grid[y, x]].prefab,
-					new Vector3(y * roomDim.y, 0.0f, x * roomDim.x),
-					Quaternion.Euler(roomPrefabs[grid[y, x]].rotation));
+				GameObject roomInstance = new GameObject(grid[y, x].ToString());
+				roomInstance.transform.position = new Vector3(y * roomDim.y, 0.0f, x * roomDim.x);
 				roomInstance.name = grid[y, x].ToString();
+
+				GameObject floor = CreateFloor(grid[y, x]);
+				floor.transform.SetParent(roomInstance.transform, false);
+
+				GameObject walls = CreateWalls(grid[y, x]);
+				walls.transform.SetParent(roomInstance.transform, false);
+
+				GameObject ceiling = CreateCeiling();
+				ceiling.transform.SetParent(roomInstance.transform, false);
+				ceiling.transform.position += new Vector3(0.0f, 2.0f, 0.0f);
+
 				Room room = new Room(grid[y, x], roomInstance);
 				maze.AddRoom(x, y, room);
 			}
 		}
+	}
+
+	private GameObject CreateFloor(int value)
+	{
+		GameObject floorInstance = (GameObject)Instantiate(roomPrefabs[value].prefab,
+					new Vector3(),
+					Quaternion.Euler(roomPrefabs[value].rotation));
+		floorInstance.name = "Floor";
+		return floorInstance;
+	}
+
+	private GameObject CreateWalls(int value)
+	{
+		GameObject wallsInstance = new GameObject("Walls");
+
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		{
+			if ((~value & Room.bits[dir]) > 0)
+			{
+				GameObject wallInstance = (GameObject)Instantiate(wall,
+						new Vector3(),
+						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
+				wallInstance.transform.SetParent(wallsInstance.transform, false);
+				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
+			}
+		}
+
+		return wallsInstance;
+	}
+
+	private GameObject CreateCeiling()
+	{
+		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
+					new Vector3(),
+					Quaternion.identity);
+		ceilingInstance.name = "Ceiling";
+		return ceilingInstance;
 	}
 
 	private void PrintGrid(int[,] grid)
