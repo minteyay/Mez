@@ -50,6 +50,8 @@ public class Player : MonoBehaviour
 					angleDelta += 360.0f;
 				if (angleDelta > 180.0f)
 					angleDelta -= 360.0f;
+				if (angleDelta == 180.0f)
+					angleDelta = -180.0f;
 
 				if (Mathf.Abs(angleDelta) < rotateTreshold)
 				{

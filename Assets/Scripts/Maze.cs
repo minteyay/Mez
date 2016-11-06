@@ -23,6 +23,11 @@ public class Maze : MonoBehaviour
 		room.instance.transform.parent = transform;
 	}
 
+	public void AddItem(int x, int y, GameObject item)
+	{
+		item.transform.SetParent(rooms[y, x].instance.transform, false);
+	}
+
 	public void AddEndPoint(int x, int y, GameObject endPoint)
 	{
 		this.endPoint = (GameObject)Instantiate(endPoint,

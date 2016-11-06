@@ -16,9 +16,16 @@ public class MazeGenerator : MonoBehaviour
 	public GameObject wall = null;
 	public GameObject ceiling = null;
 
+	public GameObject lamp = null;
+	private List<int[]> lampPositions;
+	public int lampInterval = 5;
+	private int currentLampDistance = 0;
+
 	public GameObject endPoint = null;
 	private int endPointDist = 0;
 	private int[] endPointCoord = { -1, -1 };
+
+	public float wallInset = 0.0f;
 
 	private struct RoomPrefab
 	{
@@ -60,6 +67,8 @@ public class MazeGenerator : MonoBehaviour
 		endPointDist = 0;
 		endPointCoord = new int[] { -1, -1 };
 
+		lampPositions = new List<int[]>();
+
 		int[,] grid = new int[height, width];
 		CarvePassagesFrom(0, 0, grid, 0);
 		PrintGrid(grid);
@@ -74,6 +83,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 		maze.Initialise(width, height, roomDim);
 		CreateRooms(grid, maze);
+		CreateLamps(maze);
 
 		maze.AddEndPoint(endPointCoord[0], endPointCoord[1], endPoint);
 
@@ -105,11 +115,20 @@ public class MazeGenerator : MonoBehaviour
 
 			if ((ny >= 0 && ny < grid.GetLength(0)) && (nx >= 0 && nx < grid.GetLength(1)) && (grid[ny, nx] == 0))
 			{
+				currentLampDistance++;
+				if (currentLampDistance >= lampInterval)
+				{
+					currentLampDistance = 0;
+					lampPositions.Add(new int[2] { nx, ny });
+				}
+
 				grid[y, x] |= Room.bits[dir];
 				grid[ny, nx] |= Room.oppositeBits[dir];
 				CarvePassagesFrom(nx, ny, grid, distance + 1);
 			}
 		}
+
+		currentLampDistance = 0;
 		if (distance > endPointDist)
 		{
 			endPointCoord[0] = x;
@@ -144,6 +163,16 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
+	private void CreateLamps(Maze maze)
+	{
+		foreach (int[] lampPos in lampPositions)
+		{
+			GameObject lampInstance = (GameObject)Instantiate(lamp, new Vector3(), Quaternion.identity);
+			lampInstance.name = "Lamp";
+			maze.AddItem(lampPos[0], lampPos[1], lampInstance);
+		}
+	}
+
 	private GameObject CreateFloor(int value)
 	{
 		GameObject floorInstance = (GameObject)Instantiate(roomPrefabs[value].prefab,
@@ -165,7 +194,7 @@ public class MazeGenerator : MonoBehaviour
 						new Vector3(),
 						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
-				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
+				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f + wallInset, 0.0f, 0.0f);
 			}
 		}
 
