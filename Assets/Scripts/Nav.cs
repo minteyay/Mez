@@ -58,4 +58,11 @@ class Nav
 		}
 		return 0.0f;
 	}
+
+	public static bool IsConnected(int value, Dir facing)
+	{
+		if ((value & Room.bits[facing]) != 0)
+			return true;
+		return false;
+	}
 }

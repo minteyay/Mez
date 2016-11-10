@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,6 +9,9 @@ public class GameManager : MonoBehaviour
 
 	public int mazeWidth = 0;
 	public int mazeHeight = 0;
+
+	public GameObject uiPrefab = null;
+	private UI ui = null;
 
 	private MazeGenerator mazeGen = null;
 	private Maze maze = null;
@@ -35,11 +39,16 @@ public class GameManager : MonoBehaviour
 	void Awake()
 	{
 		mazeGen = GetComponent<MazeGenerator>();
+		Cursor.visible = false;
 	}
 
 	void Start()
 	{
-		GenerateLevel();
+		GameObject uiInstance = Instantiate(uiPrefab);
+		uiInstance.name = "UI";
+		ui = uiInstance.GetComponent<UI>();
+
+		StartLevel();
 	}
 
 	void Update()
@@ -47,6 +56,11 @@ public class GameManager : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.N))
 		{
 			GenerateLevel();
+		}
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			Cursor.visible = !Cursor.visible;
 		}
 	}
 
@@ -72,5 +86,22 @@ public class GameManager : MonoBehaviour
 			playerInstance.transform.rotation = Quaternion.Euler(maze.startRotation);
 			player.Reset();
 		}
+	}
+
+	public void StartLevel()
+	{
+		GenerateLevel();
+		ui.FadeIn(StartMoving);
+	}
+
+	public void StartMoving()
+	{
+		player.canMove = true;
+	}
+
+	public void ResetLevel()
+	{
+		player.canMove = false;
+		ui.FadeOut(StartLevel);
 	}
 }

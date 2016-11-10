@@ -17,13 +17,14 @@ public class MazeGenerator : MonoBehaviour
 	public GameObject ceiling = null;
 
 	public GameObject lamp = null;
-	private List<int[]> lampPositions;
+	private List<Point> lampPositions;
 	public int lampInterval = 5;
 	private int currentLampDistance = 0;
 
 	public GameObject endPoint = null;
 	private int endPointDist = 0;
-	private int[] endPointCoord = { -1, -1 };
+	private Point endPointCoord = new Point(-1, -1);
+	private float endPointRotation = 0.0f;
 
 	public float wallInset = 0.0f;
 
@@ -65,13 +66,13 @@ public class MazeGenerator : MonoBehaviour
 	public Maze GenerateMaze(int width, int height)
 	{
 		endPointDist = 0;
-		endPointCoord = new int[] { -1, -1 };
+		endPointCoord = new Point(-1, -1);
 
-		lampPositions = new List<int[]>();
+		lampPositions = new List<Point>();
 
 		int[,] grid = new int[height, width];
 		CarvePassagesFrom(0, 0, grid, 0);
-		PrintGrid(grid);
+		//PrintGrid(grid);
 
 		GameObject mazeInstance = Instantiate(mazePrefab);
 		mazeInstance.name = "Maze";
@@ -85,7 +86,7 @@ public class MazeGenerator : MonoBehaviour
 		CreateRooms(grid, maze);
 		CreateLamps(maze);
 
-		maze.AddEndPoint(endPointCoord[0], endPointCoord[1], endPoint);
+		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
 		switch (grid[0, 0])
 		{
@@ -119,7 +120,7 @@ public class MazeGenerator : MonoBehaviour
 				if (currentLampDistance >= lampInterval)
 				{
 					currentLampDistance = 0;
-					lampPositions.Add(new int[2] { nx, ny });
+					lampPositions.Add(new Point(nx, ny));
 				}
 
 				grid[y, x] |= Room.bits[dir];
@@ -131,9 +132,19 @@ public class MazeGenerator : MonoBehaviour
 		currentLampDistance = 0;
 		if (distance > endPointDist)
 		{
-			endPointCoord[0] = x;
-			endPointCoord[1] = y;
+			endPointCoord.Set(x, y);
 			endPointDist = distance;
+
+			lampPositions.Remove(new Point(x, y));
+
+			foreach (Dir dir in directions)
+			{
+				if (Nav.IsConnected(grid[y, x], dir))
+				{
+					endPointRotation = Nav.GetRotation(dir);
+					break;
+				}
+			}
 		}
 	}
 
@@ -158,18 +169,18 @@ public class MazeGenerator : MonoBehaviour
 				ceiling.transform.position += new Vector3(0.0f, 2.0f, 0.0f);
 
 				Room room = new Room(grid[y, x], roomInstance);
-				maze.AddRoom(x, y, room);
+				maze.AddRoom(new Point(x, y), room);
 			}
 		}
 	}
 
 	private void CreateLamps(Maze maze)
 	{
-		foreach (int[] lampPos in lampPositions)
+		foreach (Point lampPos in lampPositions)
 		{
 			GameObject lampInstance = (GameObject)Instantiate(lamp, new Vector3(), Quaternion.identity);
 			lampInstance.name = "Lamp";
-			maze.AddItem(lampPos[0], lampPos[1], lampInstance);
+			maze.AddItem(lampPos, lampInstance);
 		}
 	}
 

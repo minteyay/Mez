@@ -17,67 +17,60 @@ public class Maze : MonoBehaviour
 		this.roomDim = roomDim;
 	}
 
-	public void AddRoom(int x, int y, Room room)
+	public void AddRoom(Point pos, Room room)
 	{
-		rooms[y, x] = room;
+		rooms[pos.y, pos.x] = room;
 		room.instance.transform.parent = transform;
 	}
 
-	public void AddItem(int x, int y, GameObject item)
+	public void AddItem(Point pos, GameObject item)
 	{
-		item.transform.SetParent(rooms[y, x].instance.transform, false);
+		item.transform.SetParent(rooms[pos.y, pos.x].instance.transform, false);
 	}
 
-	public void AddEndPoint(int x, int y, GameObject endPoint)
+	public void AddEndPoint(Point pos, GameObject endPoint, Quaternion rotation)
 	{
 		this.endPoint = (GameObject)Instantiate(endPoint,
-			new Vector3(y * roomDim.y, 0.0f, x * roomDim.x),
-			Quaternion.identity);
+			new Vector3(pos.y * roomDim.y, 0.0f, pos.x * roomDim.x),
+			rotation);
 		this.endPoint.name = "End Point";
 		this.endPoint.transform.parent = transform;
 	}
 
 	public Vector3 MoveLeftmost(Vector3 position, Dir facing)
 	{
-		int[] posIndex = GetIndexAt(position);
-		int newX = 0;
-		int newY = 0;
-		if (IsConnected(posIndex[0], posIndex[1], Nav.left[facing]))
+		Point posIndex = GetIndexAt(position);
+		Point newPos = new Point();
+		if (IsConnected(posIndex, Nav.left[facing]))
 		{
-			newX = posIndex[0] + Nav.DX[Nav.left[facing]];
-			newY = posIndex[1] + Nav.DY[Nav.left[facing]];
+			newPos.Set(posIndex.x + Nav.DX[Nav.left[facing]], posIndex.y + Nav.DY[Nav.left[facing]]);
 		}
-		else if (IsConnected(posIndex[0], posIndex[1], facing))
+		else if (IsConnected(posIndex, facing))
 		{
-			newX = posIndex[0] + Nav.DX[facing];
-			newY = posIndex[1] + Nav.DY[facing];
+			newPos.Set(posIndex.x + Nav.DX[facing], posIndex.y + Nav.DY[facing]);
 		}
-		else if (IsConnected(posIndex[0], posIndex[1], Nav.right[facing]))
+		else if (IsConnected(posIndex, Nav.right[facing]))
 		{
-			newX = posIndex[0] + Nav.DX[Nav.right[facing]];
-			newY = posIndex[1] + Nav.DY[Nav.right[facing]];
+			newPos.Set(posIndex.x + Nav.DX[Nav.right[facing]], posIndex.y + Nav.DY[Nav.right[facing]]);
 		}
 		else
 		{
-			newX = posIndex[0] + Nav.DX[Nav.opposite[facing]];
-			newY = posIndex[1] + Nav.DY[Nav.opposite[facing]];
+			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
 		}
-		return rooms[newY, newX].instance.transform.position;
+		return rooms[newPos.y, newPos.x].instance.transform.position;
 	}
 
-	private int[] GetIndexAt(Vector3 position)
+	private Point GetIndexAt(Vector3 position)
 	{
-		return new int[] { Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y) };
+		return new Point(Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y));
 	}
 
-	private bool IsConnected(int x, int y, Dir dir)
+	private bool IsConnected(Point pos, Dir dir)
 	{
-		int newX = x + Nav.DX[dir];
-		int newY = y + Nav.DY[dir];
-		if (newX >= 0 && newX < rooms.GetLength(1) && newY >= 0 && newY < rooms.GetLength(0))
+		Point newPos = new Point(pos.x + Nav.DX[dir], pos.y + Nav.DY[dir]);
+		if (newPos.x >= 0 && newPos.x < rooms.GetLength(1) && newPos.y >= 0 && newPos.y < rooms.GetLength(0))
 		{
-			int testRoom = rooms[newY, newX].value;
-			if ((testRoom & Room.oppositeBits[dir]) != 0)
+			if (Nav.IsConnected(rooms[newPos.y, newPos.x].value, Nav.opposite[dir]))
 				return true;
 		}
 		return false;

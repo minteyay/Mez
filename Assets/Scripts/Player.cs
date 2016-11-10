@@ -8,6 +8,9 @@ public class Player : MonoBehaviour
 
 	public Vector3 target;
 
+	[HideInInspector]
+	public bool canMove = false;
+
 	private enum State
 	{
 		IDLE,
@@ -29,59 +32,62 @@ public class Player : MonoBehaviour
 
 	void Update()
 	{
-		Vector3 delta = transform.position - target;
-		float deltaDist = delta.magnitude;
-
-		if (state == State.IDLE)
+		if (canMove)
 		{
-			if (deltaDist > moveTreshold)
-				state = State.ROTATING;
-		}
-		else
-		{
-			float targetAngle = 0.0f;
-			if (delta.magnitude != 0.0f)
-				targetAngle = Quaternion.LookRotation(delta, transform.up).eulerAngles.y;
-			float angleDelta = targetAngle - transform.rotation.eulerAngles.y;
+			Vector3 delta = transform.position - target;
+			float deltaDist = delta.magnitude;
 
-			if (state == State.ROTATING)
+			if (state == State.IDLE)
 			{
-				if (angleDelta < -180.0f)
-					angleDelta += 360.0f;
-				if (angleDelta > 180.0f)
-					angleDelta -= 360.0f;
-				if (angleDelta == 180.0f)
-					angleDelta = -180.0f;
-
-				if (Mathf.Abs(angleDelta) < rotateTreshold)
-				{
-					state = State.MOVING;
-				}
-				else if (Mathf.Abs(angleDelta) <= rotationSpeed * Time.deltaTime)
-				{
-					transform.eulerAngles = new Vector3(0.0f, targetAngle, 0.0f);
-					state = State.MOVING;
-				}
-				else
-				{
-					transform.Rotate(0.0f, Mathf.Sign(angleDelta) * rotationSpeed * Time.deltaTime, 0.0f);
-				}
+				if (deltaDist > moveTreshold)
+					state = State.ROTATING;
 			}
-			if (state == State.MOVING)
+			else
 			{
-				if (Mathf.Abs(angleDelta) < rotateTreshold)
+				float targetAngle = 0.0f;
+				if (delta.magnitude != 0.0f)
+					targetAngle = Quaternion.LookRotation(delta, transform.up).eulerAngles.y;
+				float angleDelta = targetAngle - transform.rotation.eulerAngles.y;
+
+				if (state == State.ROTATING)
 				{
-					state = State.ROTATING;
+					if (angleDelta < -180.0f)
+						angleDelta += 360.0f;
+					if (angleDelta > 180.0f)
+						angleDelta -= 360.0f;
+					if (angleDelta == 180.0f)
+						angleDelta = -180.0f;
+
+					if (Mathf.Abs(angleDelta) < rotateTreshold)
+					{
+						state = State.MOVING;
+					}
+					else if (Mathf.Abs(angleDelta) <= rotationSpeed * Time.deltaTime)
+					{
+						transform.eulerAngles = new Vector3(0.0f, targetAngle, 0.0f);
+						state = State.MOVING;
+					}
+					else
+					{
+						transform.Rotate(0.0f, Mathf.Sign(angleDelta) * rotationSpeed * Time.deltaTime, 0.0f);
+					}
 				}
-				if (deltaDist <= movementSpeed * Time.deltaTime)
+				if (state == State.MOVING)
 				{
-					transform.position = target;
-					state = State.ROTATING;
-					target = maze.MoveLeftmost(transform.position, Nav.GetFacing(transform.rotation.eulerAngles.y));
-				}
-				else
-				{
-					transform.position += -delta.normalized * Time.deltaTime * movementSpeed;
+					if (Mathf.Abs(angleDelta) < rotateTreshold)
+					{
+						state = State.ROTATING;
+					}
+					if (deltaDist <= movementSpeed * Time.deltaTime)
+					{
+						transform.position = target;
+						state = State.ROTATING;
+						target = maze.MoveLeftmost(transform.position, Nav.GetFacing(transform.rotation.eulerAngles.y));
+					}
+					else
+					{
+						transform.position += -delta.normalized * Time.deltaTime * movementSpeed;
+					}
 				}
 			}
 		}
