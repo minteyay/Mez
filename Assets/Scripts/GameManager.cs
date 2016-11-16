@@ -62,6 +62,11 @@ public class GameManager : MonoBehaviour
 		{
 			Cursor.visible = !Cursor.visible;
 		}
+
+		if (Input.GetKeyDown(KeyCode.F))
+		{
+			Screen.fullScreen = !Screen.fullScreen;
+		}
 	}
 
 	public void GenerateLevel()

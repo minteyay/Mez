@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Choice;
 
 public class MazeGenerator : MonoBehaviour
 {
 	public GameObject mazePrefab = null;
+
+	public List<Material> shadeMaterials = null;
 
 	public Vector2 roomDim;
 
@@ -14,6 +17,7 @@ public class MazeGenerator : MonoBehaviour
 	public GameObject tFloor = null;
 	public GameObject xFloor = null;
 	public GameObject wall = null;
+	public GameObject altWall = null;
 	public GameObject ceiling = null;
 
 	public GameObject lamp = null;
@@ -41,6 +45,8 @@ public class MazeGenerator : MonoBehaviour
 	private Dictionary<int, RoomPrefab> roomPrefabs = new Dictionary<int, RoomPrefab>();
 
 	private System.Random rnd = null;
+
+	private bool useAltWall = false;
 
 	void Awake()
 	{
@@ -101,6 +107,11 @@ public class MazeGenerator : MonoBehaviour
 				break;
 		}
 
+		Crawler.SetRoomShades(maze, new Vector3(), Nav.GetFacing(maze.startRotation.y), shadeMaterials);
+		Crawler.SetRoomShades(maze, Nav.GetPosAt(endPointCoord, maze.roomDim), Nav.GetFacing(endPointRotation), shadeMaterials);
+
+		useAltWall = !useAltWall;
+
 		return maze;
 	}
 
@@ -155,18 +166,22 @@ public class MazeGenerator : MonoBehaviour
 			for (int x = 0; x < grid.GetLength(1); x++)
 			{
 				GameObject roomInstance = new GameObject(grid[y, x].ToString());
+				roomInstance.AddComponent<MaterialSetter>();
 				roomInstance.transform.position = new Vector3(y * roomDim.y, 0.0f, x * roomDim.x);
 				roomInstance.name = grid[y, x].ToString();
 
 				GameObject floor = CreateFloor(grid[y, x]);
 				floor.transform.SetParent(roomInstance.transform, false);
+				floor.GetComponent<MaterialSetter>().SetMaterial(shadeMaterials[0]);
 
 				GameObject walls = CreateWalls(grid[y, x]);
 				walls.transform.SetParent(roomInstance.transform, false);
+				walls.GetComponent<MaterialSetter>().SetMaterial(shadeMaterials[0]);
 
 				GameObject ceiling = CreateCeiling();
 				ceiling.transform.SetParent(roomInstance.transform, false);
 				ceiling.transform.position += new Vector3(0.0f, 2.0f, 0.0f);
+				ceiling.GetComponent<MaterialSetter>().SetMaterial(shadeMaterials[0]);
 
 				Room room = new Room(grid[y, x], roomInstance);
 				maze.AddRoom(new Point(x, y), room);
@@ -196,12 +211,13 @@ public class MazeGenerator : MonoBehaviour
 	private GameObject CreateWalls(int value)
 	{
 		GameObject wallsInstance = new GameObject("Walls");
+		wallsInstance.AddComponent<MaterialSetter>();
 
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
 			if ((~value & Room.bits[dir]) > 0)
 			{
-				GameObject wallInstance = (GameObject)Instantiate(wall,
+				GameObject wallInstance = (GameObject)Instantiate((useAltWall) ? altWall : wall,
 						new Vector3(),
 						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);

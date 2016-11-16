@@ -2,8 +2,10 @@
 
 public class Maze : MonoBehaviour
 {
-	private Room[,] rooms;
-	private Vector2 roomDim;
+	[HideInInspector]
+	public Room[,] rooms;
+	[HideInInspector]
+	public Vector2 roomDim;
 
 	[HideInInspector]
 	public Vector3 startRotation;
@@ -39,7 +41,7 @@ public class Maze : MonoBehaviour
 
 	public Vector3 MoveLeftmost(Vector3 position, Dir facing)
 	{
-		Point posIndex = GetIndexAt(position);
+		Point posIndex = Nav.GetIndexAt(position, roomDim);
 		Point newPos = new Point();
 		if (IsConnected(posIndex, Nav.left[facing]))
 		{
@@ -58,11 +60,6 @@ public class Maze : MonoBehaviour
 			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
 		}
 		return rooms[newPos.y, newPos.x].instance.transform.position;
-	}
-
-	private Point GetIndexAt(Vector3 position)
-	{
-		return new Point(Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y));
 	}
 
 	private bool IsConnected(Point pos, Dir dir)

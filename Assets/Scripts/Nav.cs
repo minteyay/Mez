@@ -59,6 +59,16 @@ class Nav
 		return 0.0f;
 	}
 
+	public static Point GetIndexAt(Vector3 position, Vector2 roomDim)
+	{
+		return new Point(Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y));
+	}
+
+	public static Vector3 GetPosAt(Point index, Vector2 roomDim)
+	{
+		return new Vector3(index.y * roomDim.y, 0f, index.x * roomDim.x);
+	}
+
 	public static bool IsConnected(int value, Dir facing)
 	{
 		if ((value & Room.bits[facing]) != 0)
