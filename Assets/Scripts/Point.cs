@@ -15,6 +15,12 @@ public class Point
 		this.y = y;
 	}
 
+	public Point(Point p)
+	{
+		x = p.x;
+		y = p.y;
+	}
+
 	public void Set(int x, int y)
 	{
 		this.x = x;

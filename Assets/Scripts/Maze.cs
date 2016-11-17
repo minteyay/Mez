@@ -42,7 +42,7 @@ public class Maze : MonoBehaviour
 	public Vector3 MoveLeftmost(Vector3 position, Dir facing)
 	{
 		Point posIndex = Nav.GetIndexAt(position, roomDim);
-		Point newPos = new Point();
+		Point newPos = new Point(posIndex);
 		if (IsConnected(posIndex, Nav.left[facing]))
 		{
 			newPos.Set(posIndex.x + Nav.DX[Nav.left[facing]], posIndex.y + Nav.DY[Nav.left[facing]]);
@@ -56,6 +56,29 @@ public class Maze : MonoBehaviour
 			newPos.Set(posIndex.x + Nav.DX[Nav.right[facing]], posIndex.y + Nav.DY[Nav.right[facing]]);
 		}
 		else
+		{
+			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
+		}
+		return rooms[newPos.y, newPos.x].instance.transform.position;
+	}
+
+	public Vector3 MoveStraight(Vector3 position, Dir facing, bool allowUTurns = true)
+	{
+		Point posIndex = Nav.GetIndexAt(position, roomDim);
+		Point newPos = new Point(posIndex);
+		if (IsConnected(posIndex, facing))
+		{
+			newPos.Set(posIndex.x + Nav.DX[facing], posIndex.y + Nav.DY[facing]);
+		}
+		else if (IsConnected(posIndex, Nav.left[facing]))
+		{
+			newPos.Set(posIndex.x + Nav.DX[Nav.left[facing]], posIndex.y + Nav.DY[Nav.left[facing]]);
+		}
+		else if (IsConnected(posIndex, Nav.right[facing]))
+		{
+			newPos.Set(posIndex.x + Nav.DX[Nav.right[facing]], posIndex.y + Nav.DY[Nav.right[facing]]);
+		}
+		else if (allowUTurns)
 		{
 			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
 		}

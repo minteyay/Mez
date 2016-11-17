@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (Input.GetKeyDown(KeyCode.N))
 		{
-			GenerateLevel();
+			ResetLevel();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Escape))
