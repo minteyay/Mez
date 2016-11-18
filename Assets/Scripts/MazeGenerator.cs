@@ -107,10 +107,10 @@ public class MazeGenerator : MonoBehaviour
 				break;
 		}
 
-		Crawler.SetRoomShades(maze, new Vector3(), Nav.GetFacing(maze.startRotation.y), shadeMaterials);
-		Crawler.SetRoomShades(maze, Nav.GetPosAt(endPointCoord, maze.roomDim), Nav.GetFacing(endPointRotation), shadeMaterials);
+        Crawler.Crawl(maze, new Vector3(), Nav.GetFacing(maze.startRotation.y), shadeMaterials.Count - 1, SetRoomShade);
+        Crawler.Crawl(maze, Nav.GetPosAt(endPointCoord, maze.roomDim), Nav.GetFacing(endPointRotation), shadeMaterials.Count - 1, SetRoomShade);
 
-		useAltWall = !useAltWall;
+        useAltWall = !useAltWall;
 
 		return maze;
 	}
@@ -183,8 +183,8 @@ public class MazeGenerator : MonoBehaviour
 				ceiling.transform.position += new Vector3(0.0f, 2.0f, 0.0f);
 				ceiling.GetComponent<MaterialSetter>().SetMaterial(shadeMaterials[0]);
 
-				Room room = new Room(grid[y, x], roomInstance);
-				maze.AddRoom(new Point(x, y), room);
+				Room room = new Room(grid[y, x], new Point(x, y), roomInstance);
+				maze.AddRoom(room);
 			}
 		}
 	}
@@ -236,6 +236,14 @@ public class MazeGenerator : MonoBehaviour
 		ceilingInstance.name = "Ceiling";
 		return ceilingInstance;
 	}
+
+    private void SetRoomShade(Room room, int distance)
+    {
+        room.instance.GetComponent<MaterialSetter>().SetMaterial(shadeMaterials[distance]);
+        Transform lamp = room.instance.transform.Find("Lamp");
+        if (lamp != null)
+            MonoBehaviour.Destroy(lamp.gameObject);
+    }
 
 	private void PrintGrid(int[,] grid)
 	{

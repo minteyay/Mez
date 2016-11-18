@@ -19,9 +19,9 @@ public class Maze : MonoBehaviour
 		this.roomDim = roomDim;
 	}
 
-	public void AddRoom(Point pos, Room room)
+	public void AddRoom(Room room)
 	{
-		rooms[pos.y, pos.x] = room;
+		rooms[room.position.y, room.position.x] = room;
 		room.instance.transform.parent = transform;
 	}
 
