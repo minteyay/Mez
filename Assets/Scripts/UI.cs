@@ -4,7 +4,13 @@ using System.Collections;
 
 public class UI : MonoBehaviour
 {
+    /// <summary>
+    /// Image used to fade the camera in and out of a colour.
+    /// </summary>
 	public Image fadePanel = null;
+    /// <summary>
+    /// Time to take fading in and out of the specified colour.
+    /// </summary>
 	public float fadeTime = 0.0f;
 
 	public delegate void OnComplete();

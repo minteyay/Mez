@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +15,7 @@ public class GameManager : MonoBehaviour
 	private MazeGenerator mazeGen = null;
 	private Maze maze = null;
 
+    // Manager singleton instance and getter.
 	private static GameManager _instance;
 	public static GameManager Instance
 	{
@@ -40,10 +40,17 @@ public class GameManager : MonoBehaviour
 	{
 		mazeGen = GetComponent<MazeGenerator>();
 		Cursor.visible = false;
+
+#if UNITY_STANDALONE && SCREENSAVER
+        // Set the resolution to the highest one available.
+		Resolution[] resolutions = Screen.resolutions;
+		Screen.SetResolution(resolutions[resolutions.GetLength(0) - 1].width, resolutions[resolutions.GetLength(0) - 1].height, true);
+#endif
 	}
 
 	void Start()
 	{
+        // Create the UI overlay.
 		GameObject uiInstance = Instantiate(uiPrefab);
 		uiInstance.name = "UI";
 		ui = uiInstance.GetComponent<UI>();
@@ -53,28 +60,53 @@ public class GameManager : MonoBehaviour
 
 	void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.N) && player.canMove)
+#if !SCREENSAVER
+        // Generate a new maze (only when the player is moving).
+		if (Input.GetKeyDown(KeyCode.N) && player.CanMove)
 		{
 			ResetLevel();
 		}
+#endif
 
-		if (Input.GetKeyDown(KeyCode.Escape))
-		{
-			Cursor.visible = !Cursor.visible;
-		}
-
+#if UNITY_WEBGL
+        // Toggle fullscreen.
 		if (Input.GetKeyDown(KeyCode.F))
 		{
 			Screen.fullScreen = !Screen.fullScreen;
 		}
+        // Toggle cursor visibility.
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			Cursor.visible = !Cursor.visible;
+		}
+#elif !SCREENSAVER
+        // Quit the executable.
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			Application.Quit();
+		}
+#else
+        // Quit the screensaver.
+		if (Input.anyKeyDown)
+		{
+			Application.Quit();
+		}
+#endif
 	}
 
 	public void GenerateLevel()
 	{
+        // Destroy the maze if one exists.
 		if (maze)
+		{
 			Destroy(maze.gameObject);
+			Resources.UnloadUnusedAssets();
+		}
+
+        // Generate a new maze.
 		maze = mazeGen.GenerateMaze(mazeWidth, mazeHeight);
 
+        // Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
 			playerInstance = (GameObject)Instantiate(playerPrefab,
@@ -84,8 +116,9 @@ public class GameManager : MonoBehaviour
 			player = playerInstance.GetComponent<Player>();
 			player.maze = maze;
 		}
-		else
-		{
+        // Reposition the player to the maze start if it exists.
+        else
+        {
 			player.maze = maze;
 			playerInstance.transform.position = new Vector3();
 			playerInstance.transform.rotation = Quaternion.Euler(maze.startRotation);
@@ -95,18 +128,20 @@ public class GameManager : MonoBehaviour
 
 	public void StartLevel()
 	{
+        // Generate a new maze and fade it in.
 		GenerateLevel();
 		ui.FadeIn(StartMoving);
 	}
 
 	public void StartMoving()
 	{
-		player.canMove = true;
+		player.CanMove = true;
 	}
 
 	public void ResetLevel()
 	{
-		player.canMove = false;
+        // Stop the player and fade the maze out.
+		player.CanMove = false;
 		ui.FadeOut(StartLevel);
 	}
 }
