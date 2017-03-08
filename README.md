@@ -1,5 +1,5 @@
 # Mez
-A maze generator and crawler in the style of the legendary Windows 95/98 maze screensaver.
+A maze generator and crawler in the style of the legendary Windows 95/98 maze screensaver. Made with Unity 5.5.0.
 
 Generates a maze and starts crawling through it, generating a new one when it finds the end of the current maze.
 Builds can be found at https://foxelbox.itch.io/mez along with the WebGL version.
