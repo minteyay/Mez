@@ -116,8 +116,6 @@ class Nav
     /// <returns>True if the room is connected in the cardinal direction facing, false if not.</returns>
 	public static bool IsConnected(int value, Dir facing)
 	{
-		if ((value & Room.bits[facing]) != 0)
-			return true;
-		return false;
+		return (value & Room.bits[facing]) != 0;
 	}
 }

@@ -43,8 +43,8 @@ public class GameManager : MonoBehaviour
 
 #if UNITY_STANDALONE && SCREENSAVER
         // Set the resolution to the highest one available.
-		Resolution[] resolutions = Screen.resolutions;
-		Screen.SetResolution(resolutions[resolutions.GetLength(0) - 1].width, resolutions[resolutions.GetLength(0) - 1].height, true);
+		//Resolution[] resolutions = Screen.resolutions;
+		//Screen.SetResolution(resolutions[resolutions.GetLength(0) - 1].width, resolutions[resolutions.GetLength(0) - 1].height, true);
 #endif
 	}
 
