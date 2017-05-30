@@ -11,8 +11,6 @@
         "**/*.user":true,
         "**/*.userprefs":true,
         "**/*.unityproj":true,
-        "**/*.csproj":true,
-        "**/*.sln":true,
         "**/*.dll":true,
         "**/*.exe":true,
         "**/*.pdf":true,
