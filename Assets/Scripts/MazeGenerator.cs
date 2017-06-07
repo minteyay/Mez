@@ -9,15 +9,8 @@ public class MazeGenerator : MonoBehaviour
     /// Size of a room in world dimensions.
 	public Vector2 roomDim;
 
-    /*
-     * Prefabs to use for different shape floors.
-     */
-	public GameObject uFloor = null;
-	public GameObject cornerFloor = null;
-	public GameObject straightFloor = null;
-	public GameObject tFloor = null;
-	public GameObject xFloor = null;
-
+    /// Floor model prefab.
+	public GameObject floor = null;
 	/// Wall model prefab.
 	public GameObject wall = null;
 	/// Ceiling model prefab.
@@ -29,7 +22,7 @@ public class MazeGenerator : MonoBehaviour
     // End point prefab.
 	public GameObject endPoint = null;
     // Distance to the end point from the start of the maze.
-	private int endPointDist = 0;
+	private uint endPointDist = 0;
     // Index position of the end point.
 	private Point endPointCoord = new Point(-1, -1);
     // Y rotation of the end point.
@@ -38,58 +31,24 @@ public class MazeGenerator : MonoBehaviour
     // How much to move the walls inwards in rooms.
 	public float wallInset = 0.0f;
 
-	private struct RoomPrefab
-	{
-		public RoomPrefab(GameObject prefab, Vector3 rotation)
-		{
-			this.prefab = prefab;
-			this.rotation = rotation;
-		}
-		public GameObject prefab;
-		public Vector3 rotation;
-	}
-    // Room prefabs to use for different shapes of rooms in different orientations.
-	private Dictionary<int, RoomPrefab> roomPrefabs = new Dictionary<int, RoomPrefab>();
-
     // Random number generator to use in generating the maze.
 	private System.Random rnd = null;
-
-    // Whether to use the alternative wall prefab or not.
-	private bool useAltWall = false;
 
 	void Awake()
 	{
 		rnd = new System.Random();
-
-        // Add all the room prefabs in their correct shapes and orientations.
-        // A bitwise system is used to determine these.
-		roomPrefabs.Add(1, new RoomPrefab(uFloor, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(2, new RoomPrefab(uFloor, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(3, new RoomPrefab(cornerFloor, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(4, new RoomPrefab(uFloor, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(5, new RoomPrefab(straightFloor, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(6, new RoomPrefab(cornerFloor, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(7, new RoomPrefab(tFloor, new Vector3(0.0f, 90.0f, 0.0f)));
-		roomPrefabs.Add(8, new RoomPrefab(uFloor, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(9, new RoomPrefab(cornerFloor, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(10, new RoomPrefab(straightFloor, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(11, new RoomPrefab(tFloor, new Vector3(0.0f, 0.0f, 0.0f)));
-		roomPrefabs.Add(12, new RoomPrefab(cornerFloor, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(13, new RoomPrefab(tFloor, new Vector3(0.0f, -90.0f, 0.0f)));
-		roomPrefabs.Add(14, new RoomPrefab(tFloor, new Vector3(0.0f, 180.0f, 0.0f)));
-		roomPrefabs.Add(15, new RoomPrefab(xFloor, new Vector3(0.0f, 0.0f, 0.0f)));
 	}
 
     /// <summary>
     /// Generates a maze with the given dimensions.
     /// </summary>
     /// <returns>A brand-new maze to play with.</returns>
-	public Maze GenerateMaze(int width, int height)
+	public Maze GenerateMaze(uint width, uint height)
 	{
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
 
-		int[,] grid = new int[height, width];
+		uint[,] grid = new uint[height, width];
         // Generate the maze.
 		CarvePassagesFrom(0, 0, grid, 0);
 		//PrintGrid(grid);
@@ -135,7 +94,7 @@ public class MazeGenerator : MonoBehaviour
     /// <param name="y">Index y position to continue generating the maze from.</param>
     /// <param name="grid">2D array to generate the maze into.</param>
     /// <param name="distance">Distance from the beginning of the maze (in rooms).</param>
-	private void CarvePassagesFrom(int x, int y, int[,] grid, int distance)
+	private void CarvePassagesFrom(int x, int y, uint[,] grid, uint distance)
 	{
         // Try moving in directions in a random order.
 		List<Dir> directions = new List<Dir> { Dir.N, Dir.S, Dir.E, Dir.W };
@@ -182,11 +141,11 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="grid">2D grid of bitwise room values.</param>
     /// <param name="maze">Maze to add the rooms into.</param>
-	private void CreateRooms(int[,] grid, Maze maze)
+	private void CreateRooms(uint[,] grid, Maze maze)
 	{
-		for (int y = 0; y < grid.GetLength(0); y++)
+		for (uint y = 0; y < grid.GetLength(0); y++)
 		{
-			for (int x = 0; x < grid.GetLength(1); x++)
+			for (uint x = 0; x < grid.GetLength(1); x++)
 			{
                 // Base room GameObject.
 				GameObject roomInstance = new GameObject(grid[y, x].ToString());
@@ -205,13 +164,12 @@ public class MazeGenerator : MonoBehaviour
 				walls.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
 
                 // Create a ceiling for the room.
-				GameObject ceiling = CreateCeiling();
+				GameObject ceiling = CreateCeiling(grid[y, x]);
 				ceiling.transform.SetParent(roomInstance.transform, false);
-				ceiling.transform.position += new Vector3(0.0f, 2.0f, 0.0f);
 				ceiling.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
 
                 // Create the actual room and add it to the Maze.
-				Room room = new Room(grid[y, x], new Point(x, y), roomInstance);
+				Room room = new Room(grid[y, x], new Point((int)x, (int)y), roomInstance);
 				maze.AddRoom(room);
 			}
 		}
@@ -222,12 +180,13 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="value">Bitwise value of the room.</param>
     /// <returns>Floor with the correct shape and orientation.</returns>
-	private GameObject CreateFloor(int value)
+	private GameObject CreateFloor(uint value)
 	{
-		GameObject floorInstance = (GameObject)Instantiate(roomPrefabs[value].prefab,
+		GameObject floorInstance = (GameObject)Instantiate(floor,
 					new Vector3(),
-					Quaternion.Euler(roomPrefabs[value].rotation));
+					Quaternion.Euler(0.0f, 0.0f, 0.0f));
 		floorInstance.name = "Floor";
+		floorInstance.GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[value]);
 		return floorInstance;
 	}
 
@@ -236,7 +195,7 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="value">Bitwise value of the room.</param>
     /// <returns>GameObject with walls parented to it.</returns>
-	private GameObject CreateWalls(int value)
+	private GameObject CreateWalls(uint value)
 	{
         // Walls base GameObject.
 		GameObject wallsInstance = new GameObject("Walls");
@@ -246,7 +205,7 @@ public class MazeGenerator : MonoBehaviour
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
             // If the room value has this direction bit set, create a wall.
-			if ((~value & Room.bits[dir]) > 0)
+			if ((~value & Room.bits[dir]) != 0)
 			{
 				GameObject wallInstance = (GameObject)Instantiate(wall, new Vector3(),
 						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
@@ -258,12 +217,13 @@ public class MazeGenerator : MonoBehaviour
 		return wallsInstance;
 	}
 
-	private GameObject CreateCeiling()
+	private GameObject CreateCeiling(uint value)
 	{
 		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
 					new Vector3(),
 					Quaternion.identity);
 		ceilingInstance.name = "Ceiling";
+		ceilingInstance.transform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[value]);
 		return ceilingInstance;
 	}
 

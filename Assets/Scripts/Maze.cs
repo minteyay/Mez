@@ -31,7 +31,7 @@ public class Maze : MonoBehaviour
     /// <param name="width">Width of the maze in rooms.</param>
     /// <param name="height">Height of the maze in rooms.</param>
     /// <param name="roomDim">Size of a room in world dimensions.</param>
-	public void Initialise(int width, int height, Vector2 roomDim)
+	public void Initialise(uint width, uint height, Vector2 roomDim)
 	{
 		rooms = new Room[height, width];
 		this.roomDim = roomDim;

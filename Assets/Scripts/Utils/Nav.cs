@@ -114,7 +114,7 @@ class Nav
     /// <param name="value">Bitwise connection value of a room.</param>
     /// <param name="facing">Cardinal direction to check for a connection.</param>
     /// <returns>True if the room is connected in the cardinal direction facing, false if not.</returns>
-	public static bool IsConnected(int value, Dir facing)
+	public static bool IsConnected(uint value, Dir facing)
 	{
 		return (value & Room.bits[facing]) != 0;
 	}

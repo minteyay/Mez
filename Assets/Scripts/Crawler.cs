@@ -12,7 +12,7 @@ class Crawler
     /// </summary>
     /// <param name="room">Room that was crawled to.</param>
     /// <param name="distance">Distance (in rooms) that the crawler still has until it's finished.</param>
-	public delegate void OnUpdate(Room room, int distance);
+	public delegate void OnUpdate(Room room, uint distance);
     /// <summary>
     /// Callback that gets called when the Crawler is finished crawling.
     /// </summary>
@@ -30,7 +30,7 @@ class Crawler
     /// <param name="onComplete">Callback for finishing crawling. (can be called multiple times if branch == true)</param>
     /// <param name="branch">If the crawler is allowed to branch into multiple crawlers when at a crossroads. (with this onComplete can be called multiple times)</param>
     /// <param name="allowTurns">If the crawler is allowed to turn at all.</param>
-	public static void Crawl(Maze maze, Vector3 start, Dir facing, int distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool branch = true, bool allowTurns = true)
+	public static void Crawl(Maze maze, Vector3 start, Dir facing, uint distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool branch = true, bool allowTurns = true)
 	{
 		Dir prevFacing = facing;
 		Vector3 prevPos = start;
