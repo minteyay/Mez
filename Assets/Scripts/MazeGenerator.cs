@@ -184,7 +184,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		GameObject floorInstance = (GameObject)Instantiate(floor,
 					new Vector3(),
-					Quaternion.Euler(0.0f, 0.0f, 0.0f));
+					Quaternion.Euler(0.0f, Autotile.tileRotations[value], 0.0f));
 		floorInstance.name = "Floor";
 		floorInstance.GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[value]);
 		return floorInstance;
@@ -221,7 +221,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
 					new Vector3(),
-					Quaternion.identity);
+					Quaternion.Euler(0.0f, Autotile.tileRotations[value], 0.0f));
 		ceilingInstance.name = "Ceiling";
 		ceilingInstance.transform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[value]);
 		return ceilingInstance;
