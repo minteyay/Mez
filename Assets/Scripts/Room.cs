@@ -6,12 +6,6 @@ using System.Collections.Generic;
 /// </summary>
 public class Room
 {
-    /// <summary>
-    /// Bits to set in the bitwise room value depending on the direction of other rooms this one is connected to.
-    /// </summary>
-	public static Dictionary<Dir, uint> bits = new Dictionary<Dir, uint>()
-	{ { Dir.N, 1 }, { Dir.E, 2 }, { Dir.S, 4 }, { Dir.W, 8 } };
-
 	public Room(uint value, Point position, GameObject instance)
 	{
 		this.value = value;

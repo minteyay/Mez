@@ -11,6 +11,12 @@ public enum Dir { N, S, E, W };
 /// </summary>
 class Nav
 {
+	/// <summary>
+    /// Bits to set in the bitwise room value depending on the direction of other rooms it's connected to.
+    /// </summary>
+	public static Dictionary<Dir, uint> bits = new Dictionary<Dir, uint>()
+	{ { Dir.N, 1 }, { Dir.E, 2 }, { Dir.S, 4 }, { Dir.W, 8 } };
+
 	/*
 	 * How to move on the X and Y axes depending on the direction.
 	 * For example: When moving in Dir.N, the x coordinate doesn't change (DX[Dir.N] == 0), and the Y coordinate changes by -1 (DY[Dir.N]).
@@ -116,6 +122,6 @@ class Nav
     /// <returns>True if the room is connected in the cardinal direction facing, false if not.</returns>
 	public static bool IsConnected(uint value, Dir facing)
 	{
-		return (value & Room.bits[facing]) != 0;
+		return (value & bits[facing]) != 0;
 	}
 }

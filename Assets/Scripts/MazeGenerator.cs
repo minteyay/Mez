@@ -28,9 +28,6 @@ public class MazeGenerator : MonoBehaviour
     // Y rotation of the end point.
 	private float endPointRotation = 0.0f;
 
-    // How much to move the walls inwards in rooms.
-	public float wallInset = 0.0f;
-
     // Random number generator to use in generating the maze.
 	private System.Random rnd = null;
 
@@ -110,8 +107,8 @@ public class MazeGenerator : MonoBehaviour
 			if ((ny >= 0 && ny < grid.GetLength(0)) && (nx >= 0 && nx < grid.GetLength(1)) && (grid[ny, nx] == 0))
 			{
                 // Set the connection bits in this new room and the room we came from.
-				grid[y, x] |= Room.bits[dir];
-				grid[ny, nx] |= Room.bits[Nav.opposite[dir]];
+				grid[y, x] |= Nav.bits[dir];
+				grid[ny, nx] |= Nav.bits[Nav.opposite[dir]];
 
                 // Continue generating the maze.
 				CarvePassagesFrom(nx, ny, grid, distance + 1);
@@ -159,7 +156,7 @@ public class MazeGenerator : MonoBehaviour
 				floor.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
 
                 // Create walls for the room.
-				GameObject walls = CreateWalls(grid[y, x]);
+				GameObject walls = CreateWalls(grid, new Point((int)x, (int)y));
 				walls.transform.SetParent(roomInstance.transform, false);
 				walls.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
 
@@ -193,10 +190,13 @@ public class MazeGenerator : MonoBehaviour
     /// <summary>
     /// Creates walls in the directions required by the given bitwise room value.
     /// </summary>
-    /// <param name="value">Bitwise value of the room.</param>
+    /// <param name="grid">2D grid of bitwise room values.</param>
+    /// <param name="pos">Position of the room in the grid.</param>
     /// <returns>GameObject with walls parented to it.</returns>
-	private GameObject CreateWalls(uint value)
+	private GameObject CreateWalls(uint[,] grid, Point pos)
 	{
+		uint value = grid[pos.y, pos.x];
+
         // Walls base GameObject.
 		GameObject wallsInstance = new GameObject("Walls");
 		wallsInstance.AddComponent<MaterialSetter>();
@@ -205,12 +205,38 @@ public class MazeGenerator : MonoBehaviour
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
             // If the room value has this direction bit set, create a wall.
-			if ((~value & Room.bits[dir]) != 0)
+			if ((~value & Nav.bits[dir]) != 0)
 			{
 				GameObject wallInstance = (GameObject)Instantiate(wall, new Vector3(),
 						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
-				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f + wallInset, 0.0f, 0.0f);
+				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
+
+				// Autotile the wall, using the other rooms around it.
+				uint wallValue = 0;
+
+				// Check to the left of the wall direction.
+				if (Nav.IsConnected(value, Nav.left[dir]))
+				{
+					Point leftPos = pos + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]);
+					if (leftPos.x >= 0 && leftPos.x < grid.GetLength(1) && leftPos.y >= 0 && leftPos.y < grid.GetLength(0))
+					{
+						if (Autotile.IsWallConnected(value, grid[leftPos.y, leftPos.x], dir))
+							wallValue |= 1;
+					}
+				}
+				// Check to the right of the wall direction.
+				if (Nav.IsConnected(value, Nav.right[dir]))
+				{
+					Point rightPos = pos + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]);
+					if (rightPos.x >= 0 && rightPos.x < grid.GetLength(1) && rightPos.y >= 0 && rightPos.y < grid.GetLength(0))
+					{
+						if (Autotile.IsWallConnected(value, grid[rightPos.y, rightPos.x], dir))
+							wallValue |= 2;
+					}
+				}
+				// Set the wall texture UV.
+				wallInstance.transform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
 
