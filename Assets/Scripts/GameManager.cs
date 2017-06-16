@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
 	public GameObject uiPrefab = null;
 	private UI ui = null;
 
+	private ThemeManager themeManager = null;
+
 	private MazeGenerator mazeGen = null;
 	private Maze maze = null;
 
@@ -50,6 +52,10 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
+		// Create the theme manager.
+		themeManager = gameObject.AddComponent<ThemeManager>();
+		themeManager.LoadTilesets(themeManager.TilesetNames.ToArray(), () => Debug.Log("all loaded!"));
+
         // Create the UI overlay.
 		GameObject uiInstance = Instantiate(uiPrefab);
 		uiInstance.name = "UI";
