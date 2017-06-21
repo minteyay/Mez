@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 public class MazeGenerator : MonoBehaviour
 {
-	public GameObject mazePrefab = null;
-
     /// Size of a room in world dimensions.
 	public Vector2 roomDim;
 
@@ -51,17 +49,20 @@ public class MazeGenerator : MonoBehaviour
 		//PrintGrid(grid);
 
         // Base GameObject for the maze.
-		GameObject mazeInstance = Instantiate(mazePrefab);
+		GameObject mazeInstance = new GameObject();
 		mazeInstance.name = "Maze";
-		Maze maze = mazeInstance.GetComponent<Maze>();
+		Maze maze = mazeInstance.AddComponent<Maze>();
 		if (maze == null)
 		{
 			Debug.Log("Maze prefab has no Maze script attached!");
 			return null;
 		}
-        // Create the visual parts for the maze.
 		maze.Initialise(width, height, roomDim);
+
 		CreateRooms(grid, maze);
+		CreateRoomGeometry(maze);
+
+		UpdateMazeUVs(maze);
 
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
@@ -144,113 +145,175 @@ public class MazeGenerator : MonoBehaviour
 		{
 			for (uint x = 0; x < grid.GetLength(1); x++)
 			{
-                // Base room GameObject.
-				GameObject roomInstance = new GameObject(grid[y, x].ToString());
-				roomInstance.AddComponent<MaterialSetter>();
-				roomInstance.transform.position = new Vector3(y * roomDim.y, 0.0f, x * roomDim.x);
-				roomInstance.name = grid[y, x].ToString();
-
-                // Create a floor for the room.
-				GameObject floor = CreateFloor(grid[y, x]);
-				floor.transform.SetParent(roomInstance.transform, false);
-				floor.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
-
-                // Create walls for the room.
-				GameObject walls = CreateWalls(grid, new Point((int)x, (int)y));
-				walls.transform.SetParent(roomInstance.transform, false);
-				walls.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
-
-                // Create a ceiling for the room.
-				GameObject ceiling = CreateCeiling(grid[y, x]);
-				ceiling.transform.SetParent(roomInstance.transform, false);
-				ceiling.GetComponent<MaterialSetter>().SetMaterial(defaultMaterial);
-
-                // Create the actual room and add it to the Maze.
-				Room room = new Room(grid[y, x], new Point((int)x, (int)y), roomInstance);
+                // Create the room and add it to the Maze.
+				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
+				if (y == 0)
+					room.theme = "blep";
 				maze.AddRoom(room);
 			}
 		}
 	}
 
-    /// <summary>
-    /// Creates a floor with the shape and orientation corresponding to the given bitwise room value.
-    /// </summary>
-    /// <param name="value">Bitwise value of the room.</param>
-    /// <returns>Floor with the correct shape and orientation.</returns>
-	private GameObject CreateFloor(uint value)
+	/// <summary>
+	/// Creates the room geometries for all the rooms in a maze.
+	/// </summary>
+	/// <param name="maze">Maze to generate room geometries for.</param>
+	private void CreateRoomGeometry(Maze maze)
+	{
+		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
+		{
+			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
+			{
+				maze.rooms[y, x].instance.AddComponent<MaterialSetter>();
+				maze.rooms[y, x].instance.transform.position = new Vector3(y * roomDim.y, 0.0f, x * roomDim.x);
+
+				CreateFloor(maze.rooms[y, x]);
+				CreateCeiling(maze.rooms[y, x]);
+				CreateWalls(maze.rooms[y, x]);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Creates the floor instance for a Room and parents it.
+	/// </summary>
+	/// <param name="room"></param>
+	private void CreateFloor(Room room)
 	{
 		GameObject floorInstance = (GameObject)Instantiate(floor,
 					new Vector3(),
-					Quaternion.Euler(0.0f, Autotile.tileRotations[value], 0.0f));
+					Quaternion.Euler(0.0f, Autotile.tileRotations[room.value], 0.0f));
 		floorInstance.name = "Floor";
-		floorInstance.GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[value]);
-		return floorInstance;
+		floorInstance.transform.SetParent(room.instance.transform, false);
 	}
 
-    /// <summary>
-    /// Creates walls in the directions required by the given bitwise room value.
-    /// </summary>
-    /// <param name="grid">2D grid of bitwise room values.</param>
-    /// <param name="pos">Position of the room in the grid.</param>
-    /// <returns>GameObject with walls parented to it.</returns>
-	private GameObject CreateWalls(uint[,] grid, Point pos)
+	/// <summary>
+	/// Creates the ceiling instance for a Room and parents it.
+	/// </summary>
+	/// <param name="room"></param>
+	private void CreateCeiling(Room room)
 	{
-		uint value = grid[pos.y, pos.x];
+		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
+					new Vector3(),
+					Quaternion.Euler(0.0f, Autotile.tileRotations[room.value], 0.0f));
+		ceilingInstance.name = "Ceiling";
+		ceilingInstance.transform.SetParent(room.instance.transform, false);
+	}
 
+	/// <summary>
+	/// Creates wall instances for a Room and parents them.
+	/// </summary>
+	/// <param name="room"></param>
+	private void CreateWalls(Room room)
+	{
         // Walls base GameObject.
 		GameObject wallsInstance = new GameObject("Walls");
 		wallsInstance.AddComponent<MaterialSetter>();
+		wallsInstance.transform.SetParent(room.instance.transform, false);
 
         // Check all directions to see if there should be a wall facing that way.
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
-            // If the room value has this direction bit set, create a wall.
-			if ((~value & Nav.bits[dir]) != 0)
+            // If the room isn't connected in this direction, create a wall.
+			if ((room.value & Nav.bits[dir]) == 0)
 			{
 				GameObject wallInstance = (GameObject)Instantiate(wall, new Vector3(),
 						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
 				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
+				wallInstance.name = Nav.bits[dir].ToString();
+			}
+		}
+	}
 
-				// Autotile the wall, using the other rooms around it.
-				uint wallValue = 0;
+	/// <summary>
+	/// Updates the UV coordinates of all Room meshes in a Maze by autotiling them.
+	/// </summary>
+	/// <param name="maze"></param>
+	private void UpdateMazeUVs(Maze maze)
+	{
+		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
+		{
+			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
+			{
+				Room room = maze.rooms[y, x];
 
-				// Check to the left of the wall direction.
-				if (Nav.IsConnected(value, Nav.left[dir]))
+				// 
+				uint fixedValue = room.value;
+				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 				{
-					Point leftPos = pos + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]);
-					if (leftPos.x >= 0 && leftPos.x < grid.GetLength(1) && leftPos.y >= 0 && leftPos.y < grid.GetLength(0))
+					if ((room.value & Nav.bits[dir]) != 0)
 					{
-						if (Autotile.IsWallConnected(value, grid[leftPos.y, leftPos.x], dir))
+						Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
+						Room neighbourRoom = maze.GetRoom(neighbourPos);
+						if (neighbourRoom != null)
+						{
+							if (room.theme != neighbourRoom.theme)
+								fixedValue &= ~Nav.bits[dir];
+						}
+					}
+				}
+
+				AutotileFloor(room, fixedValue);
+				AutotileCeiling(room, fixedValue);
+				AutotileWalls(maze, room, fixedValue);
+			}
+		}
+	}
+
+	private void AutotileFloor(Room room, uint fixedRoomValue)
+	{
+		Transform floorTransform = room.instance.transform.Find("Floor");
+
+		floorTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		floorTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
+	}
+
+	private void AutotileCeiling(Room room, uint fixedRoomValue)
+	{
+		Transform ceilingTransform = room.instance.transform.Find("Ceiling");
+
+		ceilingTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
+	}
+
+	private void AutotileWalls(Maze maze, Room room, uint fixedRoomValue)
+	{
+		// Autotile the wall, using the other rooms around it.
+		uint wallValue = 0;
+
+		Transform wallsInstance = room.instance.transform.Find("Walls");
+
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		{
+			if ((room.value & Nav.bits[dir]) == 0)
+			{
+				// Check to the left of the wall direction.
+				if (Nav.IsConnected(room.value, Nav.left[dir]))
+				{
+					Point leftPos = room.position + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]);
+					if (leftPos.x >= 0 && leftPos.x < maze.rooms.GetLength(1) && leftPos.y >= 0 && leftPos.y < maze.rooms.GetLength(0))
+					{
+						if (Autotile.IsWallConnected(room.value, maze.rooms[leftPos.y, leftPos.x].value, dir))
 							wallValue |= 1;
 					}
 				}
 				// Check to the right of the wall direction.
-				if (Nav.IsConnected(value, Nav.right[dir]))
+				if (Nav.IsConnected(room.value, Nav.right[dir]))
 				{
-					Point rightPos = pos + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]);
-					if (rightPos.x >= 0 && rightPos.x < grid.GetLength(1) && rightPos.y >= 0 && rightPos.y < grid.GetLength(0))
+					Point rightPos = room.position + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]);
+					if (rightPos.x >= 0 && rightPos.x < maze.rooms.GetLength(1) && rightPos.y >= 0 && rightPos.y < maze.rooms.GetLength(0))
 					{
-						if (Autotile.IsWallConnected(value, grid[rightPos.y, rightPos.x], dir))
+						if (Autotile.IsWallConnected(room.value, maze.rooms[rightPos.y, rightPos.x].value, dir))
 							wallValue |= 2;
 					}
 				}
+
 				// Set the wall texture UV.
-				wallInstance.transform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
+				Transform wallInstance = wallsInstance.Find(Nav.bits[dir].ToString());
+				wallInstance.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
-
-		return wallsInstance;
-	}
-
-	private GameObject CreateCeiling(uint value)
-	{
-		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
-					new Vector3(),
-					Quaternion.Euler(0.0f, Autotile.tileRotations[value], 0.0f));
-		ceilingInstance.name = "Ceiling";
-		ceilingInstance.transform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[value]);
-		return ceilingInstance;
 	}
 
     /// <summary>

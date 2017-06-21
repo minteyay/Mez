@@ -43,6 +43,13 @@ public class Maze : MonoBehaviour
 		room.instance.transform.parent = transform;
 	}
 
+	public Room GetRoom(Point pos)
+	{
+		if (pos.x < 0 || pos.y < 0 || pos.x >= rooms.GetLength(1) || pos.y >= rooms.GetLength(0))
+			return null;
+		return rooms[pos.y, pos.x];
+	}
+
     /// <summary>
     /// Parent a GameObject to the Room in the given index.
     /// </summary>
