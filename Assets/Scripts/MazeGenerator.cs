@@ -147,7 +147,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				if (y == 0)
+				if (y <= 1)
 					room.theme = "blep";
 				maze.AddRoom(room);
 			}
@@ -286,10 +286,12 @@ public class MazeGenerator : MonoBehaviour
 
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
+			wallValue = 0;
+
 			if ((room.value & Nav.bits[dir]) == 0)
 			{
 				// Check to the left of the wall direction.
-				if (Nav.IsConnected(room.value, Nav.left[dir]))
+				if (Nav.IsConnected(fixedRoomValue, Nav.left[dir]))
 				{
 					Point leftPos = room.position + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]);
 					if (leftPos.x >= 0 && leftPos.x < maze.rooms.GetLength(1) && leftPos.y >= 0 && leftPos.y < maze.rooms.GetLength(0))
@@ -299,7 +301,7 @@ public class MazeGenerator : MonoBehaviour
 					}
 				}
 				// Check to the right of the wall direction.
-				if (Nav.IsConnected(room.value, Nav.right[dir]))
+				if (Nav.IsConnected(fixedRoomValue, Nav.right[dir]))
 				{
 					Point rightPos = room.position + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]);
 					if (rightPos.x >= 0 && rightPos.x < maze.rooms.GetLength(1) && rightPos.y >= 0 && rightPos.y < maze.rooms.GetLength(0))
