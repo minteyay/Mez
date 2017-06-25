@@ -13,6 +13,7 @@ class Crawler
     /// <param name="room">Room that was crawled to.</param>
     /// <param name="distance">Distance (in rooms) that the crawler still has until it's finished.</param>
 	public delegate void OnUpdate(Room room, uint distance);
+	
     /// <summary>
     /// Callback that gets called when the Crawler is finished crawling.
     /// </summary>

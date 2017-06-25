@@ -9,15 +9,17 @@ public class ThemeManager : MonoBehaviour
 	private const string tilesetPath = "/Textures/Tilesets/";
 
 	public List<string> TilesetNames { get; private set; }
-	public Dictionary<string, Texture2D> Tilesets { get; private set; }
+	public Dictionary<string, Material> Tilesets { get; private set; }
 
 	private int tilesetsLoaded = 0;
 	private int tilesetsToLoad = 0;
 
+	public Shader defaultShader = null;
+
 	public void Awake()
 	{
 		TilesetNames = new List<string>();
-		Tilesets = new Dictionary<string, Texture2D>();
+		Tilesets = new Dictionary<string, Material>();
 
 		// Enumerate tilesets.
 		string[] tilesets = System.IO.Directory.GetFiles(Application.dataPath + tilesetPath, "*.png");
@@ -61,7 +63,16 @@ public class ThemeManager : MonoBehaviour
 	{
 		WWW www = new WWW("file://" + Application.dataPath + tilesetPath + tilesetName + ".png");
 		yield return www;
-		Tilesets.Add(tilesetName, www.texture);
+
+		Texture2D tilesetTexture = new Texture2D(128, 128, TextureFormat.RGBA32, false, false);
+		tilesetTexture.anisoLevel = 0;
+		tilesetTexture.filterMode = FilterMode.Point;
+		www.LoadImageIntoTexture(tilesetTexture);
+
+		Material tilesetMaterial = new Material(defaultShader);
+		tilesetMaterial.mainTexture = tilesetTexture;
+		Tilesets.Add(tilesetName, tilesetMaterial);
+
 		if (callback != null)
 			callback();
 	}

@@ -5,7 +5,7 @@ class Autotile
 {
     public static uint wallTileStartIndex = 0;
     public static uint floorTileStartIndex = 4;
-    public static uint ceilingTileStartIndex = 9;
+    public static uint ceilingTileStartIndex = 10;
 
     /// Rotations for tiles indexed by their 4-bit bitwise value.
     public static float[] tileRotations = {
@@ -15,7 +15,7 @@ class Autotile
 
     /// Tile index offset based on a tile's 4-bit bitwise value.
     public static uint[] fourBitTileIndices = {
-        0, 0, 0, 4, 0, 1, 4, 2,
+        5, 0, 0, 4, 0, 1, 4, 2,
         0, 4, 1, 2, 4, 2, 2, 3
     };
 

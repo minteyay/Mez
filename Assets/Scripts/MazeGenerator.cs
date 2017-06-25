@@ -83,6 +83,21 @@ public class MazeGenerator : MonoBehaviour
 		return maze;
 	}
 
+	public void TextureMaze(Maze maze, ThemeManager themeManager)
+	{
+		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
+		{
+			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
+			{
+				MaterialSetter roomMaterialSetter = maze.rooms[y, x].instance.GetComponent<MaterialSetter>();
+				if (themeManager.Tilesets.ContainsKey(maze.rooms[y, x].theme))
+					roomMaterialSetter.SetMaterial(themeManager.Tilesets[maze.rooms[y, x].theme]);
+				else
+					roomMaterialSetter.SetMaterial(defaultMaterial);
+			}
+		}
+	}
+
     /// <summary>
     /// <para>Generates a maze into a 2D array.</para>
     /// <para>Calls itself recursively until the maze is complete.</para>
@@ -147,8 +162,8 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				if (y <= 1)
-					room.theme = "blep";
+				if (y <= 4)
+					room.theme = "paperhouse";
 				maze.AddRoom(room);
 			}
 		}

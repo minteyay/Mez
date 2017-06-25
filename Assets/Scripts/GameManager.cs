@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour
 
 	void Awake()
 	{
+		themeManager = GetComponent<ThemeManager>();
 		mazeGen = GetComponent<MazeGenerator>();
 		Cursor.visible = false;
 
@@ -52,16 +53,13 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
-		// Create the theme manager.
-		themeManager = gameObject.AddComponent<ThemeManager>();
-		themeManager.LoadTilesets(themeManager.TilesetNames.ToArray(), () => Debug.Log("all loaded!"));
+		// Load all tilesets
+		themeManager.LoadTilesets(themeManager.TilesetNames.ToArray(), StartLevel);
 
         // Create the UI overlay.
 		GameObject uiInstance = Instantiate(uiPrefab);
 		uiInstance.name = "UI";
 		ui = uiInstance.GetComponent<UI>();
-
-		StartLevel();
 	}
 
 	void Update()
@@ -111,6 +109,7 @@ public class GameManager : MonoBehaviour
 
         // Generate a new maze.
 		maze = mazeGen.GenerateMaze(mazeWidth, mazeHeight);
+		mazeGen.TextureMaze(maze, themeManager);
 
         // Create a new player if one doesn't already exist.
 		if (playerInstance == null)
