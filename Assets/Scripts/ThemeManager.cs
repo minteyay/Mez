@@ -6,9 +6,9 @@ public class ThemeManager : MonoBehaviour
 {
 	public delegate void LoadingComplete();
 
-	private const string tilesetPath = "/Textures/Tilesets/";
+	private const string themePath = "/Themes/";
 
-	public List<string> TilesetNames { get; private set; }
+	public List<string> ThemeNames { get; private set; }
 	public Dictionary<string, Material> Tilesets { get; private set; }
 
 	private int tilesetsLoaded = 0;
@@ -18,16 +18,16 @@ public class ThemeManager : MonoBehaviour
 
 	public void Awake()
 	{
-		TilesetNames = new List<string>();
+		ThemeNames = new List<string>();
 		Tilesets = new Dictionary<string, Material>();
 
-		// Enumerate tilesets.
-		string[] tilesets = System.IO.Directory.GetFiles(Application.dataPath + tilesetPath, "*.png");
-		foreach (string s in tilesets)
+		// Enumerate themes.
+		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + themePath);
+		foreach (string s in themes)
 		{
-			// Only store the tileset's name.
-			string tilesetName = s.Substring(s.LastIndexOf('/') + 1, s.LastIndexOf(".png") - s.LastIndexOf('/') - 1);
-			TilesetNames.Add(tilesetName);
+			// Only store the theme's name.
+			string themeName = s.Substring(s.LastIndexOf('/') + 1);
+			ThemeNames.Add(themeName);
 		}
 	}
 
@@ -56,12 +56,20 @@ public class ThemeManager : MonoBehaviour
 
 	public void LoadTileset(string tilesetName, LoadingComplete callback)
 	{
+		string tilesetPath = Application.dataPath + themePath + tilesetName + "/" + tilesetName + ".png";
+		if (!System.IO.File.Exists(tilesetPath))
+		{
+			Debug.LogWarning("Trying to load tileset " + tilesetPath + " which doesn't exist!");
+			callback();
+			return;
+		}
+
 		StartCoroutine(DoLoadTileset(tilesetName, callback));
 	}
 
 	private IEnumerator<WWW> DoLoadTileset(string tilesetName, LoadingComplete callback)
 	{
-		WWW www = new WWW("file://" + Application.dataPath + tilesetPath + tilesetName + ".png");
+		WWW www = new WWW("file://" + Application.dataPath + themePath + tilesetName + "/" + tilesetName + ".png");
 		yield return www;
 
 		Texture2D tilesetTexture = new Texture2D(128, 128, TextureFormat.RGBA32, false, false);

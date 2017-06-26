@@ -14,9 +14,6 @@ public class MazeGenerator : MonoBehaviour
 	/// Ceiling model prefab.
 	public GameObject ceiling = null;
 
-	/// Default maze material.
-	public Material defaultMaterial = null;
-
     // End point prefab.
 	public GameObject endPoint = null;
     // Distance to the end point from the start of the maze.
@@ -83,6 +80,12 @@ public class MazeGenerator : MonoBehaviour
 		return maze;
 	}
 
+	/// <summary>
+	/// Textures the room instances in a Maze by pulling tilesets from the supplied ThemeManager.
+	/// If a Room requires a tileset that's not found in the ThemeManager, the default material in the MazeGenerator is used.
+	/// </summary>
+	/// <param name="maze"></param>
+	/// <param name="themeManager"></param>
 	public void TextureMaze(Maze maze, ThemeManager themeManager)
 	{
 		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
@@ -90,18 +93,30 @@ public class MazeGenerator : MonoBehaviour
 			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
 			{
 				MaterialSetter roomMaterialSetter = maze.rooms[y, x].instance.GetComponent<MaterialSetter>();
+				// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
 				if (themeManager.Tilesets.ContainsKey(maze.rooms[y, x].theme))
+				{
 					roomMaterialSetter.SetMaterial(themeManager.Tilesets[maze.rooms[y, x].theme]);
+				}
+				else if (themeManager.Tilesets.ContainsKey("default"))
+				{
+					roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
+					Debug.LogWarning("Tileset named \"" + maze.rooms[y, x].theme + "\" not found in supplied ThemeManager, using default material.",
+						maze.rooms[y, x].instance);
+				}
 				else
-					roomMaterialSetter.SetMaterial(defaultMaterial);
+				{
+					Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + maze.rooms[y, x].theme + "\" wasn't found, but the default one wasn't found either.",
+						maze.rooms[y, x].instance);
+				}
 			}
 		}
 	}
 
     /// <summary>
-    /// <para>Generates a maze into a 2D array.</para>
-    /// <para>Calls itself recursively until the maze is complete.</para>
-    /// <para>Uses bitwise integers to denote directions a room is connected in (these can be found in Room).</para>
+    /// Generates a maze into a 2D array.
+    /// Calls itself recursively until the maze is complete.
+    /// Uses bitwise integers to denote directions a room is connected in (these can be found in Room).
     /// </summary>
     /// <param name="x">Index x position to continue generating the maze from.</param>
     /// <param name="y">Index y position to continue generating the maze from.</param>
