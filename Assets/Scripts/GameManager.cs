@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
 	void Start()
 	{
 		// Load all tilesets
-		themeManager.LoadTilesets(themeManager.ThemeNames.ToArray(), StartLevel);
+		themeManager.LoadThemeTilesets("paperhouse", StartLevel);
 
         // Create the UI overlay.
 		GameObject uiInstance = Instantiate(uiPrefab);

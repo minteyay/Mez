@@ -1,0 +1,8 @@
+name: Paper house
+size: 8x8
+
+room: paper
+tileset: paperhouse
+start: random
+count: 2
+size: 3

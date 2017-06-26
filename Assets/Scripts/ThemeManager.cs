@@ -31,7 +31,7 @@ public class ThemeManager : MonoBehaviour
 		}
 	}
 
-	public void LoadTilesets(string[] tilesetNames, LoadingComplete callback)
+	public void LoadThemeTilesets(string themeName, LoadingComplete callback)
 	{
 		if (tilesetsToLoad != 0)
 		{
@@ -39,9 +39,11 @@ public class ThemeManager : MonoBehaviour
 			return;
 		}
 		tilesetsLoaded = 0;
-		tilesetsToLoad = tilesetNames.Length;
-		foreach (string tilesetName in tilesetNames)
-			LoadTileset(tilesetName, () => TilesetLoaded(callback));
+
+		string[] tilesetPaths = System.IO.Directory.GetFiles(Application.dataPath + "/Themes/" + themeName, "*.png");
+		tilesetsToLoad = tilesetPaths.Length;
+		foreach (string path in tilesetPaths)
+			LoadTileset(path, () => TilesetLoaded(callback));
 	}
 
 	private void TilesetLoaded(LoadingComplete callback)
@@ -54,22 +56,21 @@ public class ThemeManager : MonoBehaviour
 		tilesetsToLoad = 0;
 	}
 
-	public void LoadTileset(string tilesetName, LoadingComplete callback)
+	public void LoadTileset(string tilesetPath, LoadingComplete callback)
 	{
-		string tilesetPath = Application.dataPath + themePath + tilesetName + "/" + tilesetName + ".png";
 		if (!System.IO.File.Exists(tilesetPath))
 		{
-			Debug.LogWarning("Trying to load tileset " + tilesetPath + " which doesn't exist!");
+			Debug.LogWarning("Trying to load tileset \"" + tilesetPath + "\" which doesn't exist!");
 			callback();
 			return;
 		}
 
-		StartCoroutine(DoLoadTileset(tilesetName, callback));
+		StartCoroutine(DoLoadTileset(tilesetPath, callback));
 	}
 
-	private IEnumerator<WWW> DoLoadTileset(string tilesetName, LoadingComplete callback)
+	private IEnumerator<WWW> DoLoadTileset(string tilesetPath, LoadingComplete callback)
 	{
-		WWW www = new WWW("file://" + Application.dataPath + themePath + tilesetName + "/" + tilesetName + ".png");
+		WWW www = new WWW("file://" + tilesetPath);
 		yield return www;
 
 		Texture2D tilesetTexture = new Texture2D(128, 128, TextureFormat.RGBA32, false, false);
@@ -79,6 +80,8 @@ public class ThemeManager : MonoBehaviour
 
 		Material tilesetMaterial = new Material(defaultShader);
 		tilesetMaterial.mainTexture = tilesetTexture;
+
+		string tilesetName = tilesetPath.Substring(tilesetPath.LastIndexOf('/') + 1, tilesetPath.LastIndexOf(".png") - tilesetPath.LastIndexOf('/') - 1);
 		Tilesets.Add(tilesetName, tilesetMaterial);
 
 		if (callback != null)

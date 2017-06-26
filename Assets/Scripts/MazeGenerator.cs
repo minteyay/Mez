@@ -98,12 +98,14 @@ public class MazeGenerator : MonoBehaviour
 				{
 					roomMaterialSetter.SetMaterial(themeManager.Tilesets[maze.rooms[y, x].theme]);
 				}
+				// Try applying the default tileset if the Room's one isn't loaded.
 				else if (themeManager.Tilesets.ContainsKey("default"))
 				{
 					roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
 					Debug.LogWarning("Tileset named \"" + maze.rooms[y, x].theme + "\" not found in supplied ThemeManager, using default material.",
 						maze.rooms[y, x].instance);
 				}
+				// Even the default tileset wasn't found, so leave the Room untextured.
 				else
 				{
 					Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + maze.rooms[y, x].theme + "\" wasn't found, but the default one wasn't found either.",
@@ -177,7 +179,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				if (y <= 4)
+				if (y <= 3)
 					room.theme = "paperhouse";
 				maze.AddRoom(room);
 			}
