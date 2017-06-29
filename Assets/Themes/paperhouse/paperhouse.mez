@@ -6,3 +6,8 @@ tileset: paperhouse
 start: random
 count: 2
 size: 3
+
+room: entry
+tileset: paperhouse
+start: start
+size: 5

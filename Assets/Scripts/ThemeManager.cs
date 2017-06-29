@@ -9,6 +9,7 @@ public class ThemeManager : MonoBehaviour
 	private const string themePath = "/Themes/";
 
 	public List<string> ThemeNames { get; private set; }
+	public Dictionary<string, MazeRuleset> Rulesets { get; private set; }
 	public Dictionary<string, Material> Tilesets { get; private set; }
 
 	private int tilesetsLoaded = 0;
@@ -19,6 +20,7 @@ public class ThemeManager : MonoBehaviour
 	public void Awake()
 	{
 		ThemeNames = new List<string>();
+		Rulesets = new Dictionary<string, MazeRuleset>();
 		Tilesets = new Dictionary<string, Material>();
 
 		// Enumerate themes.
@@ -29,6 +31,33 @@ public class ThemeManager : MonoBehaviour
 			string themeName = s.Substring(s.LastIndexOf('/') + 1);
 			ThemeNames.Add(themeName);
 		}
+	}
+
+	public void LoadThemeRuleset(string themeName, LoadingComplete callback)
+	{
+		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".mez";
+		if (!System.IO.File.Exists(rulesetPath))
+		{
+			Debug.LogWarning("Trying to load tileset \"" + rulesetPath + "\" which doesn't exist!");
+			callback();
+			return;
+		}
+
+		StartCoroutine(DoLoadThemeRuleset(rulesetPath, callback));
+	}
+
+	private IEnumerator<WWW> DoLoadThemeRuleset(string rulesetPath, LoadingComplete callback)
+	{
+		WWW www = new WWW("file://" + rulesetPath);
+		yield return www;
+
+		string[][] rulesetData = BlockFile.GetBlocks(www.text);
+		MazeRuleset ruleset = new MazeRuleset(rulesetData);
+		string rulesetName = rulesetPath.Substring(rulesetPath.LastIndexOf('/') + 1, rulesetPath.LastIndexOf(".mez") - rulesetPath.LastIndexOf('/') - 1);
+		Rulesets.Add(rulesetName, ruleset);
+
+		if (callback != null)
+			callback();
 	}
 
 	public void LoadThemeTilesets(string themeName, LoadingComplete callback)
