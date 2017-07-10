@@ -51,6 +51,11 @@ public class MazeRuleset
                         Debug.LogWarning("Couldn't parse \"" + kvp.Value + "\" into a maze size.");
                         break;
                     }
+                    if (newSize.x <= 0 || newSize.y <= 0)
+                    {
+                        Debug.LogWarning("Maze dimensions must be bigger than 0. Using default maze size.");
+                        break;
+                    }
                     size = newSize;
                     break;
                 case "tileset":
@@ -68,8 +73,8 @@ public class CrawlerRuleset
     public string name = "";
     public string tileset = "default";
     public CrawlerStart start = CrawlerStart.Random;
-    public int count = 1;
-    public int size = 1;
+    public uint count = 1;
+    public uint size = 1;
 
     public CrawlerRuleset(string[] data)
     {
@@ -102,8 +107,8 @@ public class CrawlerRuleset
                     }
                     break;
                 case "count":
-                    int newCount;
-                    if (!Int32.TryParse(kvp.Value, out newCount))
+                    uint newCount;
+                    if (!UInt32.TryParse(kvp.Value, out newCount))
                     {
                         Debug.LogWarning("Couldn't parse \"" + kvp.Value + "\" into an Int32.");
                         break;
@@ -111,8 +116,8 @@ public class CrawlerRuleset
                     count = newCount;
                     break;
                 case "size":
-                    int newSize;
-                    if (!Int32.TryParse(kvp.Value, out newSize))
+                    uint newSize;
+                    if (!UInt32.TryParse(kvp.Value, out newSize))
                     {
                         Debug.LogWarning("Couldn't parse \"" + kvp.Value + "\" into an Int32.");
                         break;

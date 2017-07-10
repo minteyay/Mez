@@ -32,15 +32,15 @@ public class MazeGenerator : MonoBehaviour
 	}
 
     /// <summary>
-    /// Generates a maze with the given dimensions.
+    /// Generates a maze with the given ruleset.
     /// </summary>
     /// <returns>A brand-new maze to play with.</returns>
-	public Maze GenerateMaze(uint width, uint height)
+	public Maze GenerateMaze(MazeRuleset ruleset)
 	{
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
 
-		uint[,] grid = new uint[height, width];
+		uint[,] grid = new uint[ruleset.size.y, ruleset.size.x];
         // Generate the maze.
 		CarvePassagesFrom(0, 0, grid, 0);
 		//PrintGrid(grid);
@@ -54,10 +54,12 @@ public class MazeGenerator : MonoBehaviour
 			Debug.Log("Maze prefab has no Maze script attached!");
 			return null;
 		}
-		maze.Initialise(width, height, roomDim);
+		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
 
-		CreateRooms(grid, maze);
+		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
+
+		RunCrawlers(maze, ruleset.crawlers);
 
 		UpdateMazeUVs(maze);
 
@@ -171,7 +173,7 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="grid">2D grid of bitwise room values.</param>
     /// <param name="maze">Maze to add the rooms into.</param>
-	private void CreateRooms(uint[,] grid, Maze maze)
+	private void CreateRooms(uint[,] grid, Maze maze, string defaultTheme = "default")
 	{
 		for (uint y = 0; y < grid.GetLength(0); y++)
 		{
@@ -179,8 +181,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				if (y <= 3)
-					room.theme = "paperhouse";
+				room.theme = defaultTheme;
 				maze.AddRoom(room);
 			}
 		}
@@ -258,6 +259,41 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
+	private void RunCrawlers(Maze maze, List<CrawlerRuleset> crawlers)
+	{
+		foreach (CrawlerRuleset crawlerRuleset in crawlers)
+		{
+			for (uint i = 0; i < crawlerRuleset.count; i++)
+			{
+				Room startRoom = null;
+				switch (crawlerRuleset.start)
+				{
+					case CrawlerRuleset.CrawlerStart.Start:
+						startRoom = maze.rooms[0, 0];
+						break;
+					case CrawlerRuleset.CrawlerStart.Random:
+						Point randomPoint = new Point(rnd.Next(maze.size.x), rnd.Next(maze.size.y));
+						startRoom = maze.rooms[randomPoint.y, randomPoint.x];
+						break;
+					case CrawlerRuleset.CrawlerStart.End:
+						Point endPoint = Nav.GetIndexAt(maze.endPoint.transform.position, maze.roomDim);
+						startRoom = maze.rooms[endPoint.y, endPoint.x];
+						break;
+				}
+
+				List<Dir> possibleDirs = new List<Dir>();
+				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+				{
+					if (Nav.IsConnected(startRoom.value, dir))
+						possibleDirs.Add(dir);
+				}
+
+				Crawler.Crawl(maze, startRoom.instance.transform.position, possibleDirs[rnd.Next(possibleDirs.Count)], crawlerRuleset.size,
+					(Room room, uint distance) => { room.theme = crawlerRuleset.tileset; } );
+			}
+		}
+	}
+
 	/// <summary>
 	/// Updates the UV coordinates of all Room meshes in a Maze by autotiling them.
 	/// </summary>
@@ -270,7 +306,6 @@ public class MazeGenerator : MonoBehaviour
 			{
 				Room room = maze.rooms[y, x];
 
-				// 
 				uint fixedValue = room.value;
 				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 				{

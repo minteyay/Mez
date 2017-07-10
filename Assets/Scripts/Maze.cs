@@ -2,11 +2,14 @@
 
 public class Maze : MonoBehaviour
 {
+	public Point size;
+
     /// <summary>
     /// 2D array of rooms in the Maze.
     /// </summary>
 	[HideInInspector]
 	public Room[,] rooms;
+
     /// <summary>
     /// Size of a room in world dimensions.
     /// </summary>
@@ -33,6 +36,7 @@ public class Maze : MonoBehaviour
     /// <param name="roomDim">Size of a room in world dimensions.</param>
 	public void Initialise(uint width, uint height, Vector2 roomDim)
 	{
+		size = new Point((int)width, (int)height);
 		rooms = new Room[height, width];
 		this.roomDim = roomDim;
 	}

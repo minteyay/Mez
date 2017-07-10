@@ -53,10 +53,10 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
+		themeManager.LoadThemeRuleset("paperhouse", null);
+
 		// Load all tilesets
 		themeManager.LoadThemeTilesets("paperhouse", StartLevel);
-
-		themeManager.LoadThemeRuleset("paperhouse", null);
 
         // Create the UI overlay.
 		GameObject uiInstance = Instantiate(uiPrefab);
@@ -109,8 +109,10 @@ public class GameManager : MonoBehaviour
 			Resources.UnloadUnusedAssets();
 		}
 
+		MazeRuleset ruleset = themeManager.Rulesets["paperhouse"];
+
         // Generate a new maze.
-		maze = mazeGen.GenerateMaze(mazeWidth, mazeHeight);
+		maze = mazeGen.GenerateMaze(ruleset);
 		mazeGen.TextureMaze(maze, themeManager);
 
         // Create a new player if one doesn't already exist.
