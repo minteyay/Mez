@@ -101,13 +101,13 @@ public class Player : MonoBehaviour
 		Dir newFacing = Dir.N;
 		Vector3 oldTarget = target;
         // Get a new target to move towards, always hugging the left wall.
-		Vector3 newTarget = maze.MoveLeftmost(oldTarget, Nav.GetFacing(transform.rotation.eulerAngles.y), out newFacing);
+		Vector3 newTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(Nav.GetIndexAt(oldTarget, maze.roomDim), Nav.GetFacing(transform.rotation.eulerAngles.y), out newFacing));
 		Vector3 delta = oldTarget;
 
         // Plot a new path to the target position.
 		pathToTarget.Clear();
 		pathToTarget.Add(oldTarget + (newTarget - oldTarget).normalized * maze.roomDim.x * accelTime * (movementSpeed / 4));
-		Crawler.CrawlUntilTurn(maze, newTarget, newFacing, null, room => target = Nav.GetPosAt(room.position, maze.roomDim));
+		Crawler.CrawlUntilTurn(maze, Nav.GetIndexAt(newTarget, maze.roomDim), newFacing, null, room => target = Nav.GetPosAt(room.position, maze.roomDim));
 		pathToTarget.Add(target - (target - oldTarget).normalized * maze.roomDim.x * accelTime * (movementSpeed / 4));
 		pathToTarget.Add(target);
 

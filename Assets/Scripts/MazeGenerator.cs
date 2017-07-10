@@ -288,7 +288,7 @@ public class MazeGenerator : MonoBehaviour
 						possibleDirs.Add(dir);
 				}
 
-				Crawler.Crawl(maze, startRoom.instance.transform.position, possibleDirs[rnd.Next(possibleDirs.Count)], crawlerRuleset.size,
+				Crawler.Crawl(maze, startRoom.position, possibleDirs[rnd.Next(possibleDirs.Count)], crawlerRuleset.size,
 					(Room room, uint distance) => { room.theme = crawlerRuleset.tileset; } );
 			}
 		}

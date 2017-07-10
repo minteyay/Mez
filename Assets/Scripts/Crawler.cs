@@ -31,16 +31,15 @@ class Crawler
     /// <param name="onComplete">Callback for finishing crawling. (can be called multiple times if branch == true)</param>
     /// <param name="branch">If the crawler is allowed to branch into multiple crawlers when at a crossroads. (with this onComplete can be called multiple times)</param>
     /// <param name="allowTurns">If the crawler is allowed to turn at all.</param>
-	public static void Crawl(Maze maze, Vector3 start, Dir facing, uint distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool branch = true, bool allowTurns = true)
+	public static void Crawl(Maze maze, Point start, Dir facing, uint distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool branch = true, bool allowTurns = true)
 	{
 		Dir prevFacing = facing;
-		Vector3 prevPos = start;
+		Point prevPos = start;
 
         // OnUpdate callback on the first room the Crawler starts at.
 		if (onUpdate != null)
 		{
-			Point startPoint = Nav.GetIndexAt(start, maze.roomDim);
-			onUpdate.Invoke(maze.rooms[startPoint.y, startPoint.x], distance);
+			onUpdate.Invoke(maze.rooms[start.y, start.x], distance);
 		}
 
         // Keep crawling as long as there is distance left.
@@ -48,17 +47,16 @@ class Crawler
 		{
 			distance--;
 
-            // Get a new world position for a room to try to move to.
-			Vector3 newPos = maze.MoveStraight(prevPos, prevFacing, false);
+            // Get a new position for a room to try to move to.
+			Point newPos = maze.MoveStraight(prevPos, prevFacing, false);
 
             // Return if the crawler has hit a dead end.
 			if (newPos == prevPos)
 				return;
-			Point newPoint = Nav.GetIndexAt(newPos, maze.roomDim);
 
             // Calculate the new cardinal direction to face when moving to the new room.
-			Vector3 posDelta = prevPos - newPos;
-			float targetAngle = Quaternion.LookRotation(posDelta, Vector3.up).eulerAngles.y;
+			Point posDelta = prevPos - newPos;
+			float targetAngle = Quaternion.LookRotation(new Vector3(posDelta.x, posDelta.y), Vector3.up).eulerAngles.y;
 
 			Dir newFacing = Nav.GetFacing(targetAngle);
 			if (!allowTurns)
@@ -71,7 +69,7 @@ class Crawler
 
             // OnUpdate callback on the new room to move to.
             if (onUpdate != null)
-                onUpdate.Invoke(maze.rooms[newPoint.y, newPoint.x], distance);
+                onUpdate.Invoke(maze.rooms[newPos.y, newPos.x], distance);
 
             if (branch)
 			{
@@ -80,7 +78,7 @@ class Crawler
 				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 				{
 					if (dir != Nav.opposite[prevFacing])
-						if (Nav.IsConnected(maze.rooms[newPoint.y, newPoint.x].value, dir))
+						if (Nav.IsConnected(maze.rooms[newPos.y, newPos.x].value, dir))
 							connections.Add(dir);
 				}
 				if (connections.Count > 1)
@@ -102,8 +100,7 @@ class Crawler
         // OnComplete callback when finishing crawling.
 		if (onComplete != null)
 		{
-			Point finalPoint = Nav.GetIndexAt(prevPos, maze.roomDim);
-			onComplete.Invoke(maze.rooms[finalPoint.y, finalPoint.x]);
+			onComplete.Invoke(maze.rooms[prevPos.y, prevPos.x]);
 		}
 	}
 
@@ -115,47 +112,44 @@ class Crawler
     /// <param name="facing">Cardinal direction to start crawling towards.</param>
     /// <param name="onUpdate">Callback for entering a room.</param>
     /// <param name="onComplete">Callback for finishing crawling.</param>
-	public static void CrawlUntilTurn(Maze maze, Vector3 start, Dir facing, OnUpdate onUpdate = null, OnComplete onComplete = null)
+	public static void CrawlUntilTurn(Maze maze, Point start, Dir facing, OnUpdate onUpdate = null, OnComplete onComplete = null)
 	{
         /*
          * See Crawler.Crawl for how this works.
          */
 
 		Dir prevFacing = facing;
-		Vector3 prevPos = start;
+		Point prevPos = start;
 
 		if (onUpdate != null)
 		{
-			Point startPoint = Nav.GetIndexAt(start, maze.roomDim);
-			onUpdate.Invoke(maze.rooms[startPoint.y, startPoint.x], 0);
+			onUpdate.Invoke(maze.rooms[start.y, start.x], 0);
 		}
 
 		while (true)
 		{
 			Dir newFacing;
-			Vector3 newPos = maze.MoveLeftmost(prevPos, prevFacing, out newFacing);
+			Point newPos = maze.MoveLeftmost(prevPos, prevFacing, out newFacing);
 
 			if (newPos == prevPos)
 				return;
-			Point newPoint = Nav.GetIndexAt(newPos, maze.roomDim);
 
-			Vector3 posDelta = prevPos - newPos;
-			float targetAngle = Quaternion.LookRotation(posDelta, Vector3.up).eulerAngles.y;
+			Point posDelta = prevPos - newPos;
+			float targetAngle = Quaternion.LookRotation(new Vector3(posDelta.x, posDelta.y), Vector3.up).eulerAngles.y;
 
 			if (newFacing != prevFacing)
 				break;
 			prevFacing = newFacing;
 
 			if (onUpdate != null)
-				onUpdate.Invoke(maze.rooms[newPoint.y, newPoint.x], 0);
+				onUpdate.Invoke(maze.rooms[newPos.y, newPos.x], 0);
 
 			prevPos = newPos;
 		}
 
 		if (onComplete != null)
 		{
-			Point finalPoint = Nav.GetIndexAt(prevPos, maze.roomDim);
-			onComplete.Invoke(maze.rooms[finalPoint.y, finalPoint.x]);
+			onComplete.Invoke(maze.rooms[prevPos.y, prevPos.x]);
 		}
 	}
 }

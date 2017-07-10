@@ -86,38 +86,38 @@ public class Maze : MonoBehaviour
     /// <param name="facing">Facing to find the leftmost room from.</param>
     /// <param name="newFacing">New facing towards the leftmost room.</param>
     /// <returns>Position of the leftmost room to move to.</returns>
-	public Vector3 MoveLeftmost(Vector3 position, Dir facing, out Dir newFacing)
+	public Point MoveLeftmost(Point position, Dir facing, out Dir newFacing)
 	{
-		Point posIndex = Nav.GetIndexAt(position, roomDim);
-		Point newPos = new Point(posIndex);
+		Point newPos = new Point(position);
 		Dir chosenDir = facing;
+
         // Check if there's a connected room to the left.
-		if (IsConnected(posIndex, Nav.left[facing]))
+		if (IsConnected(position, Nav.left[facing]))
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.left[facing]], posIndex.y + Nav.DY[Nav.left[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 			chosenDir = Nav.left[facing];
 		}
         // Check if there's a connected room straight ahead.
-		else if (IsConnected(posIndex, facing))
+		else if (IsConnected(position, facing))
 		{
-			newPos.Set(posIndex.x + Nav.DX[facing], posIndex.y + Nav.DY[facing]);
+			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 			chosenDir = facing;
 		}
         // Check if there's a connected room to the right.
-		else if (IsConnected(posIndex, Nav.right[facing]))
+		else if (IsConnected(position, Nav.right[facing]))
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.right[facing]], posIndex.y + Nav.DY[Nav.right[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 			chosenDir = Nav.right[facing];
 		}
         // Hit a dead end, move back in the opposite direction.
 		else
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.opposite[facing]], position.y + Nav.DY[Nav.opposite[facing]]);
 			chosenDir = Nav.opposite[facing];
 		}
 
 		newFacing = chosenDir;
-		return rooms[newPos.y, newPos.x].instance.transform.position;
+		return newPos;
 	}
 
     /// <summary>
@@ -127,31 +127,35 @@ public class Maze : MonoBehaviour
     /// <param name="facing">Facing to find the room straight ahead from.</param>
     /// <param name="allowUTurns">If U turns are allowed.</param>
     /// <returns>World position of the room straight ahead to move to. Same as the input world position if U turns weren't allowed and one was hit.</returns>
-	public Vector3 MoveStraight(Vector3 position, Dir facing, bool allowUTurns = true)
+	public Point MoveStraight(Point position, Dir facing, bool allowUTurns = true)
 	{
-		Point posIndex = Nav.GetIndexAt(position, roomDim);
-		Point newPos = new Point(posIndex);
+		Point newPos = new Point(position);
         // Check if there's a connected room straight ahead.
-		if (IsConnected(posIndex, facing))
+		if (IsConnected(position, facing))
 		{
-			newPos.Set(posIndex.x + Nav.DX[facing], posIndex.y + Nav.DY[facing]);
+			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 		}
         // Check if there's a connected room to the left.
-		else if (IsConnected(posIndex, Nav.left[facing]))
+		else if (IsConnected(position, Nav.left[facing]))
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.left[facing]], posIndex.y + Nav.DY[Nav.left[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 		}
         // Check if there's a connected room to the right.
-		else if (IsConnected(posIndex, Nav.right[facing]))
+		else if (IsConnected(position, Nav.right[facing]))
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.right[facing]], posIndex.y + Nav.DY[Nav.right[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 		}
         // If U turns are allowed and one was hit, move back in the opposite direction.
 		else if (allowUTurns)
 		{
-			newPos.Set(posIndex.x + Nav.DX[Nav.opposite[facing]], posIndex.y + Nav.DY[Nav.opposite[facing]]);
+			newPos.Set(position.x + Nav.DX[Nav.opposite[facing]], position.y + Nav.DY[Nav.opposite[facing]]);
 		}
-		return rooms[newPos.y, newPos.x].instance.transform.position;
+		return newPos;
+	}
+
+	public Vector3 RoomToWorldPosition(Point roomPos)
+	{
+		return new Vector3(roomPos.y * roomDim.y, 0.0f, roomPos.x * roomDim.x);
 	}
 
     /// <summary>
