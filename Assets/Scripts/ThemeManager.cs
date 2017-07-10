@@ -64,7 +64,7 @@ public class ThemeManager : MonoBehaviour
 	{
 		if (tilesetsToLoad != 0)
 		{
-			Debug.LogError("Already loading a batch of tilesets, wait for it to finish loading before starting another!");
+			Debug.LogWarning("Already loading a batch of tilesets, wait for it to finish loading before starting another!");
 			return;
 		}
 		tilesetsLoaded = 0;

@@ -9,19 +9,19 @@ class Autotile
 
     /// Rotations for tiles indexed by their 4-bit bitwise value.
     public static float[] tileRotations = {
-        0.0f, -90.0f, 0.0f, 0.0f, 90.0f, 90.0f, 90.0f, -90.0f,
-        180.0f, -90.0f, 0.0f, 180.0f, 180.0f, 90.0f, 0.0f, 0.0f
+        0.0f, -90.0f, 0.0f, 180.0f, 90.0f, 90.0f, -90.0f, -90.0f,
+        180.0f, 90.0f, 0.0f, 180.0f, 0.0f, 90.0f, 0.0f, 0.0f
     };
 
     /// Tile index offset based on a tile's 4-bit bitwise value.
     public static uint[] fourBitTileIndices = {
-        5, 0, 0, 4, 0, 1, 4, 2,
-        0, 4, 1, 2, 4, 2, 2, 3
+        0, 1, 1, 3, 1, 2, 3, 4,
+        1, 3, 2, 4, 3, 4, 4, 5
     };
 
     /// Tile index offset based on a tile's 2-bit bitwise value.
     public static uint[] twoBitTileIndices = {
-        3, 2, 0, 1
+        0, 3, 1, 2
     };
 
     /// <summary>
