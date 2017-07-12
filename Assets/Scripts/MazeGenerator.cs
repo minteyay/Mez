@@ -273,14 +273,7 @@ public class MazeGenerator : MonoBehaviour
 						break;
 				}
 
-				List<Dir> possibleDirs = new List<Dir>();
-				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-				{
-					if (Nav.IsConnected(startRoom.value, dir))
-						possibleDirs.Add(dir);
-				}
-
-				Crawler.Crawl(maze, startRoom.position, possibleDirs[rnd.Next(possibleDirs.Count)], crawlerRuleset.size,
+				Sprawler.Sprawl(maze, startRoom.position, (int)crawlerRuleset.size,
 					(Room room) => { room.theme = crawlerRuleset.tileset; } );
 			}
 		}
