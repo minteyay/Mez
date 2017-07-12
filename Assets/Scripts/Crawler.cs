@@ -19,6 +19,8 @@ class Crawler
     /// <param name="room">Room the Crawler stopped at.</param>
 	public delegate void OnComplete(Room room);
 
+	public static uint MAX_DISTANCE = 2048;
+
 	private Maze maze = null;
 	
 	private Dir facing = Dir.N;
@@ -36,10 +38,21 @@ class Crawler
 		this.maze = maze;
 		this.position = position;
 		this.facing = facing;
-		this.distance = distance;
+		if (distance == 0)
+			this.distance = MAX_DISTANCE;
+		else
+			this.distance = distance;
 		this.onUpdate = onUpdate;
 		this.onComplete = onComplete;
 		this.allowTurns = allowTurns;
+
+		// Step on the starting room.
+		this.distance--;
+		if (onUpdate != null)
+			onUpdate.Invoke(maze.rooms[position.y, position.x]);
+		if (this.distance == 0)
+			if (onComplete != null)
+				onComplete.Invoke(maze.rooms[position.y, position.x]);
 	}
 
 	public bool Step()
