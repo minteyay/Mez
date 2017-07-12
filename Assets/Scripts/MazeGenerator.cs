@@ -161,7 +161,7 @@ public class MazeGenerator : MonoBehaviour
 			{
 				if (Nav.IsConnected(grid[y, x], dir))
 				{
-					endPointRotation = Nav.GetRotation(dir);
+					endPointRotation = Nav.FacingToAngle(dir);
 					break;
 				}
 			}
@@ -251,7 +251,7 @@ public class MazeGenerator : MonoBehaviour
 			if ((room.value & Nav.bits[dir]) == 0)
 			{
 				GameObject wallInstance = (GameObject)Instantiate(wall, new Vector3(),
-						Quaternion.Euler(0.0f, Nav.GetRotation(dir), 0.0f));
+						Quaternion.Euler(0.0f, Nav.FacingToAngle(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
 				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
 				wallInstance.name = Nav.bits[dir].ToString();
@@ -276,7 +276,7 @@ public class MazeGenerator : MonoBehaviour
 						startRoom = maze.rooms[randomPoint.y, randomPoint.x];
 						break;
 					case CrawlerRuleset.CrawlerStart.End:
-						Point endPoint = Nav.GetIndexAt(maze.endPoint.transform.position, maze.roomDim);
+						Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
 						startRoom = maze.rooms[endPoint.y, endPoint.x];
 						break;
 				}
@@ -289,7 +289,7 @@ public class MazeGenerator : MonoBehaviour
 				}
 
 				Crawler.Crawl(maze, startRoom.position, possibleDirs[rnd.Next(possibleDirs.Count)], crawlerRuleset.size,
-					(Room room, uint distance) => { room.theme = crawlerRuleset.tileset; } );
+					(Room room) => { room.theme = crawlerRuleset.tileset; } );
 			}
 		}
 	}

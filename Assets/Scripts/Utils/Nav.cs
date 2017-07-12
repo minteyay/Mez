@@ -38,19 +38,19 @@ class Nav
 	{ { Dir.N, Dir.S }, { Dir.E, Dir.W }, { Dir.S, Dir.N }, { Dir.W, Dir.E } };
 
 	/// <summary>
-	/// Changes a Y rotation value to a cardinal compass direction.
+	/// Changes a Y angle value to a cardinal compass direction.
 	/// </summary>
-	/// <param name="rotation">Y rotation in the range 0-360.</param>
+	/// <param name="angle">Y angle in the range 0-360.</param>
 	/// <returns>Cardinal compass direction.</returns>
-	public static Dir GetFacing(float rotation)
+	public static Dir AngleToFacing(float angle)
 	{
-		// Scale the rotation from 360 degrees to a quadrant of a circle (0-4)
-		if (rotation < 0.0f)
-			rotation += 360.0f;
-		rotation /= 90.0f;
+		// Scale the angle from 360 degrees to a quadrant of a circle (0-4)
+		if (angle < 0.0f)
+			angle += 360.0f;
+		angle /= 90.0f;
 
-		// Round to the closest quadrant of rotation
-		int dir = Mathf.RoundToInt(rotation);
+		// Round to the closest quadrant of angle
+		int dir = Mathf.RoundToInt(angle);
 		switch (dir)
 		{
 			case 0:
@@ -71,11 +71,11 @@ class Nav
 	}
 
     /// <summary>
-    /// Turns a cardinal compass direction into a Y rotation.
+    /// Turns a cardinal compass direction into a Y angle.
     /// </summary>
     /// <param name="facing">Cardinal compass direction.</param>
-    /// <returns>Y rotation value.</returns>
-	public static float GetRotation(Dir facing)
+    /// <returns>Y angle value.</returns>
+	public static float FacingToAngle(Dir facing)
 	{
 		switch (facing)
 		{
@@ -97,7 +97,7 @@ class Nav
     /// <param name="position">World position.</param>
     /// <param name="roomDim">Size of a room in the maze.</param>
     /// <returns>Index position in the maze.</returns>
-	public static Point GetIndexAt(Vector3 position, Vector2 roomDim)
+	public static Point WorldToIndexPos(Vector3 position, Vector2 roomDim)
 	{
 		return new Point(Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y));
 	}
@@ -108,7 +108,7 @@ class Nav
     /// <param name="index">Index position in the maze.</param>
     /// <param name="roomDim">Size of a room in the maze.</param>
     /// <returns>World position.</returns>
-	public static Vector3 GetPosAt(Point index, Vector2 roomDim)
+	public static Vector3 IndexToWorldPos(Point index, Vector2 roomDim)
 	{
 		return new Vector3(index.y * roomDim.y, 0f, index.x * roomDim.x);
 	}

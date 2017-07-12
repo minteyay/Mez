@@ -69,7 +69,7 @@ class Crawler
 			// Calculate new facing for the crawler.
 			Point posDelta = position - newPos;
 			float deltaAngle = Mathf.Atan2((float)posDelta.y, (float)posDelta.x) * Mathf.Rad2Deg;
-			Dir newFacing = Nav.GetFacing(deltaAngle);
+			Dir newFacing = Nav.AngleToFacing(deltaAngle);
 
 			if (!allowTurns)
 			{
