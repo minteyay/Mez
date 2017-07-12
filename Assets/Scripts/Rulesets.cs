@@ -122,6 +122,11 @@ public class CrawlerRuleset
                         Debug.LogWarning("Couldn't parse \"" + kvp.Value + "\" into an Int32.");
                         break;
                     }
+                    if (newSize == 0)
+                    {
+                        Debug.LogWarning("Crawler can't have a size of 0. Defaulting to 1.");
+                        newSize = 1;
+                    }
                     size = newSize;
                     break;
                 default:
