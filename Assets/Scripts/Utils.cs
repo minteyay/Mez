@@ -9,7 +9,7 @@ public class Utils
     /// <typeparam name="T"></typeparam>
     /// <param name="rnd">Random number generator to use in shuffling.</param>
     /// <param name="list">List to shuffle.</param>
-    public static void Shuffle<T>(Random rnd, IList<T> list)
+    public static void Shuffle<T>(System.Random rnd, IList<T> list)
     {
         // Shuffle the list for an amount of times equals to its size.
         int n = list.Count;

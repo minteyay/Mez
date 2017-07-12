@@ -23,14 +23,6 @@ public class MazeGenerator : MonoBehaviour
     // Y rotation of the end point.
 	private float endPointRotation = 0.0f;
 
-    // Random number generator to use in generating the maze.
-	private System.Random rnd = null;
-
-	void Awake()
-	{
-		rnd = new System.Random();
-	}
-
     /// <summary>
     /// Generates a maze with the given ruleset.
     /// </summary>
@@ -130,7 +122,7 @@ public class MazeGenerator : MonoBehaviour
 	{
         // Try moving in directions in a random order.
 		List<Dir> directions = new List<Dir> { Dir.N, Dir.S, Dir.E, Dir.W };
-		Utils.Shuffle(rnd, directions);
+		Utils.Shuffle(Random.instance, directions);
 
 		foreach (Dir dir in directions)
 		{
@@ -272,7 +264,7 @@ public class MazeGenerator : MonoBehaviour
 						startRoom = maze.rooms[0, 0];
 						break;
 					case CrawlerRuleset.CrawlerStart.Random:
-						Point randomPoint = new Point(rnd.Next(maze.size.x), rnd.Next(maze.size.y));
+						Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
 						startRoom = maze.rooms[randomPoint.y, randomPoint.x];
 						break;
 					case CrawlerRuleset.CrawlerStart.End:

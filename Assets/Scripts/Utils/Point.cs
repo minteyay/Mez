@@ -67,4 +67,9 @@ public class Point
 	{
 		return base.GetHashCode();
 	}
+
+	public override string ToString()
+	{
+		return "(" + x + ", " + y + ")";
+	}
 }
