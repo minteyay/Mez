@@ -68,7 +68,7 @@ public class GameManager : MonoBehaviour
 	{
 #if !SCREENSAVER
         // Generate a new maze (only when the player is moving).
-		if (Input.GetKeyDown(KeyCode.N) && player.CanMove)
+		if (Input.GetKeyDown(KeyCode.N) && player.canMove)
 		{
 			ResetLevel();
 		}
@@ -118,19 +118,18 @@ public class GameManager : MonoBehaviour
         // Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
-			playerInstance = (GameObject)Instantiate(playerPrefab,
-				new Vector3(),
-				Quaternion.Euler(maze.startRotation));
+			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.Euler(maze.startRotation));
 			playerInstance.name = "Player";
 			player = playerInstance.GetComponent<Player>();
 			player.maze = maze;
+			player.facing = Nav.AngleToFacing(maze.startRotation.y);
 		}
         // Reposition the player to the maze start if it exists.
         else
         {
 			player.maze = maze;
+			player.facing = Nav.AngleToFacing(maze.startRotation.y);
 			playerInstance.transform.position = new Vector3();
-			playerInstance.transform.rotation = Quaternion.Euler(maze.startRotation);
 			player.Reset();
 		}
 	}
@@ -144,13 +143,13 @@ public class GameManager : MonoBehaviour
 
 	public void StartMoving()
 	{
-		player.CanMove = true;
+		player.canMove = true;
 	}
 
 	public void ResetLevel()
 	{
         // Stop the player and fade the maze out.
-		player.CanMove = false;
+		player.canMove = false;
 		ui.FadeOut(StartLevel);
 	}
 }
