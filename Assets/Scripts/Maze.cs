@@ -155,7 +155,12 @@ public class Maze : MonoBehaviour
 
 	public Vector3 RoomToWorldPosition(Point roomPos)
 	{
-		return new Vector3(roomPos.y * roomDim.y, 0.0f, roomPos.x * roomDim.x);
+		return Nav.IndexToWorldPos(roomPos, roomDim);
+	}
+
+	public Point WorldToRoomPosition(Vector3 worldPos)
+	{
+		return Nav.WorldToIndexPos(worldPos, roomDim);
 	}
 
     /// <summary>

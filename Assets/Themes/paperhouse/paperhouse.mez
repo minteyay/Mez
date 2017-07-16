@@ -4,10 +4,10 @@ size: 8x8
 room: paper
 tileset: paperhouse
 start: random
-count: 2
+count: 3
 size: 3
 
 room: entry
 tileset: paperhouse
 start: start
-size: 5
+size: 3

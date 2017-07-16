@@ -206,8 +206,6 @@ class Sprawler
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
 	public Sprawler(Maze maze, Point position, int size, Crawler.OnUpdate onUpdate = null)
 	{
-		Debug.Log("Sprawling from " + position.ToString() + " for " + size + " rooms...");
-		
 		if (size <= 0)
 		{
 			Debug.LogWarning("Sprawler can't have a size of 0, defaulting to 1.");
