@@ -40,4 +40,20 @@ public class Utils
         }
         return output;
     }
+
+    public static float NonZero(params float[] values)
+    {
+        foreach (float v in values)
+            if (v != 0.0f)
+                return v;
+        return 0.0f;
+    }
+
+    public static int NonZero(params int[] values)
+    {
+        foreach (int v in values)
+            if (v != 0)
+                return v;
+        return 0;
+    }
 }
