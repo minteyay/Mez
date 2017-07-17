@@ -9,13 +9,24 @@ public class Player : MonoBehaviour
 {
     /// Base movement speed of the player.
 	public float movementSpeed = 0.0f;
+	public float turnDistance = 0.5f;
 
+	[SerializeField]
     private Vector3 target;
+	[SerializeField]
 	private Vector3 nextTarget;
 
+	[SerializeField]
 	private Dir _facing;
 	public Dir facing { get { return _facing; } set { _facing = nextFacing = value; } }
+	[SerializeField]
 	private Dir nextFacing;
+
+	private const float TURN_ARC = Mathf.PI / 2.0f;
+	[SerializeField]
+	private float remainingDist = 0.0f;
+	[SerializeField]
+	private float remainingTurnDist = 0.0f;
 
 	[HideInInspector]
 	public bool canMove = false;
@@ -39,24 +50,57 @@ public class Player : MonoBehaviour
 	{
 		if (canMove)
 		{
-			Vector3 delta = target - transform.position;
-			float deltaDist = delta.magnitude;
+			if (transform.position == target)
+				NewTarget();
+			
+			float toMove = movementSpeed * Time.deltaTime;
+			Move(ref toMove);
+			if (toMove > 0.0f)
+				Move(ref toMove);
+			
+			if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+				NewTarget();
+		}
+	}
 
-			switch (state)
-			{
-				case State.Rotating:
-					transform.rotation = Quaternion.Euler(new Vector3(0.0f, Nav.FacingToAngle(facing) + 90.0f, 0.0f));
-					state = State.Moving;
-					break;
-				case State.Moving:
-					transform.Translate(delta.normalized * Mathf.Min(movementSpeed * Time.deltaTime, deltaDist), Space.World);
-					if (transform.position == target)
-					{
-						NewTarget();
-						state = State.Rotating;
-					}
-					break;
-			}
+	private void Move(ref float movementAmount)
+	{
+		if (remainingDist > 0.0f)
+		{
+			Vector3 towardsTarget = target - transform.position;
+			float actualMovement = Mathf.Min(movementAmount, towardsTarget.magnitude);
+			if (actualMovement < movementAmount)	// Snap to target if it's closer than the distance we're trying to move
+				transform.position = target;
+			else
+				transform.Translate(towardsTarget.normalized * movementAmount, Space.World);
+			movementAmount -= actualMovement;
+			remainingDist -= actualMovement;
+		}
+		else if (remainingTurnDist > 0.0f)
+		{
+			float turnLength = TURN_ARC * turnDistance;
+			float actualMovement = Mathf.Min(movementAmount, remainingTurnDist);
+			remainingTurnDist -= actualMovement;
+
+			// Calculate position in the 90 degree turn.
+			float turnPhase = (turnLength - remainingTurnDist) / turnLength;
+			float angle = turnPhase * (Mathf.PI / 2.0f);
+			float forwards = Mathf.Sin(angle) * turnDistance;
+			float sidewards = 1.0f - Mathf.Cos(angle) * turnDistance;
+			float xMovement = Utils.NonZero(Nav.DX[facing] * forwards, Nav.DX[nextFacing] * sidewards);
+			float yMovement = Utils.NonZero(Nav.DY[facing] * forwards, Nav.DY[nextFacing] * sidewards);
+			Vector3 turnDelta = new Vector3(yMovement, 0.0f, xMovement);
+			Vector3 turnAdjust = new Vector3(Nav.DY[facing] * turnDistance, 0.0f, Nav.DX[facing] * turnDistance);
+			transform.position = target + turnDelta - turnAdjust;
+
+			int turnDir = 0;
+			if (nextFacing == Nav.left[facing])
+				turnDir = -1;
+			else if (nextFacing == Nav.right[facing])
+				turnDir = 1;
+			transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) + 90.0f + (angle * Mathf.Rad2Deg) * turnDir, 0.0f);
+
+			movementAmount -= actualMovement;
 		}
 	}
 
@@ -70,23 +114,16 @@ public class Player : MonoBehaviour
 
 		nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
 
-		// Dir newFacing = Dir.N;
-		// Vector3 oldTarget = target;
-        // // Get a new target to move towards, always hugging the left wall.
-		// Vector3 newTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(Nav.WorldToIndexPos(oldTarget, maze.roomDim), Nav.AngleToFacing(transform.rotation.eulerAngles.y), out newFacing));
-		// Vector3 delta = oldTarget;
-
-        // // Plot a new path to the target position.
-		// pathToTarget.Clear();
-		// pathToTarget.Add(oldTarget + (newTarget - oldTarget).normalized * maze.roomDim.x * accelTime * (movementSpeed / 4));
-		// Crawler.Crawl(maze, Nav.WorldToIndexPos(newTarget, maze.roomDim), newFacing, 1000, null, room => target = Nav.IndexToWorldPos(room.position, maze.roomDim), false);
-		// pathToTarget.Add(target - (target - oldTarget).normalized * maze.roomDim.x * accelTime * (movementSpeed / 4));
-		// pathToTarget.Add(target);
-
-		// delta = delta - target;
-		// targetAngle = 0.0f;
-		// if (delta.magnitude > 0.0f)
-		// 	targetAngle = Quaternion.LookRotation(delta, transform.up).eulerAngles.y;
+		Vector3 targetDelta = transform.position - target;
+		if (facing != nextFacing)
+		{
+			remainingDist += targetDelta.magnitude - turnDistance;
+			remainingTurnDist = TURN_ARC * turnDistance;
+		}
+		else
+		{
+			remainingDist += targetDelta.magnitude;
+		}
 	}
 
 	public void Reset()
