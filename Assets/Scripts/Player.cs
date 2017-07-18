@@ -22,7 +22,9 @@ public class Player : MonoBehaviour
 	[SerializeField]
 	private Dir nextFacing;
 
-	private const float TURN_ARC = Mathf.PI / 2.0f;
+	private const float RIGHT_ANGLE_TURN_ANGLE = Mathf.PI / 2.0f;
+	private const float U_TURN_ANGLE = Mathf.PI;
+
 	[SerializeField]
 	private float remainingDist = 0.0f;
 	[SerializeField]
@@ -50,19 +52,17 @@ public class Player : MonoBehaviour
 	{
 		if (canMove)
 		{
-			// Get a new target if the current one has already been reached.
-			if (transform.position == target)
-				NewTarget();
-			
 			// Keep moving until the correct distance has been covered.
 			float toMove = movementSpeed * Time.deltaTime;
 			do
+			{
 				Move(ref toMove);
+
+				// Get a new target once all the forwards moving and turning have been done.
+				if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+					NewTarget();
+			}
 			while (toMove > 0.0f);
-			
-			// Get a new target once all the forwards moving and turning have been done.
-			if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
-				NewTarget();
 		}
 	}
 
@@ -78,40 +78,55 @@ public class Player : MonoBehaviour
 				transform.position = target;
 			else
 				transform.Translate(towardsTarget.normalized * movementAmount, Space.World);
-			
-			movementAmount -= actualMovement;
+
 			remainingDist -= actualMovement;
+			movementAmount -= actualMovement;
 		}
 		else if (remainingTurnDist > 0.0f)	// Keep turning.
 		{
-			float turnLength = TURN_ARC * turnDistance;
 			float actualMovement = Mathf.Min(movementAmount, remainingTurnDist);
 			remainingTurnDist -= actualMovement;
+			
+			if (nextFacing == Nav.opposite[facing])		// U-turn.
+			{
+				float turnLength = U_TURN_ANGLE * turnDistance;
 
-			// Calculate position in the 90 degree turn.
-			float turnPhase = (turnLength - remainingTurnDist) / turnLength;
-			float angle = turnPhase * (Mathf.PI / 2.0f);
+				// Calculate position in the 180 degree turn.
+				float turnPhase = (turnLength - remainingTurnDist) / turnLength;
+				float angle = turnPhase * U_TURN_ANGLE;
 
-			// Calculate movement along the turn.
-			float forwards = Mathf.Sin(angle) * turnDistance;
-			float sidewards = 1.0f - Mathf.Cos(angle) * turnDistance;
-			float xMovement = Utils.NonZero(Nav.DX[facing] * forwards, Nav.DX[nextFacing] * sidewards);
-			float yMovement = Utils.NonZero(Nav.DY[facing] * forwards, Nav.DY[nextFacing] * sidewards);
-			Vector3 turnDelta = new Vector3(yMovement, 0.0f, xMovement);
+				// Update rotation.
+				transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) - (angle * Mathf.Rad2Deg), 0.0f);
+			}
+			else	// Right angle turn.
+			{
+				float turnLength = RIGHT_ANGLE_TURN_ANGLE * turnDistance;
 
-			// Adjust the position for the turn.
-			Vector3 turnAdjust = new Vector3(Nav.DY[facing] * turnDistance, 0.0f, Nav.DX[facing] * turnDistance);
+				// Calculate position in the 90 degree turn.
+				float turnPhase = (turnLength - remainingTurnDist) / turnLength;
+				float angle = turnPhase * RIGHT_ANGLE_TURN_ANGLE;
 
-			// Update position on the turn.
-			transform.position = target + turnDelta - turnAdjust;
+				// Calculate movement along the turn.
+				float forwards = Mathf.Sin(angle) * turnDistance;
+				float sidewards = 1.0f - Mathf.Cos(angle) * turnDistance;
+				float xMovement = Utils.NonZero(Nav.DX[facing] * forwards, Nav.DX[nextFacing] * sidewards);
+				float yMovement = Utils.NonZero(Nav.DY[facing] * forwards, Nav.DY[nextFacing] * sidewards);
+				Vector3 turnDelta = new Vector3(yMovement, 0.0f, xMovement);
 
-			// Update rotation.
-			int turnDir = 0;
-			if (nextFacing == Nav.left[facing])
-				turnDir = -1;
-			else if (nextFacing == Nav.right[facing])
-				turnDir = 1;
-			transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) + 90.0f + (angle * Mathf.Rad2Deg) * turnDir, 0.0f);
+				// Adjust the position for the turn.
+				Vector3 turnAdjust = new Vector3(Nav.DY[facing] * turnDistance, 0.0f, Nav.DX[facing] * turnDistance);
+
+				// Update position on the turn.
+				transform.position = target + turnDelta - turnAdjust;
+
+				// Update rotation.
+				int turnDir = 0;
+				if (nextFacing == Nav.left[facing])
+					turnDir = -1;
+				else if (nextFacing == Nav.right[facing])
+					turnDir = 1;
+				transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) + (angle * Mathf.Rad2Deg) * turnDir, 0.0f);
+			}
 
 			movementAmount -= actualMovement;
 		}
@@ -127,7 +142,6 @@ public class Player : MonoBehaviour
     /// </summary>
 	private void NewTarget()
 	{
-		// 
 		target = nextTarget;
 		facing = nextFacing;
 
@@ -136,8 +150,16 @@ public class Player : MonoBehaviour
 		Vector3 targetDelta = transform.position - target;
 		if (facing != nextFacing)
 		{
-			remainingDist += targetDelta.magnitude - turnDistance;
-			remainingTurnDist = TURN_ARC * turnDistance;
+			if (nextFacing == Nav.opposite[facing])		// U-turn.
+			{
+				remainingDist += targetDelta.magnitude;
+				remainingTurnDist = U_TURN_ANGLE * turnDistance;
+			}
+			else	// Right angle turn.
+			{
+				remainingDist += targetDelta.magnitude - turnDistance;
+				remainingTurnDist = RIGHT_ANGLE_TURN_ANGLE * turnDistance;
+			}
 		}
 		else
 		{
@@ -148,9 +170,11 @@ public class Player : MonoBehaviour
 	public void Reset()
 	{
         // Reset the player.
-		state = State.Rotating;
 		target = new Vector3();
 		nextTarget = new Vector3();
+		remainingDist = 0.0f;
+		remainingTurnDist = 0.0f;
+		transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing), 0.0f);
 		NewTarget();
 	}
 }
