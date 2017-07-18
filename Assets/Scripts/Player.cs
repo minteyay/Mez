@@ -24,6 +24,7 @@ public class Player : MonoBehaviour
 
 	private const float RIGHT_ANGLE_TURN_ANGLE = Mathf.PI / 2.0f;
 	private const float U_TURN_ANGLE = Mathf.PI;
+	private const int MAX_MOVE_ITERATIONS = 100;
 
 	[SerializeField]
 	private float remainingDist = 0.0f;
@@ -32,13 +33,6 @@ public class Player : MonoBehaviour
 
 	[HideInInspector]
 	public bool canMove = false;
-
-	private enum State
-	{
-		Rotating,
-		Moving
-	}
-	private State state = State.Rotating;
 
 	[HideInInspector]
 	public Maze maze = null;
@@ -54,6 +48,7 @@ public class Player : MonoBehaviour
 		{
 			// Keep moving until the correct distance has been covered.
 			float toMove = movementSpeed * Time.deltaTime;
+			int iterations = 0;
 			do
 			{
 				Move(ref toMove);
@@ -61,6 +56,16 @@ public class Player : MonoBehaviour
 				// Get a new target once all the forwards moving and turning have been done.
 				if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
 					NewTarget();
+				
+				// Increment the endless loop failsafe and snap to the correct position if it trips.
+				iterations++;
+				if (iterations >= MAX_MOVE_ITERATIONS)
+				{
+					Debug.LogError("Max amount of move iterations per frame reached!");
+					transform.position = target;
+					NewTarget();
+					break;
+				}
 			}
 			while (toMove > 0.0f);
 		}
@@ -75,11 +80,15 @@ public class Player : MonoBehaviour
 
 			// Move forwards.
 			if (actualMovement < movementAmount)	// Snap to target if it's closer than the distance we're trying to move.
+			{
 				transform.position = target;
+				remainingDist = 0.0f;
+			}
 			else
+			{
 				transform.Translate(towardsTarget.normalized * movementAmount, Space.World);
-
-			remainingDist -= actualMovement;
+				remainingDist -= actualMovement;
+			}
 			movementAmount -= actualMovement;
 		}
 		else if (remainingTurnDist > 0.0f)	// Keep turning.
