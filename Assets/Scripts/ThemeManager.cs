@@ -115,7 +115,9 @@ public class ThemeManager : MonoBehaviour
 		tilesetMaterial.mainTexture = tilesetTexture;
 
 		#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+		// Turn Windows' backslashes into nice regular slashes.
 		tilesetPath = tilesetPath.Replace('\\', '/');
+		Debug.LogError("We on Windows holla holla~");
 		#endif
 
 		string tilesetName = tilesetPath.Substring(tilesetPath.LastIndexOf('/') + 1, tilesetPath.LastIndexOf(".png") - tilesetPath.LastIndexOf('/') - 1);
