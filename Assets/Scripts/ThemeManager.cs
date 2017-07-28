@@ -16,12 +16,16 @@ public class ThemeManager : MonoBehaviour
 	private int tilesetsToLoad = 0;
 
 	public Shader defaultShader = null;
+	public Material defaultMaterial = null;
 
 	public void Awake()
 	{
 		ThemeNames = new List<string>();
 		Rulesets = new Dictionary<string, MazeRuleset>();
 		Tilesets = new Dictionary<string, Material>();
+
+		// Add the default material to the tileset dictionary.
+		Tilesets.Add("default", defaultMaterial);
 
 		// Enumerate themes.
 		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + themePath);
