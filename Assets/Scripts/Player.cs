@@ -24,7 +24,6 @@ public class Player : MonoBehaviour
 
 	private const float RIGHT_ANGLE_TURN_ANGLE = Mathf.PI / 2.0f;
 	private const float U_TURN_ANGLE = Mathf.PI;
-	private const int MAX_MOVE_ITERATIONS = 100;
 
 	[SerializeField]
 	private float remainingDist = 0.0f;
@@ -46,28 +45,20 @@ public class Player : MonoBehaviour
 	{
 		if (canMove)
 		{
-			// Keep moving until the correct distance has been covered.
+			// Move the player.
 			float toMove = movementSpeed * Time.deltaTime;
-			int iterations = 0;
-			do
-			{
-				Move(ref toMove);
+			Move(ref toMove);
 
-				// Get a new target once all the forwards moving and turning have been done.
-				if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
-					NewTarget();
-				
-				// Increment the endless loop failsafe and snap to the correct position if it trips.
-				iterations++;
-				if (iterations >= MAX_MOVE_ITERATIONS)
-				{
-					Debug.LogError("Max amount of move iterations per frame reached!");
-					transform.position = target;
-					NewTarget();
-					break;
-				}
-			}
-			while (toMove > 0.0f);
+			// Get a new target once all the forwards moving and turning have been done.
+			if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+				NewTarget();
+
+			// Move again if there's still distance left to go.
+			if (toMove > 0.0f)
+				Move(ref toMove);
+			
+			if (toMove > 0.0f)
+				Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
 		}
 	}
 
@@ -91,7 +82,8 @@ public class Player : MonoBehaviour
 			}
 			movementAmount -= actualMovement;
 		}
-		else if (remainingTurnDist > 0.0f)	// Keep turning.
+
+		if (movementAmount > 0.0f && remainingTurnDist > 0.0f)	// Keep turning.
 		{
 			float actualMovement = Mathf.Min(movementAmount, remainingTurnDist);
 			remainingTurnDist -= actualMovement;
@@ -138,11 +130,6 @@ public class Player : MonoBehaviour
 			}
 
 			movementAmount -= actualMovement;
-		}
-		else	// No distance to move anymore, zero out the movement to fix the error.
-		{
-			Debug.LogWarning("No remaining distance to move or turn but still trying to move for " + movementAmount);
-			movementAmount = 0.0f;
 		}
 	}
 

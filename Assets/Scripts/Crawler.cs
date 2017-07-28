@@ -322,6 +322,6 @@ class Sprawler
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
 	public static void Sprawl(Maze maze, Point position, int size, Crawler.OnUpdate onUpdate = null)
 	{
-		Sprawler sprawler = new Sprawler(maze, position, size, onUpdate);
+		new Sprawler(maze, position, size, onUpdate);
 	}
 }
