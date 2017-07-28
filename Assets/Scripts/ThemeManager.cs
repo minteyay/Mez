@@ -114,6 +114,10 @@ public class ThemeManager : MonoBehaviour
 		Material tilesetMaterial = new Material(defaultShader);
 		tilesetMaterial.mainTexture = tilesetTexture;
 
+		#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+		tilesetPath = tilesetPath.Replace('\\', '/');
+		#endif
+
 		string tilesetName = tilesetPath.Substring(tilesetPath.LastIndexOf('/') + 1, tilesetPath.LastIndexOf(".png") - tilesetPath.LastIndexOf('/') - 1);
 		Tilesets.Add(tilesetName, tilesetMaterial);
 
