@@ -1,0 +1,20 @@
+{
+    "name": "Paper house",
+    "size": { "x": 8, "y": 8 },
+    "crawlers":
+    [
+        {
+            "name": "paper",
+            "tileset": "paperhouse",
+            "start": 0,
+            "count": 3,
+            "size": 3
+        },
+        {
+            "name": "entry",
+            "tileset": "paperhouse",
+            "start": 1,
+            "size": 3
+        }
+    ]
+}
