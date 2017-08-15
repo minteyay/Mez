@@ -39,7 +39,7 @@ public class ThemeManager : MonoBehaviour
 
 	public void LoadThemeRuleset(string themeName, LoadingComplete callback)
 	{
-		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".mez";
+		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".json";
 		if (!System.IO.File.Exists(rulesetPath))
 		{
 			Debug.LogWarning("Trying to load tileset \"" + rulesetPath + "\" which doesn't exist!");
@@ -55,9 +55,8 @@ public class ThemeManager : MonoBehaviour
 		WWW www = new WWW("file://" + rulesetPath);
 		yield return www;
 
-		string[][] rulesetData = BlockFile.GetBlocks(www.text);
-		MazeRuleset ruleset = new MazeRuleset(rulesetData);
-		string rulesetName = rulesetPath.Substring(rulesetPath.LastIndexOf('/') + 1, rulesetPath.LastIndexOf(".mez") - rulesetPath.LastIndexOf('/') - 1);
+		MazeRuleset ruleset = MazeRuleset.FromJSON(www.text);
+		string rulesetName = rulesetPath.Substring(rulesetPath.LastIndexOf('/') + 1, rulesetPath.LastIndexOf(".json") - rulesetPath.LastIndexOf('/') - 1);
 		Rulesets.Add(rulesetName, ruleset);
 
 		if (callback != null)

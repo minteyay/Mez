@@ -251,7 +251,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
-	private void RunCrawlers(Maze maze, List<CrawlerRuleset> crawlers)
+	private void RunCrawlers(Maze maze, CrawlerRuleset[] crawlers)
 	{
 		foreach (CrawlerRuleset crawlerRuleset in crawlers)
 		{
