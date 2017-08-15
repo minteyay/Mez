@@ -110,9 +110,9 @@ class Crawler
 			// Get a new position for a room to try to move to.
 			Point newPos = maze.MoveStraight(position, facing, false);
 
-			if (newPos == position)
+			if (newPos == position || maze.GetRoom(newPos).theme != "default")
 			{
-				// Dead end was hit, stop crawling.
+				// Dead end or another room was hit, stop crawling.
 				finished = true;
 				if (onComplete != null)
 					onComplete.Invoke(maze.rooms[newPos.y, newPos.x]);
