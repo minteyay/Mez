@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 using System.IO;
 
 public class Build 
@@ -6,29 +7,42 @@ public class Build
     [MenuItem("Build/Linux Standalone")]
     public static void BuildLinuxStandalone()
     {
-        string path = "Build/Mez Linux Standalone/";
-        string exeName = "Mez";
-        string[] levels = new string[] { "Assets/Maze.unity" };
-
-        // Build player.
-        BuildPipeline.BuildPlayer(levels, path + exeName, BuildTarget.StandaloneLinuxUniversal, BuildOptions.None);
-
-        // Copy the Themes folder to the data path of the build.
-        CopyDirectory("Assets/Themes", path + exeName + "_Data/Themes", new string[] { ".png", ".mez" });
+        BuildProject(BuildTarget.StandaloneLinuxUniversal);
     }
 
     [MenuItem("Build/Windows Standalone")]
     public static void BuildWindowsStandalone()
     {
-        string path = "Build/Mez Windows Standalone/";
+        BuildProject(BuildTarget.StandaloneWindows);
+    }
+
+    private static void BuildProject(BuildTarget target)
+    {
+        string path = "";
         string exeName = "Mez";
+        string exeFileExtension = "";
         string[] levels = new string[] { "Assets/Maze.unity" };
 
+        // Set target specific paths.
+        switch (target)
+        {
+            case BuildTarget.StandaloneWindows:
+                path = "Build/Mez Windows Standalone/";
+                exeFileExtension = ".exe";
+                break;
+            case BuildTarget.StandaloneLinuxUniversal:
+                path = "Build/Mez Linux Standalone/";
+                break;
+            default:
+                Debug.LogError("Invalid build target " + target.ToString());
+                return;
+        }
+
         // Build player.
-        BuildPipeline.BuildPlayer(levels, path + exeName + ".exe", BuildTarget.StandaloneWindows, BuildOptions.None);
+        BuildPipeline.BuildPlayer(levels, path + exeName + exeFileExtension, target, BuildOptions.None);
 
         // Copy the Themes folder to the data path of the build.
-        CopyDirectory("Assets/Themes", path + exeName + "_Data/Themes", new string[] { ".png", ".mez" });
+        CopyDirectory("Assets/Themes", path + exeName + "_Data/Themes", new string[] { ".png", ".json" });
     }
 
     // Copies a directory and all its contents, only accepting files with given filetypes.
