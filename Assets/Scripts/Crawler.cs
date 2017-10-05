@@ -21,7 +21,7 @@ class Crawler
 	public delegate void OnComplete(Room room);
 
 	/// Default distance to crawl when 0 is passed as distance.
-	private static uint DEFAULT_DISTANCE = 2048;
+	private static uint DefaultDistance = 2048;
 
 	private Maze maze = null;
 	/// Parent sprawler. When this is set, the Crawler will try to create new branching Crawlers.
@@ -53,13 +53,14 @@ class Crawler
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
 	/// <param name="onComplete">Callback on the room this Crawler stops in.</param>
 	/// <param name="allowTurns">Whether or not this Crawler is allowed to turn at all. Dead ends will still stop the Crawler.</param>
-	public Crawler(Maze maze, Point position, Dir facing, uint distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true)
+	public Crawler(Maze maze, Point position, Dir facing, uint distance,
+		OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true)
 	{
 		this.maze = maze;
 		this.position = position;
 		this.facing = facing;
 		if (distance == 0)
-			this.distance = DEFAULT_DISTANCE;
+			this.distance = DefaultDistance;
 		else
 			this.distance = distance;
 		this.onUpdate = onUpdate;
