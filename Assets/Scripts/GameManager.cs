@@ -6,9 +6,6 @@ public class GameManager : MonoBehaviour
 	private GameObject playerInstance = null;
 	private Player player = null;
 
-	public uint mazeWidth = 0;
-	public uint mazeHeight = 0;
-
 	public GameObject uiPrefab = null;
 	private UI ui = null;
 
