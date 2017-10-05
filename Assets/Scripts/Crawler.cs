@@ -20,7 +20,7 @@ class Crawler
 	/// <param name="room">Room the Crawler stopped at.</param>
 	public delegate void OnComplete(Room room);
 
-	/// Default distance to crawl when 0 is passed as distance.
+	/// Default distance to crawl when it's not specified.
 	private static uint DefaultDistance = 2048;
 
 	private Maze maze = null;
@@ -31,9 +31,9 @@ class Crawler
 	private uint distance = 0;
 	public Point position = null;
 
-	/// If the Crawler has visited the starting room.
+	/// Has the Crawler visited the starting room?
 	private bool started = false;
-	/// If the Crawler has finished its crawling.
+	/// Has the Crawler finished its crawling?
 	public bool finished = false;
 
 	/// Callback on every visited room.
@@ -41,7 +41,10 @@ class Crawler
 	/// Callback when crawling finishes.
 	private OnComplete onComplete = null;
 
+	/// Can the Crawler turn?
 	private bool allowTurns = true;
+	/// Can the Crawler only step on Rooms with the default theme?
+	private bool onlyStepOnDefault = false;
 
 	/// <summary>
 	/// Create a new Crawler.
@@ -49,12 +52,13 @@ class Crawler
 	/// <param name="maze">Maze to crawl in.</param>
 	/// <param name="position">Position of the room to start crawling from.</param>
 	/// <param name="facing">Direction to start crawling towards.</param>
-	/// <param name="distance">Number of rooms to move through, including the starting room. Passing 0 means the Crawler will try to move a distance of MAX_DISTANCE.</param>
+	/// <param name="distance">Number of rooms to move through, including the starting room. Passing 0 means the Crawler will try to move a distance of DefaultDistance.</param>
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
 	/// <param name="onComplete">Callback on the room this Crawler stops in.</param>
 	/// <param name="allowTurns">Whether or not this Crawler is allowed to turn at all. Dead ends will still stop the Crawler.</param>
-	public Crawler(Maze maze, Point position, Dir facing, uint distance,
-		OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true)
+	public Crawler(Maze maze, Point position, Dir facing, uint distance = 0,
+		OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true,
+		bool onlyStepOnDefault = true)
 	{
 		this.maze = maze;
 		this.position = position;
@@ -66,13 +70,18 @@ class Crawler
 		this.onUpdate = onUpdate;
 		this.onComplete = onComplete;
 		this.allowTurns = allowTurns;
+		this.onlyStepOnDefault = onlyStepOnDefault;
 	}
 
 	/// <summary>
 	/// Step on the starting room. This will get called in the first call to Step if not called otherwise.
 	/// </summary>
-	public void Start()
+	public bool Start()
 	{
+		// Check the starting room's theme if it's relevant.
+		if (onlyStepOnDefault && maze.GetRoom(position).theme != "default")
+			return false;
+
 		// Step on the starting room.
 		distance--;
 		if (onUpdate != null)
@@ -82,6 +91,7 @@ class Crawler
 				onComplete.Invoke(maze.rooms[position.y, position.x]);
 		
 		started = true;
+		return true;
 	}
 
 	/// <summary>
@@ -93,10 +103,7 @@ class Crawler
 	{
 		// Start the crawler if it hasn't been already.
 		if (!started)
-		{
-			Start();
-			return true;
-		}
+			return Start();
 
 		if (finished)
 		{
@@ -111,7 +118,7 @@ class Crawler
 			// Get a new position for a room to try to move to.
 			Point newPos = maze.MoveStraight(position, facing, false);
 
-			if (newPos == position || maze.GetRoom(newPos).theme != "default")
+			if (newPos == position || (onlyStepOnDefault && maze.GetRoom(newPos).theme != "default"))
 			{
 				// Dead end or another room was hit, stop crawling.
 				finished = true;
@@ -173,18 +180,15 @@ class Crawler
 	}
 
 	/// <summary>
-	/// Creates a Crawler and runs it until it stops.
+	/// Runs a Crawler until it stops.
 	/// </summary>
-	/// <param name="maze">Maze to crawl in.</param>
-	/// <param name="position">Room position to start crawling from.</param>
-	/// <param name="facing">Direction to start crawling towards.</param>
-	/// <param name="distance">Number of rooms to visit, including the starting room. Passing 0 means the Crawler will try to move a distance of MAX_DISTANCE.</param>
-	/// <param name="onUpdate">Callback on all visited rooms.</param>
-	/// <param name="onComplete">Callback on the room this crawler stops in.</param>
-	/// <param name="allowTurns">Whether or not this crawler is allowed to turn at all. Dead ends will still stop the Crawler.</param>
-	public static void Crawl(Maze maze, Point position, Dir facing, uint distance, OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true)
+	public static void Crawl(Crawler crawler)
 	{
-		Crawler crawler = new Crawler(maze, position, facing, distance, onUpdate, onComplete, allowTurns);
+		if (crawler == null)
+		{
+			Debug.LogError("Can't run a null Crawler!");
+			return;
+		}
 		while (crawler.Step()) {}
 	}
 }
