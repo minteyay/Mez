@@ -4,26 +4,47 @@ using System.Collections.Generic;
 
 public class MazeGenerator : MonoBehaviour
 {
+	/* Editor parameters. */
+
     /// Size of a room in world dimensions.
-	public Vector2 roomDim;
+	[SerializeField] private Vector2 roomDim;
 
     /// Floor model prefab.
-	public GameObject floor = null;
+	[SerializeField] private GameObject floor = null;
 	/// Wall model prefab.
-	public GameObject wall = null;
+	[SerializeField] private GameObject wall = null;
 	/// Ceiling model prefab.
-	public GameObject ceiling = null;
+	[SerializeField] private GameObject ceiling = null;
 
     // End point prefab.
-	public GameObject endPoint = null;
-    // Distance to the end point from the start of the maze.
-	private uint endPointDist = 0;
-    // Index position of the end point.
-	private Point endPointCoord = new Point(-1, -1);
-    // Y rotation of the end point.
-	private float endPointRotation = 0.0f;
+	[SerializeField] private GameObject endPoint = null;
+
+	/* Variables used during maze generation. */
+
+	public enum GenerationState
+	{
+		Idle,
+		GeneratingGrid,
+		RunningCrawlers
+	}
+	public GenerationState state { get; private set; }
+
+	private Maze maze = null;
+
+	private MazeRuleset ruleset = null;
+	private uint currentCrawlerRuleset = 0;
+	private uint numCrawlersRun = 0;
+	private Crawler currentCrawler = null;
 
 	public delegate void OnComplete(Maze maze);
+	private OnComplete onComplete = null;
+
+	/// Distance to the end point from the start of the maze.
+	private uint endPointDist = 0;
+    /// Index position of the end point.
+	private Point endPointCoord = new Point(-1, -1);
+    /// Y rotation of the end point.
+	private float endPointRotation = 0.0f;
 
     /// <summary>
     /// Generates a maze with the given ruleset.
@@ -31,6 +52,9 @@ public class MazeGenerator : MonoBehaviour
     /// <returns>A brand-new maze to play with.</returns>
 	public void GenerateMaze(MazeRuleset ruleset, OnComplete onComplete)
 	{
+		this.ruleset = ruleset;
+		this.onComplete = onComplete;
+
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
 
@@ -42,7 +66,7 @@ public class MazeGenerator : MonoBehaviour
         // Base GameObject for the maze.
 		GameObject mazeInstance = new GameObject();
 		mazeInstance.name = "Maze";
-		Maze maze = mazeInstance.AddComponent<Maze>();
+		maze = mazeInstance.AddComponent<Maze>();
 		if (maze == null)
 		{
 			Debug.LogError("Maze prefab has no Maze script attached!");
@@ -53,7 +77,8 @@ public class MazeGenerator : MonoBehaviour
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
 
-		RunCrawlers(maze, ruleset.crawlers);
+		state = GenerationState.RunningCrawlers;
+		while (Step()) {}
 
 		UpdateMazeUVs(maze);
 
@@ -75,6 +100,61 @@ public class MazeGenerator : MonoBehaviour
 
 		if (onComplete != null)
 			onComplete.Invoke(maze);
+	}
+
+	public bool Step()
+	{
+		switch (state)
+		{
+			// Running the crawlers in the current ruleset.
+			case GenerationState.RunningCrawlers:
+				CrawlerRuleset curRuleset = ruleset.crawlers[currentCrawlerRuleset];
+
+				// Create a new Crawler if we don't have one to Step.
+				if (currentCrawler == null)
+				{
+					Room startRoom = null;
+					switch (curRuleset.start)
+					{
+						case CrawlerRuleset.CrawlerStart.Start:
+							startRoom = maze.rooms[0, 0];
+							break;
+						case CrawlerRuleset.CrawlerStart.Random:
+							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
+							startRoom = maze.rooms[randomPoint.y, randomPoint.x];
+							break;
+						case CrawlerRuleset.CrawlerStart.End:
+							Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
+							startRoom = maze.rooms[endPoint.y, endPoint.x];
+							break;
+					}
+
+					currentCrawler = new Crawler(maze, startRoom.position, Dir.N, curRuleset.size,
+						(Room room) => { room.theme = curRuleset.tileset; } );
+				}
+
+				if (!currentCrawler.Step())
+				{
+					// If the current Crawler finished, move to the next Crawler.
+					numCrawlersRun++;
+					if (numCrawlersRun >= curRuleset.count)
+					{
+						// If we've run enough Crawlers to satisfy the CrawlerRuleset, move to the next CrawlerRuleset.
+						numCrawlersRun = 0;
+						currentCrawlerRuleset++;
+						if (currentCrawlerRuleset >= ruleset.crawlers.GetLength(0))
+						{
+							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
+							currentCrawlerRuleset = 0;
+							return false;
+						}
+					}
+					currentCrawler = null;
+					break;
+				}
+				break;
+		}
+		return true;
 	}
 
 	/// <summary>
@@ -250,34 +330,6 @@ public class MazeGenerator : MonoBehaviour
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
 				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-roomDim.y / 2.0f, 0.0f, 0.0f);
 				wallInstance.name = Nav.bits[dir].ToString();
-			}
-		}
-	}
-
-	private void RunCrawlers(Maze maze, CrawlerRuleset[] crawlers)
-	{
-		foreach (CrawlerRuleset crawlerRuleset in crawlers)
-		{
-			for (uint i = 0; i < crawlerRuleset.count; i++)
-			{
-				Room startRoom = null;
-				switch (crawlerRuleset.start)
-				{
-					case CrawlerRuleset.CrawlerStart.Start:
-						startRoom = maze.rooms[0, 0];
-						break;
-					case CrawlerRuleset.CrawlerStart.Random:
-						Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
-						startRoom = maze.rooms[randomPoint.y, randomPoint.x];
-						break;
-					case CrawlerRuleset.CrawlerStart.End:
-						Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
-						startRoom = maze.rooms[endPoint.y, endPoint.x];
-						break;
-				}
-
-				Sprawler.Sprawl(maze, startRoom.position, (int)crawlerRuleset.size,
-					(Room room) => { room.theme = crawlerRuleset.tileset; } );
 			}
 		}
 	}
