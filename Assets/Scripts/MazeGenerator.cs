@@ -29,12 +29,15 @@ public class MazeGenerator : MonoBehaviour
 	}
 	public GenerationState state { get; private set; }
 
+	private uint[,] grid = null;
 	private Maze maze = null;
 
 	private MazeRuleset ruleset = null;
 	private uint currentCrawlerRuleset = 0;
 	private uint numCrawlersRun = 0;
 	private Crawler currentCrawler = null;
+
+	private ThemeManager themeManager = null;
 
 	public delegate void OnComplete(Maze maze);
 	private OnComplete onComplete = null;
@@ -50,18 +53,17 @@ public class MazeGenerator : MonoBehaviour
     /// Generates a maze with the given ruleset.
     /// </summary>
     /// <returns>A brand-new maze to play with.</returns>
-	public void GenerateMaze(MazeRuleset ruleset, OnComplete onComplete)
+	public void GenerateMaze(MazeRuleset ruleset, ThemeManager themeManager, OnComplete onComplete)
 	{
 		this.ruleset = ruleset;
+		this.themeManager = themeManager;
 		this.onComplete = onComplete;
 
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
 
-		uint[,] grid = new uint[ruleset.size.y, ruleset.size.x];
-        // Generate the maze.
+		grid = new uint[ruleset.size.y, ruleset.size.x];
 		CarvePassagesFrom(0, 0, grid, 0);
-		//PrintGrid(grid);
 
         // Base GameObject for the maze.
 		GameObject mazeInstance = new GameObject();
@@ -76,11 +78,16 @@ public class MazeGenerator : MonoBehaviour
 
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
+		UpdateMazeUVs(maze);
 
 		state = GenerationState.RunningCrawlers;
 		while (Step()) {}
+	}
 
+	private void FinishMaze()
+	{
 		UpdateMazeUVs(maze);
+		TextureMaze(maze, themeManager);
 
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
@@ -133,9 +140,11 @@ public class MazeGenerator : MonoBehaviour
 						(Room room) => { room.theme = curRuleset.tileset; } );
 				}
 
-				if (!currentCrawler.Step())
+				bool crawlerFinished = !currentCrawler.Step();
+				if (crawlerFinished)
 				{
 					// If the current Crawler finished, move to the next Crawler.
+					currentCrawler = null;
 					numCrawlersRun++;
 					if (numCrawlersRun >= curRuleset.count)
 					{
@@ -146,10 +155,10 @@ public class MazeGenerator : MonoBehaviour
 						{
 							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
 							currentCrawlerRuleset = 0;
+							FinishMaze();
 							return false;
 						}
 					}
-					currentCrawler = null;
 					break;
 				}
 				break;

@@ -39,7 +39,6 @@ public class GameManager : MonoBehaviour
 	{
 		themeManager = GetComponent<ThemeManager>();
 		mazeGen = GetComponent<MazeGenerator>();
-		Cursor.visible = false;
 
 #if UNITY_STANDALONE && SCREENSAVER
         // Set the resolution to the highest one available.
@@ -109,7 +108,7 @@ public class GameManager : MonoBehaviour
 		MazeRuleset ruleset = themeManager.Rulesets["paperhouse"];
 
         // Generate a new maze.
-		mazeGen.GenerateMaze(ruleset, LevelGenerated);
+		mazeGen.GenerateMaze(ruleset, themeManager, LevelGenerated);
 	}
 
 	private void LevelGenerated(Maze maze)
@@ -137,13 +136,14 @@ public class GameManager : MonoBehaviour
 			playerInstance.transform.position = new Vector3();
 			player.Reset();
 		}
+
+		ui.FadeIn(StartMoving);
 	}
 
 	public void StartLevel()
 	{
-        // Generate a new maze and fade it in.
+        // Generate a new maze.
 		GenerateLevel();
-		ui.FadeIn(StartMoving);
 	}
 
 	public void StartMoving()
