@@ -81,14 +81,10 @@ public class MazeGenerator : MonoBehaviour
 		UpdateMazeUVs(maze);
 
 		state = GenerationState.RunningCrawlers;
-		while (Step()) {}
 	}
 
 	private void FinishMaze()
 	{
-		UpdateMazeUVs(maze);
-		TextureMaze(maze, themeManager);
-
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
         // Set the starting rotation based on the facing of the starting room.
@@ -141,6 +137,7 @@ public class MazeGenerator : MonoBehaviour
 				}
 
 				bool crawlerFinished = !currentCrawler.Step();
+				TextureMaze(maze, themeManager);
 				if (crawlerFinished)
 				{
 					// If the current Crawler finished, move to the next Crawler.
@@ -154,6 +151,7 @@ public class MazeGenerator : MonoBehaviour
 						if (currentCrawlerRuleset >= ruleset.crawlers.GetLength(0))
 						{
 							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
+							state = GenerationState.Idle;
 							currentCrawlerRuleset = 0;
 							FinishMaze();
 							return false;
