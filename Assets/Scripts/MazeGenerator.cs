@@ -23,11 +23,13 @@ public class MazeGenerator : MonoBehaviour
     // Y rotation of the end point.
 	private float endPointRotation = 0.0f;
 
+	public delegate void OnComplete(Maze maze);
+
     /// <summary>
     /// Generates a maze with the given ruleset.
     /// </summary>
     /// <returns>A brand-new maze to play with.</returns>
-	public Maze GenerateMaze(MazeRuleset ruleset)
+	public void GenerateMaze(MazeRuleset ruleset, OnComplete onComplete)
 	{
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
@@ -43,8 +45,8 @@ public class MazeGenerator : MonoBehaviour
 		Maze maze = mazeInstance.AddComponent<Maze>();
 		if (maze == null)
 		{
-			Debug.Log("Maze prefab has no Maze script attached!");
-			return null;
+			Debug.LogError("Maze prefab has no Maze script attached!");
+			return;
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
 
@@ -71,7 +73,8 @@ public class MazeGenerator : MonoBehaviour
 				break;
 		}
 
-		return maze;
+		if (onComplete != null)
+			onComplete.Invoke(maze);
 	}
 
 	/// <summary>

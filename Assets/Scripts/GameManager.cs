@@ -109,10 +109,18 @@ public class GameManager : MonoBehaviour
 		MazeRuleset ruleset = themeManager.Rulesets["paperhouse"];
 
         // Generate a new maze.
-		maze = mazeGen.GenerateMaze(ruleset);
+		mazeGen.GenerateMaze(ruleset, LevelGenerated);
+	}
+
+	private void LevelGenerated(Maze maze)
+	{
+		// Store the generated maze.
+		this.maze = maze;
+
+		// Texture the generated maze.
 		mazeGen.TextureMaze(maze, themeManager);
 
-        // Create a new player if one doesn't already exist.
+		// Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
 			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.Euler(maze.startRotation));
