@@ -85,8 +85,6 @@ public class MazeGenerator : MonoBehaviour
 
 	private void FinishMaze()
 	{
-		UpdateMazeUVs();
-
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
         // Set the starting rotation based on the facing of the starting room.
@@ -105,6 +103,12 @@ public class MazeGenerator : MonoBehaviour
 
 		if (onComplete != null)
 			onComplete.Invoke(maze);
+		state = GenerationState.Idle;
+
+		// Remove all of the unnecessary objects.
+		grid = null;
+		maze = null;
+		ruleset = null;
 	}
 
 	public bool Step()
@@ -138,9 +142,17 @@ public class MazeGenerator : MonoBehaviour
 						(Room room) => { room.theme = curRuleset.tileset; } );
 				}
 
+				// Step the current crawler.
 				bool crawlerFinished = !currentCrawler.Step();
-				TextureRoom(maze.GetRoom(currentCrawler.position));
-				UpdateMazeUVs();
+
+				// Visually update the room the crawler stepped into and the rooms around it.
+				Room curRoom = maze.GetRoom(currentCrawler.position);
+				TextureRoom(curRoom);
+				UpdateRoomUV(curRoom);
+				List<Room> neighbours = maze.GetNeighbours(curRoom);
+				foreach (Room room in neighbours)
+					UpdateRoomUV(room);
+
 				if (crawlerFinished)
 				{
 					// If the current Crawler finished, move to the next Crawler.
@@ -154,7 +166,6 @@ public class MazeGenerator : MonoBehaviour
 						if (currentCrawlerRuleset >= ruleset.crawlers.GetLength(0))
 						{
 							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
-							state = GenerationState.Idle;
 							currentCrawlerRuleset = 0;
 							FinishMaze();
 							return false;
@@ -330,6 +341,28 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
+	private void UpdateRoomUV(Room room)
+	{
+		uint fixedValue = room.value;
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		{
+			if ((room.value & Nav.bits[dir]) != 0)
+			{
+				Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
+				Room neighbourRoom = maze.GetRoom(neighbourPos);
+				if (neighbourRoom != null)
+				{
+					if (room.theme != neighbourRoom.theme)
+						fixedValue &= ~Nav.bits[dir];
+				}
+			}
+		}
+
+		AutotileFloor(room, fixedValue);
+		AutotileCeiling(room, fixedValue);
+		AutotileWalls(room, fixedValue);
+	}
+
 	/// <summary>
 	/// Updates the UV coordinates of all Room meshes in a Maze by autotiling them.
 	/// </summary>
@@ -339,26 +372,7 @@ public class MazeGenerator : MonoBehaviour
 		{
 			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
 			{
-				Room room = maze.rooms[y, x];
-
-				uint fixedValue = room.value;
-				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-				{
-					if ((room.value & Nav.bits[dir]) != 0)
-					{
-						Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
-						Room neighbourRoom = maze.GetRoom(neighbourPos);
-						if (neighbourRoom != null)
-						{
-							if (room.theme != neighbourRoom.theme)
-								fixedValue &= ~Nav.bits[dir];
-						}
-					}
-				}
-
-				AutotileFloor(room, fixedValue);
-				AutotileCeiling(room, fixedValue);
-				AutotileWalls(maze, room, fixedValue);
+				UpdateRoomUV(maze.rooms[y, x]);
 			}
 		}
 	}
@@ -379,7 +393,7 @@ public class MazeGenerator : MonoBehaviour
 		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
 	}
 
-	private void AutotileWalls(Maze maze, Room room, uint fixedRoomValue)
+	private void AutotileWalls(Room room, uint fixedRoomValue)
 	{
 		// Autotile the wall, using the other rooms around it.
 		uint wallValue = 0;
