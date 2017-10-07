@@ -1,30 +1,24 @@
 ﻿using UnityEngine;
+using System;
+using System.Collections.Generic;
 
 public class Maze : MonoBehaviour
 {
 	public Point size;
 
-    /// <summary>
     /// 2D array of rooms in the Maze.
-    /// </summary>
 	[HideInInspector]
 	public Room[,] rooms;
 
-    /// <summary>
     /// Size of a room in world dimensions.
-    /// </summary>
 	[HideInInspector]
 	public Vector2 roomDim;
 
-    /// <summary>
     /// Euler rotation that the player should start at.
-    /// </summary>
 	[HideInInspector]
 	public Vector3 startRotation;
 
-    /// <summary>
     /// Object indicating the end of the maze.
-    /// </summary>
 	[HideInInspector]
 	public GameObject endPoint = null;
 
@@ -52,6 +46,21 @@ public class Maze : MonoBehaviour
 		if (pos.x < 0 || pos.y < 0 || pos.x >= rooms.GetLength(1) || pos.y >= rooms.GetLength(0))
 			return null;
 		return rooms[pos.y, pos.x];
+	}
+
+	public List<Room> GetNeighbours(Room room)
+	{
+		List<Room> neighbours = new List<Room>();
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		{
+			if (Nav.IsConnected(room.value, dir))
+			{
+				Room neighbour = GetRoom(room.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+				if (neighbour != null)
+					neighbours.Add(neighbour);
+			}
+		}
+		return neighbours;
 	}
 
     /// <summary>
