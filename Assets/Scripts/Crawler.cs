@@ -32,12 +32,13 @@ class Crawler
 	public Point position = null;
 
 	private Dir nextFacing = Dir.N;
+	/// Position to move to on the next call to Step.
 	private Point nextPosition = null;
 
 	/// Has the Crawler visited the starting room?
 	private bool started = false;
-	/// Has the Crawler finished its crawling?
-	public bool finished = false;
+	/// Did the Crawler reach the desired distance?
+	public bool success { get; private set; }
 
 	/// Callback on every visited room.
 	private OnUpdate onUpdate = null;
@@ -74,6 +75,8 @@ class Crawler
 		this.onComplete = onComplete;
 		this.allowTurns = allowTurns;
 		this.onlyStepOnDefault = onlyStepOnDefault;
+
+		success = false;
 	}
 
 	/// <summary>
@@ -83,32 +86,22 @@ class Crawler
 	{
 		// Check the starting room's theme if it's relevant.
 		if (onlyStepOnDefault && maze.GetRoom(position).theme != "default")
-		{
-			finished = true;
 			return false;
-		}
 		
 		started = true;
 		return true;
 	}
 
 	/// <summary>
-	/// Step the Crawler forwards by one room.
-	/// If the Crawler hasn't been started, steps on the starting room instead of moving.
+	/// Step the Crawler forwards by one room (including the starting position).
 	/// </summary>
-	/// <returns>True if the Crawler visited a new room successfully, false otherwise.</returns>
+	/// <returns>True if the Crawler still has distance to go, false if it finished.</returns>
 	public bool Step()
 	{
-		// Start the crawler if it hasn't been already.
+		// Start the Crawler if it hasn't been already.
 		if (!started)
 			if (!Start())
 				return false;
-
-		if (finished)
-		{
-			Debug.LogWarning("Can't step a finished Crawler!");
-			return false;
-		}
 
 		if (distance > 0)
 		{
@@ -129,7 +122,6 @@ class Crawler
 			if (nextPosition == position || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != "default"))
 			{
 				// Dead end or another room was hit, stop crawling.
-				finished = true;
 				if (onComplete != null)
 					onComplete.Invoke(maze.GetRoom(position));
 				return false;
@@ -143,7 +135,6 @@ class Crawler
 			if (!allowTurns && nextFacing != facing)
 			{
 				// Turns aren't allowed, but the crawler is trying to turn. Stop crawling.
-				finished = true;
 				if (onComplete != null)
 					onComplete.Invoke(maze.GetRoom(position));
 				return false;
@@ -170,26 +161,13 @@ class Crawler
 
 		if (distance <= 0)
 		{
-			// No distance left, stop crawling.
-			finished = true;
+			// No distance left, the Crawler finished successfully, stop crawling.
+			success = true;
 			if (onComplete != null)
 				onComplete.Invoke(maze.GetRoom(position));
 			return false;
 		}
 		return true;
-	}
-
-	/// <summary>
-	/// Runs a Crawler until it stops.
-	/// </summary>
-	public static void Crawl(Crawler crawler)
-	{
-		if (crawler == null)
-		{
-			Debug.LogError("Can't run a null Crawler!");
-			return;
-		}
-		while (crawler.Step()) {}
 	}
 }
 
