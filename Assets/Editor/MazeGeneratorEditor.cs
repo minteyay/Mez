@@ -39,17 +39,19 @@ public class MazeGeneratorEditor : Editor
 
 		GUILayout.Space(10.0f);
 
-		EditorGUILayout.PropertyField(stepThrough);
+		EditorGUILayout.PropertyField(stepThrough, new GUIContent("Manual step-through"));
+		if (stepThrough.boolValue)
+		{
+			GUI.enabled = false;
+			EditorGUILayout.EnumPopup("Maze generation state", mazeGenerator.state);
+			GUI.enabled = true;
 
-		GUI.enabled = false;
-		EditorGUILayout.EnumPopup("Maze generation state", mazeGenerator.state);
-		GUI.enabled = true;
-
-		if (mazeGenerator.state == MazeGenerator.GenerationState.Idle)
-		GUI.enabled = false;
-		if (GUILayout.Button("Step"))
-			mazeGenerator.Step();
-		GUI.enabled = true;
+			if (mazeGenerator.state == MazeGenerator.GenerationState.Idle)
+			GUI.enabled = false;
+			if (GUILayout.Button("Step"))
+				mazeGenerator.Step();
+			GUI.enabled = true;
+		}
 
 		serializedObject.ApplyModifiedProperties();
 	}
