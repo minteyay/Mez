@@ -41,8 +41,11 @@ public class MazeGeneratorEditor : Editor
 		EditorGUILayout.EnumPopup("Maze generation state", mazeGenerator.state);
 		GUI.enabled = true;
 
+		if (mazeGenerator.state == MazeGenerator.GenerationState.Idle)
+		GUI.enabled = false;
 		if (GUILayout.Button("Step"))
 			((MazeGenerator)target).Step();
+		GUI.enabled = true;
 
 		serializedObject.ApplyModifiedProperties();
 	}
