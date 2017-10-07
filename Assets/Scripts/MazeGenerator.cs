@@ -16,8 +16,11 @@ public class MazeGenerator : MonoBehaviour
 	/// Ceiling model prefab.
 	[SerializeField] private GameObject ceiling = null;
 
-    // End point prefab.
+    /// End point prefab.
 	[SerializeField] private GameObject endPoint = null;
+
+	/// Should maze generation be stepped through manually?
+	[SerializeField] private bool stepThrough = false;
 
 	/* Variables used during maze generation. */
 
@@ -81,10 +84,18 @@ public class MazeGenerator : MonoBehaviour
 		UpdateMazeUVs();
 
 		state = GenerationState.RunningCrawlers;
+		if (!stepThrough)
+			while (Step()) {}
 	}
 
 	private void FinishMaze()
 	{
+		if (!stepThrough)
+		{
+			TextureMaze();
+			UpdateMazeUVs();
+		}
+
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
         // Set the starting rotation based on the facing of the starting room.
@@ -145,13 +156,16 @@ public class MazeGenerator : MonoBehaviour
 				// Step the current crawler.
 				bool crawlerFinished = !currentCrawler.Step();
 
-				// Visually update the room the crawler stepped into and the rooms around it.
-				Room curRoom = maze.GetRoom(currentCrawler.position);
-				TextureRoom(curRoom);
-				UpdateRoomUV(curRoom);
-				List<Room> neighbours = maze.GetNeighbours(curRoom);
-				foreach (Room room in neighbours)
-					UpdateRoomUV(room);
+				if (stepThrough)
+				{
+					// If manually stepping through crawlers, visually update the room the crawler stepped into and the rooms around it.
+					Room curRoom = maze.GetRoom(currentCrawler.position);
+					TextureRoom(curRoom);
+					UpdateRoomUV(curRoom);
+					List<Room> neighbours = maze.GetNeighbours(curRoom);
+					foreach (Room room in neighbours)
+						UpdateRoomUV(room);
+				}
 
 				if (crawlerFinished)
 				{
@@ -176,6 +190,17 @@ public class MazeGenerator : MonoBehaviour
 				break;
 		}
 		return true;
+	}
+
+	private void TextureMaze()
+	{
+		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
+		{
+			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
+			{
+				TextureRoom(maze.rooms[y, x]);
+			}
+		}
 	}
 
 	private void TextureRoom(Room room)

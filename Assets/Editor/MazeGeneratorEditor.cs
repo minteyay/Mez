@@ -11,6 +11,7 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty ceiling = null;
 	private SerializedProperty endPoint = null;
 
+	private SerializedProperty stepThrough = null;
 	private MazeGenerator mazeGenerator = null;
 
 	private void OnEnable()
@@ -22,6 +23,7 @@ public class MazeGeneratorEditor : Editor
 		ceiling = serializedObject.FindProperty("ceiling");
 		endPoint = serializedObject.FindProperty("endPoint");
 
+		stepThrough = serializedObject.FindProperty("stepThrough");
 		mazeGenerator = (MazeGenerator)target;
 	}
 
@@ -37,6 +39,8 @@ public class MazeGeneratorEditor : Editor
 
 		GUILayout.Space(10.0f);
 
+		EditorGUILayout.PropertyField(stepThrough);
+
 		GUI.enabled = false;
 		EditorGUILayout.EnumPopup("Maze generation state", mazeGenerator.state);
 		GUI.enabled = true;
@@ -44,7 +48,7 @@ public class MazeGeneratorEditor : Editor
 		if (mazeGenerator.state == MazeGenerator.GenerationState.Idle)
 		GUI.enabled = false;
 		if (GUILayout.Button("Step"))
-			((MazeGenerator)target).Step();
+			mazeGenerator.Step();
 		GUI.enabled = true;
 
 		serializedObject.ApplyModifiedProperties();
