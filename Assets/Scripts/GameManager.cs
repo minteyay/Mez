@@ -116,9 +116,6 @@ public class GameManager : MonoBehaviour
 		// Store the generated maze.
 		this.maze = maze;
 
-		// Texture the generated maze.
-		mazeGen.TextureMaze(maze, themeManager);
-
 		// Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{

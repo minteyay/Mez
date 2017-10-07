@@ -78,13 +78,15 @@ public class MazeGenerator : MonoBehaviour
 
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
-		UpdateMazeUVs(maze);
+		UpdateMazeUVs();
 
 		state = GenerationState.RunningCrawlers;
 	}
 
 	private void FinishMaze()
 	{
+		UpdateMazeUVs();
+
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
         // Set the starting rotation based on the facing of the starting room.
@@ -137,7 +139,8 @@ public class MazeGenerator : MonoBehaviour
 				}
 
 				bool crawlerFinished = !currentCrawler.Step();
-				TextureMaze(maze, themeManager);
+				TextureRoom(maze.GetRoom(currentCrawler.position));
+				UpdateMazeUVs();
 				if (crawlerFinished)
 				{
 					// If the current Crawler finished, move to the next Crawler.
@@ -164,38 +167,24 @@ public class MazeGenerator : MonoBehaviour
 		return true;
 	}
 
-	/// <summary>
-	/// Textures the room instances in a Maze by pulling tilesets from the supplied ThemeManager.
-	/// If a Room requires a tileset that's not found in the ThemeManager, the default material in the MazeGenerator is used.
-	/// </summary>
-	/// <param name="maze"></param>
-	/// <param name="themeManager"></param>
-	public void TextureMaze(Maze maze, ThemeManager themeManager)
+	private void TextureRoom(Room room)
 	{
-		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
+		MaterialSetter roomMaterialSetter = room.instance.GetComponent<MaterialSetter>();
+		// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
+		if (themeManager.Tilesets.ContainsKey(room.theme))
 		{
-			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
-			{
-				MaterialSetter roomMaterialSetter = maze.rooms[y, x].instance.GetComponent<MaterialSetter>();
-				// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
-				if (themeManager.Tilesets.ContainsKey(maze.rooms[y, x].theme))
-				{
-					roomMaterialSetter.SetMaterial(themeManager.Tilesets[maze.rooms[y, x].theme]);
-				}
-				// Try applying the default tileset if the Room's one isn't loaded.
-				else if (themeManager.Tilesets.ContainsKey("default"))
-				{
-					roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
-					Debug.LogWarning("Tileset named \"" + maze.rooms[y, x].theme + "\" not found in supplied ThemeManager, using default material.",
-						maze.rooms[y, x].instance);
-				}
-				// Even the default tileset wasn't found, so leave the Room untextured.
-				else
-				{
-					Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + maze.rooms[y, x].theme + "\" wasn't found, but the default one wasn't found either.",
-						maze.rooms[y, x].instance);
-				}
-			}
+			roomMaterialSetter.SetMaterial(themeManager.Tilesets[room.theme]);
+		}
+		// Try applying the default tileset if the Room's one isn't loaded.
+		else if (themeManager.Tilesets.ContainsKey("default"))
+		{
+			roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
+			Debug.LogWarning("Tileset named \"" + room.theme + "\" not found in supplied ThemeManager, using default material.", room.instance);
+		}
+		// Even the default tileset wasn't found, so leave the Room untextured.
+		else
+		{
+			Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + room.theme + "\" wasn't found, but the default one wasn't found either.", room.instance);
 		}
 	}
 
@@ -344,8 +333,7 @@ public class MazeGenerator : MonoBehaviour
 	/// <summary>
 	/// Updates the UV coordinates of all Room meshes in a Maze by autotiling them.
 	/// </summary>
-	/// <param name="maze"></param>
-	private void UpdateMazeUVs(Maze maze)
+	private void UpdateMazeUVs()
 	{
 		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
 		{
@@ -379,7 +367,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Transform floorTransform = room.instance.transform.Find("Floor");
 
-		floorTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		floorTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
 		floorTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
 	}
 
@@ -387,7 +375,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Transform ceilingTransform = room.instance.transform.Find("Ceiling");
 
-		ceilingTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		ceilingTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
 		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
 	}
 
@@ -427,7 +415,7 @@ public class MazeGenerator : MonoBehaviour
 
 				// Set the wall texture UV.
 				Transform wallInstance = wallsInstance.Find(Nav.bits[dir].ToString());
-				wallInstance.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
+				wallInstance.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
 	}

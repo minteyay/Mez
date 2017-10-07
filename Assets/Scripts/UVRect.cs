@@ -6,14 +6,29 @@
 [ExecuteInEditMode]
 public class UVRect : MonoBehaviour
 {
-    /// <summary>
+	[SerializeField] private Vector2 _offset;
     /// UV offset in the source texture.
-    /// </summary>
-	public Vector2 start;
-    /// <summary>
+	public Vector2 offset
+	{
+		get { return _offset; }
+		set
+		{
+			_offset = value;
+			UpdateUV();
+		}
+	}
+	
+	[SerializeField] private Vector2 _dimensions;
     /// Dimensions of the area of the source texture to use.
-    /// </summary>
-	public Vector2 dim;
+	public Vector2 dimensions
+	{
+		get { return _dimensions; }
+		set
+		{
+			_dimensions = value;
+			UpdateUV();
+		}
+	}
 
 	public Mesh sourceMesh = null;
 	private Mesh mesh = null;
@@ -28,9 +43,9 @@ public class UVRect : MonoBehaviour
 	}
 
 #if UNITY_EDITOR
-    // Update the UV in the editor.
 	void OnValidate()
 	{
+		// Update the UV in the editor.
 		UpdateUV();
 	}
 #endif
@@ -48,12 +63,12 @@ public class UVRect : MonoBehaviour
 			Vector2[] uvs = new Vector2[mesh.vertexCount];
 
             // The Y coordinate is reversed in UV coords.
-			Vector2 fixedStart = new Vector2(start.x, -start.y);
+			Vector2 fixedOffset = new Vector2(_offset.x, -_offset.y);
 
-			uvs[0] = new Vector2(dim.x, -dim.y) + fixedStart;
-			uvs[1] = new Vector2(0.0f, -dim.y) + fixedStart;
-			uvs[2] = new Vector2(0.0f, 0.0f) + fixedStart;
-			uvs[3] = new Vector2(dim.x, 0.0f) + fixedStart;
+			uvs[0] = new Vector2(_dimensions.x, -_dimensions.y) + fixedOffset;
+			uvs[1] = new Vector2(0.0f, -_dimensions.y) + fixedOffset;
+			uvs[2] = new Vector2(0.0f, 0.0f) + fixedOffset;
+			uvs[3] = new Vector2(_dimensions.x, 0.0f) + fixedOffset;
 
 			mesh.uv = uvs;
 		}
