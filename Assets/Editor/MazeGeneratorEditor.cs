@@ -12,6 +12,7 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty endPoint = null;
 
 	private SerializedProperty stepThrough = null;
+	private SerializedProperty state = null;
 	private MazeGenerator mazeGenerator = null;
 
 	private void OnEnable()
@@ -24,6 +25,7 @@ public class MazeGeneratorEditor : Editor
 		endPoint = serializedObject.FindProperty("endPoint");
 
 		stepThrough = serializedObject.FindProperty("stepThrough");
+		state = serializedObject.FindProperty("_state");
 		mazeGenerator = (MazeGenerator)target;
 	}
 
@@ -43,14 +45,37 @@ public class MazeGeneratorEditor : Editor
 		if (stepThrough.boolValue)
 		{
 			GUI.enabled = false;
-			EditorGUILayout.EnumPopup("Maze generation state", mazeGenerator.state);
+			EditorGUILayout.PropertyField(state, new GUIContent("Maze generation state"));
 			GUI.enabled = true;
 
-			if (mazeGenerator.state == MazeGenerator.GenerationState.Idle)
-			GUI.enabled = false;
+			MazeGenerator.GenerationState mazeGenState = (MazeGenerator.GenerationState)state.intValue;
+
+			if (mazeGenState == MazeGenerator.GenerationState.Idle)
+				GUI.enabled = false;
 			if (GUILayout.Button("Step"))
-				mazeGenerator.Step();
+				((MazeGenerator)target).Step();
 			GUI.enabled = true;
+
+			if (mazeGenerator.currentCrawlerRuleset != null)
+			{
+				EditorGUILayout.LabelField("Current crawler ruleset", EditorStyles.boldLabel);
+				EditorGUILayout.TextArea(mazeGenerator.currentCrawlerRuleset.ToString());
+			}
+
+			if (mazeGenerator.messageLog != null && mazeGenerator.messageLog.Count > 0)
+			{
+				EditorGUILayout.LabelField("Crawler events", EditorStyles.boldLabel);
+
+				string messageLog = "";
+				string[] crawlerMessages = mazeGenerator.messageLog.ToArray();
+				for (int i = 0; i < crawlerMessages.Length; i++)
+				{
+					messageLog += crawlerMessages[i];
+					if (i < (crawlerMessages.Length - 1))
+						messageLog += '\n';
+				}
+				EditorGUILayout.TextArea(messageLog.ToString());
+			}
 		}
 
 		serializedObject.ApplyModifiedProperties();

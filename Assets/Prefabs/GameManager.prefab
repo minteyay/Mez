@@ -58,6 +58,8 @@ MonoBehaviour:
   wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}
   ceiling: {fileID: 1119517059742150, guid: b2152f833e69d46fe8cd566bef6ecaaa, type: 2}
   endPoint: {fileID: 1000014044703306, guid: 869142d0a3ae8484a85a3414c8b86564, type: 2}
+  stepThrough: 0
+  _state: 0
 --- !u!114 &114000013432157448
 MonoBehaviour:
   m_ObjectHideFlags: 1

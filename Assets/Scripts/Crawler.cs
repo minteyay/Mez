@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// A class that travels along the maze, executing a given function on rooms it passes through.
 /// Can be stepped forwards one room at a time. Stops when it hits a dead end or when trying to turn if allowTurns == false.
 /// </summary>
-class Crawler
+public class Crawler
 {
 	/// <summary>
 	/// Callback that gets whenever the Crawler enters a room.
@@ -174,7 +174,7 @@ class Crawler
 /// <summary>
 /// A class that starts from a room in a maze and starts running Crawlers in all directions until a given amount of rooms have been visited.
 /// </summary>
-class Sprawler
+public class Sprawler
 {
 	private List<Crawler> crawlers = new List<Crawler>();
 	private List<Crawler> queuedBranches = new List<Crawler>();

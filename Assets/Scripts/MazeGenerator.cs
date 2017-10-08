@@ -28,17 +28,22 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Idle,
 		GeneratingGrid,
-		RunningCrawlers
+		RunningCrawlers,
+		Finished
 	}
-	public GenerationState state { get; private set; }
+	[SerializeField] private GenerationState _state;
+	public GenerationState state { get { return _state; } private set { _state = value; } }
 
 	private uint[,] grid = null;
 	private Maze maze = null;
 
 	private MazeRuleset ruleset = null;
-	private uint currentCrawlerRuleset = 0;
+	private uint currentCrawlerRulesetIndex = 0;
+	public CrawlerRuleset currentCrawlerRuleset { get; private set; }
 	private uint numCrawlersRun = 0;
 	private Crawler currentCrawler = null;
+
+	public List<string> messageLog { get; private set; }
 
 	private ThemeManager themeManager = null;
 
@@ -61,6 +66,8 @@ public class MazeGenerator : MonoBehaviour
 		this.ruleset = ruleset;
 		this.themeManager = themeManager;
 		this.onComplete = onComplete;
+
+		messageLog = new List<string>();
 
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
@@ -120,21 +127,25 @@ public class MazeGenerator : MonoBehaviour
 		grid = null;
 		maze = null;
 		ruleset = null;
+		currentCrawlerRuleset = null;
+		messageLog = null;
 	}
 
 	public bool Step()
 	{
+		messageLog.Clear();
+
 		switch (state)
 		{
 			// Running the crawlers in the current ruleset.
 			case GenerationState.RunningCrawlers:
-				CrawlerRuleset curRuleset = ruleset.crawlers[currentCrawlerRuleset];
+				currentCrawlerRuleset = ruleset.crawlers[currentCrawlerRulesetIndex];
 
 				// Create a new Crawler if we don't have one to Step.
 				if (currentCrawler == null)
 				{
 					Room startRoom = null;
-					switch (curRuleset.start)
+					switch (currentCrawlerRuleset.start)
 					{
 						case CrawlerRuleset.CrawlerStart.Start:
 							startRoom = maze.rooms[0, 0];
@@ -149,12 +160,14 @@ public class MazeGenerator : MonoBehaviour
 							break;
 					}
 
-					currentCrawler = new Crawler(maze, startRoom.position, Dir.N, curRuleset.size,
-						(Room room) => { room.theme = curRuleset.tileset; } );
+					currentCrawler = new Crawler(maze, startRoom.position, Dir.N, currentCrawlerRuleset.size,
+						(Room room) => { room.theme = currentCrawlerRuleset.tileset; } );
+					messageLog.Add("Added crawler at " + startRoom.position.ToString());
 				}
 
 				// Step the current crawler.
 				bool crawlerFinished = !currentCrawler.Step();
+				messageLog.Add("Crawler stepped on " + currentCrawler.position.ToString());
 
 				if (stepThrough)
 				{
@@ -169,24 +182,32 @@ public class MazeGenerator : MonoBehaviour
 
 				if (crawlerFinished)
 				{
+					if (currentCrawler.success)
+						messageLog.Add("Crawler finished successfully");
+					else
+						messageLog.Add("Crawler failed");
+
 					// If the current Crawler finished, move to the next Crawler.
 					currentCrawler = null;
 					numCrawlersRun++;
-					if (numCrawlersRun >= curRuleset.count)
+					if (numCrawlersRun >= currentCrawlerRuleset.count)
 					{
 						// If we've run enough Crawlers to satisfy the CrawlerRuleset, move to the next CrawlerRuleset.
 						numCrawlersRun = 0;
-						currentCrawlerRuleset++;
-						if (currentCrawlerRuleset >= ruleset.crawlers.GetLength(0))
+						currentCrawlerRulesetIndex++;
+						if (currentCrawlerRulesetIndex >= ruleset.crawlers.GetLength(0))
 						{
 							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
-							currentCrawlerRuleset = 0;
-							FinishMaze();
+							currentCrawlerRulesetIndex = 0;
+							state = GenerationState.Finished;
 							return false;
 						}
 					}
-					break;
 				}
+				break;
+
+			case GenerationState.Finished:
+				FinishMaze();
 				break;
 		}
 		return true;
@@ -457,25 +478,5 @@ public class MazeGenerator : MonoBehaviour
 				wallInstance.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
-	}
-
-    /// <summary>
-    /// Prints a 2D grid neatly.
-    /// </summary>
-    /// <param name="grid">2D grid to print.</param>
-	private void PrintGrid(int[,] grid)
-	{
-		string output = "";
-		for (int y = 0; y < grid.GetLength(0); y++)
-		{
-			for (int x = 0; x < grid.GetLength(1); x++)
-			{
-				output += grid[y, x];
-				if (x < grid.GetLength(1) - 1)
-					output += ", ";
-			}
-			output += "\n";
-		}
-		Debug.Log(output);
 	}
 }
