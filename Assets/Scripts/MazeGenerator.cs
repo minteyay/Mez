@@ -4,56 +4,104 @@ using System.Collections.Generic;
 
 public class MazeGenerator : MonoBehaviour
 {
+	/* Editor parameters. */
+
     /// Size of a room in world dimensions.
-	public Vector2 roomDim;
+	[SerializeField] private Vector2 roomDim;
 
     /// Floor model prefab.
-	public GameObject floor = null;
+	[SerializeField] private GameObject floor = null;
 	/// Wall model prefab.
-	public GameObject wall = null;
+	[SerializeField] private GameObject wall = null;
 	/// Ceiling model prefab.
-	public GameObject ceiling = null;
+	[SerializeField] private GameObject ceiling = null;
 
-    // End point prefab.
-	public GameObject endPoint = null;
-    // Distance to the end point from the start of the maze.
+    /// End point prefab.
+	[SerializeField] private GameObject endPoint = null;
+
+	/// Should maze generation be stepped through manually?
+	[SerializeField] private bool stepThrough = false;
+
+	/* Variables used during maze generation. */
+
+	public enum GenerationState
+	{
+		Idle,
+		GeneratingGrid,
+		RunningCrawlers,
+		Finished
+	}
+	[SerializeField] private GenerationState _state;
+	public GenerationState state { get { return _state; } private set { _state = value; } }
+
+	private uint[,] grid = null;
+	private Maze maze = null;
+
+	private MazeRuleset ruleset = null;
+	private uint currentCrawlerRulesetIndex = 0;
+	public CrawlerRuleset currentCrawlerRuleset { get; private set; }
+	private uint numCrawlersRun = 0;
+	private Crawler currentCrawler = null;
+
+	public List<string> messageLog { get; private set; }
+
+	private ThemeManager themeManager = null;
+
+	public delegate void OnComplete(Maze maze);
+	private OnComplete onComplete = null;
+
+	/// Distance to the end point from the start of the maze.
 	private uint endPointDist = 0;
-    // Index position of the end point.
+    /// Index position of the end point.
 	private Point endPointCoord = new Point(-1, -1);
-    // Y rotation of the end point.
+    /// Y rotation of the end point.
 	private float endPointRotation = 0.0f;
 
     /// <summary>
     /// Generates a maze with the given ruleset.
     /// </summary>
     /// <returns>A brand-new maze to play with.</returns>
-	public Maze GenerateMaze(MazeRuleset ruleset)
+	public void GenerateMaze(MazeRuleset ruleset, ThemeManager themeManager, OnComplete onComplete)
 	{
+		this.ruleset = ruleset;
+		this.themeManager = themeManager;
+		this.onComplete = onComplete;
+
+		messageLog = new List<string>();
+
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
 
-		uint[,] grid = new uint[ruleset.size.y, ruleset.size.x];
-        // Generate the maze.
+		grid = new uint[ruleset.size.y, ruleset.size.x];
 		CarvePassagesFrom(0, 0, grid, 0);
-		//PrintGrid(grid);
 
         // Base GameObject for the maze.
 		GameObject mazeInstance = new GameObject();
 		mazeInstance.name = "Maze";
-		Maze maze = mazeInstance.AddComponent<Maze>();
+		maze = mazeInstance.AddComponent<Maze>();
 		if (maze == null)
 		{
-			Debug.Log("Maze prefab has no Maze script attached!");
-			return null;
+			Debug.LogError("Maze prefab has no Maze script attached!");
+			return;
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
 
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
+		UpdateMazeUVs();
 
-		RunCrawlers(maze, ruleset.crawlers);
+		state = GenerationState.RunningCrawlers;
+		if (!stepThrough)
+			while (Step()) {}
+	}
 
-		UpdateMazeUVs(maze);
+	private void FinishMaze()
+	{
+		if (!stepThrough)
+		{
+			TextureMaze();
+			UpdateMazeUVs();
+		}
 
 		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
 
@@ -71,41 +119,129 @@ public class MazeGenerator : MonoBehaviour
 				break;
 		}
 
-		return maze;
+		if (onComplete != null)
+			onComplete.Invoke(maze);
+		state = GenerationState.Idle;
+
+		// Remove all of the unnecessary objects.
+		grid = null;
+		maze = null;
+		ruleset = null;
+		currentCrawlerRuleset = null;
+		messageLog = null;
 	}
 
-	/// <summary>
-	/// Textures the room instances in a Maze by pulling tilesets from the supplied ThemeManager.
-	/// If a Room requires a tileset that's not found in the ThemeManager, the default material in the MazeGenerator is used.
-	/// </summary>
-	/// <param name="maze"></param>
-	/// <param name="themeManager"></param>
-	public void TextureMaze(Maze maze, ThemeManager themeManager)
+	public bool Step()
+	{
+		messageLog.Clear();
+
+		switch (state)
+		{
+			// Running the crawlers in the current ruleset.
+			case GenerationState.RunningCrawlers:
+				currentCrawlerRuleset = ruleset.crawlers[currentCrawlerRulesetIndex];
+
+				// Create a new Crawler if we don't have one to Step.
+				if (currentCrawler == null)
+				{
+					Room startRoom = null;
+					switch (currentCrawlerRuleset.start)
+					{
+						case CrawlerRuleset.CrawlerStart.Start:
+							startRoom = maze.rooms[0, 0];
+							break;
+						case CrawlerRuleset.CrawlerStart.Random:
+							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
+							startRoom = maze.rooms[randomPoint.y, randomPoint.x];
+							break;
+						case CrawlerRuleset.CrawlerStart.End:
+							Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
+							startRoom = maze.rooms[endPoint.y, endPoint.x];
+							break;
+					}
+
+					currentCrawler = new Crawler(maze, startRoom.position, Dir.N, currentCrawlerRuleset.size,
+						(Room room) => { room.theme = currentCrawlerRuleset.tileset; } );
+					messageLog.Add("Added crawler at " + startRoom.position.ToString());
+				}
+
+				// Step the current crawler.
+				bool crawlerFinished = !currentCrawler.Step();
+				messageLog.Add("Crawler stepped on " + currentCrawler.position.ToString());
+
+				if (stepThrough)
+				{
+					// If manually stepping through crawlers, visually update the room the crawler stepped into and the rooms around it.
+					Room curRoom = maze.GetRoom(currentCrawler.position);
+					TextureRoom(curRoom);
+					UpdateRoomUV(curRoom);
+					List<Room> neighbours = maze.GetNeighbours(curRoom);
+					foreach (Room room in neighbours)
+						UpdateRoomUV(room);
+				}
+
+				if (crawlerFinished)
+				{
+					if (currentCrawler.success)
+						messageLog.Add("Crawler finished successfully");
+					else
+						messageLog.Add("Crawler failed");
+
+					// If the current Crawler finished, move to the next Crawler.
+					currentCrawler = null;
+					numCrawlersRun++;
+					if (numCrawlersRun >= currentCrawlerRuleset.count)
+					{
+						// If we've run enough Crawlers to satisfy the CrawlerRuleset, move to the next CrawlerRuleset.
+						numCrawlersRun = 0;
+						currentCrawlerRulesetIndex++;
+						if (currentCrawlerRulesetIndex >= ruleset.crawlers.GetLength(0))
+						{
+							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
+							currentCrawlerRulesetIndex = 0;
+							state = GenerationState.Finished;
+							return false;
+						}
+					}
+				}
+				break;
+
+			case GenerationState.Finished:
+				FinishMaze();
+				break;
+		}
+		return true;
+	}
+
+	private void TextureMaze()
 	{
 		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
 		{
 			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
 			{
-				MaterialSetter roomMaterialSetter = maze.rooms[y, x].instance.GetComponent<MaterialSetter>();
-				// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
-				if (themeManager.Tilesets.ContainsKey(maze.rooms[y, x].theme))
-				{
-					roomMaterialSetter.SetMaterial(themeManager.Tilesets[maze.rooms[y, x].theme]);
-				}
-				// Try applying the default tileset if the Room's one isn't loaded.
-				else if (themeManager.Tilesets.ContainsKey("default"))
-				{
-					roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
-					Debug.LogWarning("Tileset named \"" + maze.rooms[y, x].theme + "\" not found in supplied ThemeManager, using default material.",
-						maze.rooms[y, x].instance);
-				}
-				// Even the default tileset wasn't found, so leave the Room untextured.
-				else
-				{
-					Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + maze.rooms[y, x].theme + "\" wasn't found, but the default one wasn't found either.",
-						maze.rooms[y, x].instance);
-				}
+				TextureRoom(maze.rooms[y, x]);
 			}
+		}
+	}
+
+	private void TextureRoom(Room room)
+	{
+		MaterialSetter roomMaterialSetter = room.instance.GetComponent<MaterialSetter>();
+		// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
+		if (themeManager.Tilesets.ContainsKey(room.theme))
+		{
+			roomMaterialSetter.SetMaterial(themeManager.Tilesets[room.theme]);
+		}
+		// Try applying the default tileset if the Room's one isn't loaded.
+		else if (themeManager.Tilesets.ContainsKey("default"))
+		{
+			roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
+			Debug.LogWarning("Tileset named \"" + room.theme + "\" not found in supplied ThemeManager, using default material.", room.instance);
+		}
+		// Even the default tileset wasn't found, so leave the Room untextured.
+		else
+		{
+			Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + room.theme + "\" wasn't found, but the default one wasn't found either.", room.instance);
 		}
 	}
 
@@ -251,64 +387,38 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
-	private void RunCrawlers(Maze maze, CrawlerRuleset[] crawlers)
+	private void UpdateRoomUV(Room room)
 	{
-		foreach (CrawlerRuleset crawlerRuleset in crawlers)
+		uint fixedValue = room.value;
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
-			for (uint i = 0; i < crawlerRuleset.count; i++)
+			if ((room.value & Nav.bits[dir]) != 0)
 			{
-				Room startRoom = null;
-				switch (crawlerRuleset.start)
+				Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
+				Room neighbourRoom = maze.GetRoom(neighbourPos);
+				if (neighbourRoom != null)
 				{
-					case CrawlerRuleset.CrawlerStart.Start:
-						startRoom = maze.rooms[0, 0];
-						break;
-					case CrawlerRuleset.CrawlerStart.Random:
-						Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
-						startRoom = maze.rooms[randomPoint.y, randomPoint.x];
-						break;
-					case CrawlerRuleset.CrawlerStart.End:
-						Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
-						startRoom = maze.rooms[endPoint.y, endPoint.x];
-						break;
+					if (room.theme != neighbourRoom.theme)
+						fixedValue &= ~Nav.bits[dir];
 				}
-
-				Sprawler.Sprawl(maze, startRoom.position, (int)crawlerRuleset.size,
-					(Room room) => { room.theme = crawlerRuleset.tileset; } );
 			}
 		}
+
+		AutotileFloor(room, fixedValue);
+		AutotileCeiling(room, fixedValue);
+		AutotileWalls(room, fixedValue);
 	}
 
 	/// <summary>
 	/// Updates the UV coordinates of all Room meshes in a Maze by autotiling them.
 	/// </summary>
-	/// <param name="maze"></param>
-	private void UpdateMazeUVs(Maze maze)
+	private void UpdateMazeUVs()
 	{
 		for (uint y = 0; y < maze.rooms.GetLength(0); y++)
 		{
 			for (uint x = 0; x < maze.rooms.GetLength(1); x++)
 			{
-				Room room = maze.rooms[y, x];
-
-				uint fixedValue = room.value;
-				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-				{
-					if ((room.value & Nav.bits[dir]) != 0)
-					{
-						Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
-						Room neighbourRoom = maze.GetRoom(neighbourPos);
-						if (neighbourRoom != null)
-						{
-							if (room.theme != neighbourRoom.theme)
-								fixedValue &= ~Nav.bits[dir];
-						}
-					}
-				}
-
-				AutotileFloor(room, fixedValue);
-				AutotileCeiling(room, fixedValue);
-				AutotileWalls(maze, room, fixedValue);
+				UpdateRoomUV(maze.rooms[y, x]);
 			}
 		}
 	}
@@ -317,7 +427,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Transform floorTransform = room.instance.transform.Find("Floor");
 
-		floorTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		floorTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
 		floorTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
 	}
 
@@ -325,11 +435,11 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Transform ceilingTransform = room.instance.transform.Find("Ceiling");
 
-		ceilingTransform.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
+		ceilingTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedRoomValue]);
 		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedRoomValue], 0.0f);
 	}
 
-	private void AutotileWalls(Maze maze, Room room, uint fixedRoomValue)
+	private void AutotileWalls(Room room, uint fixedRoomValue)
 	{
 		// Autotile the wall, using the other rooms around it.
 		uint wallValue = 0;
@@ -365,28 +475,8 @@ public class MazeGenerator : MonoBehaviour
 
 				// Set the wall texture UV.
 				Transform wallInstance = wallsInstance.Find(Nav.bits[dir].ToString());
-				wallInstance.Find("Mesh").GetComponent<UVRect>().start = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
+				wallInstance.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
-	}
-
-    /// <summary>
-    /// Prints a 2D grid neatly.
-    /// </summary>
-    /// <param name="grid">2D grid to print.</param>
-	private void PrintGrid(int[,] grid)
-	{
-		string output = "";
-		for (int y = 0; y < grid.GetLength(0); y++)
-		{
-			for (int x = 0; x < grid.GetLength(1); x++)
-			{
-				output += grid[y, x];
-				if (x < grid.GetLength(1) - 1)
-					output += ", ";
-			}
-			output += "\n";
-		}
-		Debug.Log(output);
 	}
 }

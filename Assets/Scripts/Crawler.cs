@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// A class that travels along the maze, executing a given function on rooms it passes through.
 /// Can be stepped forwards one room at a time. Stops when it hits a dead end or when trying to turn if allowTurns == false.
 /// </summary>
-class Crawler
+public class Crawler
 {
 	/// <summary>
 	/// Callback that gets whenever the Crawler enters a room.
@@ -31,10 +31,14 @@ class Crawler
 	private uint distance = 0;
 	public Point position = null;
 
+	private Dir nextFacing = Dir.N;
+	/// Position to move to on the next call to Step.
+	private Point nextPosition = null;
+
 	/// Has the Crawler visited the starting room?
 	private bool started = false;
-	/// Has the Crawler finished its crawling?
-	public bool finished = false;
+	/// Did the Crawler reach the desired distance?
+	public bool success { get; private set; }
 
 	/// Callback on every visited room.
 	private OnUpdate onUpdate = null;
@@ -61,8 +65,8 @@ class Crawler
 		bool onlyStepOnDefault = true)
 	{
 		this.maze = maze;
-		this.position = position;
-		this.facing = facing;
+		this.position = nextPosition = position;
+		this.facing = nextFacing = facing;
 		if (distance == 0)
 			this.distance = DefaultDistance;
 		else
@@ -71,6 +75,8 @@ class Crawler
 		this.onComplete = onComplete;
 		this.allowTurns = allowTurns;
 		this.onlyStepOnDefault = onlyStepOnDefault;
+
+		success = false;
 	}
 
 	/// <summary>
@@ -81,122 +87,94 @@ class Crawler
 		// Check the starting room's theme if it's relevant.
 		if (onlyStepOnDefault && maze.GetRoom(position).theme != "default")
 			return false;
-
-		// Step on the starting room.
-		distance--;
-		if (onUpdate != null)
-			onUpdate.Invoke(maze.rooms[position.y, position.x]);
-		if (distance == 0)
-			if (onComplete != null)
-				onComplete.Invoke(maze.rooms[position.y, position.x]);
 		
 		started = true;
 		return true;
 	}
 
 	/// <summary>
-	/// Step the Crawler forwards by one room.
-	/// If the Crawler hasn't been started, steps on the starting room instead of moving.
+	/// Step the Crawler forwards by one room (including the starting position).
 	/// </summary>
-	/// <returns>True if the Crawler visited a new room successfully, false otherwise.</returns>
+	/// <returns>True if the Crawler still has distance to go, false if it finished.</returns>
 	public bool Step()
 	{
-		// Start the crawler if it hasn't been already.
+		// Start the Crawler if it hasn't been already.
 		if (!started)
-			return Start();
-
-		if (finished)
-		{
-			Debug.LogWarning("Can't step a finished Crawler!");
-			return false;
-		}
+			if (!Start())
+				return false;
 
 		if (distance > 0)
 		{
 			distance--;
 
-			// Get a new position for a room to try to move to.
-			Point newPos = maze.MoveStraight(position, facing, false);
-
-			if (newPos == position || (onlyStepOnDefault && maze.GetRoom(newPos).theme != "default"))
-			{
-				// Dead end or another room was hit, stop crawling.
-				finished = true;
-				if (onComplete != null)
-					onComplete.Invoke(maze.rooms[newPos.y, newPos.x]);
-				return false;
-			}
-
-			// Calculate new facing for the crawler.
-			Point posDelta = position - newPos;
-			float deltaAngle = Mathf.Atan2((float)posDelta.y, (float)posDelta.x) * Mathf.Rad2Deg;
-			Dir newFacing = Nav.AngleToFacing(deltaAngle);
-
-			if (!allowTurns)
-			{
-				if (newFacing != facing)
-				{
-					// Turns aren't allowed, but the crawler is trying to turn. Stop crawling.
-					finished = true;
-					if (onComplete != null)
-						onComplete.Invoke(maze.rooms[position.y, position.x]);
-					return false;
-				}
-			}
+			// Step on the next position.
+			facing = nextFacing;
+			position = nextPosition;
 
 			// Callback on the new room.
 			if (onUpdate != null)
-				onUpdate.Invoke(maze.rooms[newPos.y, newPos.x]);
+				onUpdate.Invoke(maze.GetRoom(position));
 			
-			// Check if there's a parent Sprawler and possible directions to branch in (from the previous room).
-			if (sprawler != null)
+			// Calculate the next position to move to.
+			nextPosition = maze.MoveStraight(position, facing, false);
+
+			// Check the validity of the next position.
+			if (nextPosition == position || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != "default"))
 			{
-				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-				{
-					// Don't start branching crawlers in the direction this crawler is moving in and has already visited.
-					if (dir != newFacing && dir != Nav.opposite[facing])
-					{
-						if (Nav.IsConnected(maze.rooms[position.y, position.x].value, dir))
-						{
-							// Queue a branching crawler in the parent Sprawler.
-							Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-							sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, null, null));
-						}
-					}
-				}
+				// Dead end or another room was hit, stop crawling.
+				if (onComplete != null)
+					onComplete.Invoke(maze.GetRoom(position));
+				return false;
 			}
 
-			// Update the crawler's current facing and position.
-			facing = newFacing;
-			position = newPos;
-			return true;
+			// Check the validity of the next facing.
+			Point posDelta = position - nextPosition;
+			float deltaAngle = Mathf.Atan2((float)posDelta.y, (float)posDelta.x) * Mathf.Rad2Deg;
+			nextFacing = Nav.AngleToFacing(deltaAngle);
+
+			if (!allowTurns && nextFacing != facing)
+			{
+				// Turns aren't allowed, but the crawler is trying to turn. Stop crawling.
+				if (onComplete != null)
+					onComplete.Invoke(maze.GetRoom(position));
+				return false;
+			}
+
+		// 	// Check if there's a parent Sprawler and possible directions to branch in (from the previous room).
+		// 	if (sprawler != null)
+		// 	{
+		// 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		// 		{
+		// 			// Don't start branching crawlers in the direction this crawler is moving in and has already visited.
+		// 			if (dir != newFacing && dir != Nav.opposite[facing])
+		// 			{
+		// 				if (Nav.IsConnected(maze.rooms[position.y, position.x].value, dir))
+		// 				{
+		// 					// Queue a branching crawler in the parent Sprawler.
+		// 					Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
+		// 					sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, null, null));
+		// 				}
+		// 			}
+		// 		}
+		// 	}
 		}
 
-		// No distance left, stop crawling.
-		finished = true;
-		if (onComplete != null)
-			onComplete.Invoke(maze.rooms[position.y, position.x]);
-		return false;
-	}
-
-	/// <summary>
-	/// Runs a Crawler until it stops.
-	/// </summary>
-	public static void Crawl(Crawler crawler)
-	{
-		if (crawler == null)
+		if (distance <= 0)
 		{
-			Debug.LogError("Can't run a null Crawler!");
-			return;
+			// No distance left, the Crawler finished successfully, stop crawling.
+			success = true;
+			if (onComplete != null)
+				onComplete.Invoke(maze.GetRoom(position));
+			return false;
 		}
-		while (crawler.Step()) {}
+		return true;
 	}
 }
 
 /// <summary>
 /// A class that starts from a room in a maze and starts running Crawlers in all directions until a given amount of rooms have been visited.
 /// </summary>
-class Sprawler
+public class Sprawler
 {
 	private List<Crawler> crawlers = new List<Crawler>();
 	private List<Crawler> queuedBranches = new List<Crawler>();

@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System;
 
-[Serializable]
+[System.Serializable]
 public class MazeRuleset
 {
     public string name = "";
@@ -17,7 +16,7 @@ public class MazeRuleset
     }
 }
 
-[Serializable]
+[System.Serializable]
 public class CrawlerRuleset
 {
     public enum CrawlerStart { Random, Start, End }
@@ -31,5 +30,14 @@ public class CrawlerRuleset
     public static CrawlerRuleset FromJSON(string data)
     {
         return JsonUtility.FromJson<CrawlerRuleset>(data);
+    }
+
+    public override string ToString()
+    {
+        return "Name : " + name + '\n'
+         + "Tileset : " + tileset + '\n'
+         + "Start : " + start.ToString() + '\n'
+         + "Count : " + count.ToString() + '\n'
+         + "Size : " + size.ToString();
     }
 }
