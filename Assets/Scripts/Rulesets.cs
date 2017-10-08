@@ -8,7 +8,7 @@ public class MazeRuleset
     public Point size = new Point(2, 2);
     public string tileset = "default";
 
-    public CrawlerRuleset[] crawlers;
+    public SprawlerRuleset[] sprawlers;
 
     public static MazeRuleset FromJSON(string data)
     {
@@ -17,19 +17,19 @@ public class MazeRuleset
 }
 
 [System.Serializable]
-public class CrawlerRuleset
+public class SprawlerRuleset
 {
-    public enum CrawlerStart { Random, Start, End }
+    public enum Start { Random, Start, End }
 
     public string name = "";
     public string tileset = "default";
-    public CrawlerStart start = CrawlerStart.Random;
+    public Start start = Start.Random;
     public uint count = 1;
     public uint size = 1;
 
-    public static CrawlerRuleset FromJSON(string data)
+    public static SprawlerRuleset FromJSON(string data)
     {
-        return JsonUtility.FromJson<CrawlerRuleset>(data);
+        return JsonUtility.FromJson<SprawlerRuleset>(data);
     }
 
     public override string ToString()

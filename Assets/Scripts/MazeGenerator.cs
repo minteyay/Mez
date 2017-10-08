@@ -28,7 +28,7 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Idle,
 		GeneratingGrid,
-		RunningCrawlers,
+		RunningSprawlers,
 		Finished
 	}
 	[SerializeField] private GenerationState _state;
@@ -38,10 +38,10 @@ public class MazeGenerator : MonoBehaviour
 	private Maze maze = null;
 
 	private MazeRuleset ruleset = null;
-	private uint currentCrawlerRulesetIndex = 0;
-	public CrawlerRuleset currentCrawlerRuleset { get; private set; }
-	private uint numCrawlersRun = 0;
-	private Crawler currentCrawler = null;
+	private uint currentSprawlerRulesetIndex = 0;
+	public SprawlerRuleset currentSprawlerRuleset { get; private set; }
+	private uint numSprawlersRun = 0;
+	private Sprawler currentSprawler = null;
 
 	public List<string> messageLog { get; private set; }
 
@@ -90,7 +90,7 @@ public class MazeGenerator : MonoBehaviour
 		CreateRoomGeometry(maze);
 		UpdateMazeUVs();
 
-		state = GenerationState.RunningCrawlers;
+		state = GenerationState.RunningSprawlers;
 		if (!stepThrough)
 			while (Step()) {}
 	}
@@ -127,7 +127,7 @@ public class MazeGenerator : MonoBehaviour
 		grid = null;
 		maze = null;
 		ruleset = null;
-		currentCrawlerRuleset = null;
+		currentSprawlerRuleset = null;
 		messageLog = null;
 	}
 
@@ -137,68 +137,64 @@ public class MazeGenerator : MonoBehaviour
 
 		switch (state)
 		{
-			// Running the crawlers in the current ruleset.
-			case GenerationState.RunningCrawlers:
-				currentCrawlerRuleset = ruleset.crawlers[currentCrawlerRulesetIndex];
+			// Running the Sprawlers in the current ruleset.
+			case GenerationState.RunningSprawlers:
+				currentSprawlerRuleset = ruleset.sprawlers[currentSprawlerRulesetIndex];
 
-				// Create a new Crawler if we don't have one to Step.
-				if (currentCrawler == null)
+				// Create a new Sprawler if we don't have one to Step.
+				if (currentSprawler == null)
 				{
 					Room startRoom = null;
-					switch (currentCrawlerRuleset.start)
+					switch (currentSprawlerRuleset.start)
 					{
-						case CrawlerRuleset.CrawlerStart.Start:
+						case SprawlerRuleset.Start.Start:
 							startRoom = maze.rooms[0, 0];
 							break;
-						case CrawlerRuleset.CrawlerStart.Random:
+						case SprawlerRuleset.Start.Random:
 							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
 							startRoom = maze.rooms[randomPoint.y, randomPoint.x];
 							break;
-						case CrawlerRuleset.CrawlerStart.End:
+						case SprawlerRuleset.Start.End:
 							Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
 							startRoom = maze.rooms[endPoint.y, endPoint.x];
 							break;
 					}
 
-					currentCrawler = new Crawler(maze, startRoom.position, Dir.N, currentCrawlerRuleset.size,
-						(Room room) => { room.theme = currentCrawlerRuleset.tileset; } );
-					messageLog.Add("Added crawler at " + startRoom.position.ToString());
+					currentSprawler = new Sprawler(maze, startRoom.position, currentSprawlerRuleset.size,
+						(Room room) => { room.theme = currentSprawlerRuleset.tileset; } );
+					messageLog.Add("Added sprawler at " + startRoom.position.ToString());
 				}
 
-				// Step the current crawler.
-				bool crawlerFinished = !currentCrawler.Step();
-				messageLog.Add("Crawler stepped on " + currentCrawler.position.ToString());
+				// Step the current Sprawler.
+				bool sprawlerFinished = !currentSprawler.Step();
 
 				if (stepThrough)
 				{
-					// If manually stepping through crawlers, visually update the room the crawler stepped into and the rooms around it.
-					Room curRoom = maze.GetRoom(currentCrawler.position);
-					TextureRoom(curRoom);
-					UpdateRoomUV(curRoom);
-					List<Room> neighbours = maze.GetNeighbours(curRoom);
-					foreach (Room room in neighbours)
-						UpdateRoomUV(room);
+					TextureMaze();
+					UpdateMazeUVs();
+
+					// TODO: Only update the updated rooms and their neighbours instead of the whole Maze.
 				}
 
-				if (crawlerFinished)
+				if (sprawlerFinished)
 				{
-					if (currentCrawler.success)
-						messageLog.Add("Crawler finished successfully");
+					if (currentSprawler.success)
+						messageLog.Add("Sprawler finished successfully");
 					else
-						messageLog.Add("Crawler failed");
+						messageLog.Add("Sprawler failed");
 
-					// If the current Crawler finished, move to the next Crawler.
-					currentCrawler = null;
-					numCrawlersRun++;
-					if (numCrawlersRun >= currentCrawlerRuleset.count)
+					// If the current Sprawler finished, move to the next one.
+					currentSprawler = null;
+					numSprawlersRun++;
+					if (numSprawlersRun >= currentSprawlerRuleset.count)
 					{
-						// If we've run enough Crawlers to satisfy the CrawlerRuleset, move to the next CrawlerRuleset.
-						numCrawlersRun = 0;
-						currentCrawlerRulesetIndex++;
-						if (currentCrawlerRulesetIndex >= ruleset.crawlers.GetLength(0))
+						// If we've run enough Sprawlers to satisfy the SprawlerRuleset, move to the next SprawlerRuleset.
+						numSprawlersRun = 0;
+						currentSprawlerRulesetIndex++;
+						if (currentSprawlerRulesetIndex >= ruleset.sprawlers.GetLength(0))
 						{
-							// If we've run all the CrawlerRulesets in the MazeRuleset, finish up the maze.
-							currentCrawlerRulesetIndex = 0;
+							// If we've run all the SprawlerRulesets in the MazeRuleset, finish up the maze.
+							currentSprawlerRulesetIndex = 0;
 							state = GenerationState.Finished;
 							return false;
 						}

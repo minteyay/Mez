@@ -56,22 +56,22 @@ public class MazeGeneratorEditor : Editor
 				((MazeGenerator)target).Step();
 			GUI.enabled = true;
 
-			if (mazeGenerator.currentCrawlerRuleset != null)
+			if (mazeGenerator.currentSprawlerRuleset != null)
 			{
-				EditorGUILayout.LabelField("Current crawler ruleset", EditorStyles.boldLabel);
-				EditorGUILayout.TextArea(mazeGenerator.currentCrawlerRuleset.ToString());
+				EditorGUILayout.LabelField("Current sprawler ruleset", EditorStyles.boldLabel);
+				EditorGUILayout.TextArea(mazeGenerator.currentSprawlerRuleset.ToString());
 			}
 
 			if (mazeGenerator.messageLog != null && mazeGenerator.messageLog.Count > 0)
 			{
-				EditorGUILayout.LabelField("Crawler events", EditorStyles.boldLabel);
+				EditorGUILayout.LabelField("Sprawler events", EditorStyles.boldLabel);
 
 				string messageLog = "";
-				string[] crawlerMessages = mazeGenerator.messageLog.ToArray();
-				for (int i = 0; i < crawlerMessages.Length; i++)
+				string[] sprawlerMessages = mazeGenerator.messageLog.ToArray();
+				for (int i = 0; i < sprawlerMessages.Length; i++)
 				{
-					messageLog += crawlerMessages[i];
-					if (i < (crawlerMessages.Length - 1))
+					messageLog += sprawlerMessages[i];
+					if (i < (sprawlerMessages.Length - 1))
 						messageLog += '\n';
 				}
 				EditorGUILayout.TextArea(messageLog.ToString());

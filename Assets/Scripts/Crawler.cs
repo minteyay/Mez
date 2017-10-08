@@ -177,8 +177,13 @@ public class Crawler
 public class Sprawler
 {
 	private List<Crawler> crawlers = new List<Crawler>();
+	private int currentCrawlerIndex = 0;
+	private uint size = 0;
+
+	/// Did the Sprawler reach the desired size?
+	public bool success { get; private set; }
+
 	private List<Crawler> queuedBranches = new List<Crawler>();
-	private int size = 0;
 
 	/// <summary>
 	/// Create a Sprawler and run it.
@@ -187,7 +192,7 @@ public class Sprawler
 	/// <param name="position">Room position to start sprawling from.</param>
 	/// <param name="size">Number of rooms to visit.</param>
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
-	public Sprawler(Maze maze, Point position, int size, Crawler.OnUpdate onUpdate = null)
+	public Sprawler(Maze maze, Point position, uint size, Crawler.OnUpdate onUpdate = null)
 	{
 		if (size <= 0)
 		{
@@ -196,6 +201,7 @@ public class Sprawler
 		}
 		else
 			this.size = size;
+		success = false;
 
 		// Check all possible directions to start crawlers in.
 		List<Dir> possibleDirs = new List<Dir>();
@@ -207,48 +213,40 @@ public class Sprawler
 		Utils.Shuffle(Random.instance, possibleDirs);
 
 		// Create the first crawler.
-		Crawler firstCrawler = new Crawler(maze, position, possibleDirs[0], 0, onUpdate);
-		AddCrawler(firstCrawler);
+		AddCrawler(new Crawler(maze, position, possibleDirs[0], 0, onUpdate));
+	}
 
-		// Try to step the first crawler.
-		StepCrawler(firstCrawler);
+	public bool Step()
+	{
+		// Step the current crawler and remove it if it's finished.
+		if (!crawlers[currentCrawlerIndex].Step())
+			crawlers.RemoveAt(currentCrawlerIndex);
+		size--;
+
+		// Stop successfully if the desired size was reached.
+		if (size <= 0)
+		{
+			success = true;
+			return false;
+		}
+
+		// Stop if there aren't any crawlers left.
+		if (crawlers.Count == 0)
+			return false;
 		
-		// If there's still rooms to go, try to create one in the opposite direction to the first one.
-		if (this.size > 0 && possibleDirs.Contains(Nav.opposite[possibleDirs[0]]))
-		{
-			Dir newDir = Nav.opposite[possibleDirs[0]];
-			Point newPos = position + new Point(Nav.DX[newDir], Nav.DY[newDir]);
+		// Move to the next Crawler.
+		currentCrawlerIndex++;
+		if (currentCrawlerIndex >= crawlers.Count)
+			currentCrawlerIndex = 0;
+		
+		// TODO: Handle queued branches.
 
-			AddCrawler(new Crawler(maze, newPos, newDir, 0, onUpdate));
-		}
-
-		// SPRAWLING LOOP
-		// Run the crawlers until the sprawling size is reached or until they all stop.
-		int currentCrawler = 0;
-		while (this.size > 0 && crawlers.Count > 0)
-		{
-			// Loop the crawler index if it's out of bounds.
-			if (currentCrawler >= crawlers.Count)
-				currentCrawler = 0;
-			
-			// Step the current crawler and check if it's finished.
-			if (!StepCrawler(crawlers[currentCrawler]))
-				crawlers.RemoveAt(currentCrawler);
-			else
-				currentCrawler++;
-			
-			// If new branches were queued, add them.
-			while (queuedBranches.Count > 0 && this.size > 0)
-			{
-				AddCrawler(queuedBranches[0]);
-				queuedBranches.RemoveAt(0);
-			}
-		}
+		return true;
 	}
 
 	/// <summary>
 	/// Queue a branch to add in the sprawling loop in the constructor.
-	/// This shouldn't be called manually, it's used for branching between a Sprawler and its Crawlers.
+	/// This shouldn't be called manually, it's used for branching between a Sprawler and its child Crawlers.
 	/// </summary>
 	/// <param name="branch"></param>
 	public void QueueBranch(Crawler branch)
@@ -261,50 +259,14 @@ public class Sprawler
 	/// </summary>
 	/// <param name="crawler"></param>
 	/// <returns></returns>
-	private bool AddCrawler(Crawler crawler)
+	private void AddCrawler(Crawler crawler)
 	{
 		if (crawler == null)
 		{
 			Debug.LogWarning("Can't add a null Crawler to a Sprawler.");
-			return false;
+			return;
 		}
-		if (size > 0)
-		{
-			crawler.Start();
-			crawlers.Add(crawler);
-			crawler.sprawler = this;
-			size--;
-			return true;
-		}
-		return false;
-	}
-
-	/// <summary>
-	/// Steps a given Crawler.
-	/// </summary>
-	/// <param name="crawler"></param>
-	/// <returns>True if the Crawler was stepped succesfully, false if the Crawler or this Sprawler is finished.</returns>
-	private bool StepCrawler(Crawler crawler)
-	{
-		if (size > 0)
-		{
-			if (!crawler.Step())
-				return false;
-			size--;
-			return true;
-		}
-		return false;
-	}
-
-	/// <summary>
-	/// Create a Sprawler and run it.
-	/// </summary>
-	/// <param name="maze">Maze to sprawl in.</param>
-	/// <param name="position">Room position to start sprawling from.</param>
-	/// <param name="size">Number of rooms to visit.</param>
-	/// <param name="onUpdate">Callback on all visited rooms.</param>
-	public static void Sprawl(Maze maze, Point position, int size, Crawler.OnUpdate onUpdate = null)
-	{
-		new Sprawler(maze, position, size, onUpdate);
+		crawlers.Add(crawler);
+		crawler.sprawler = this;
 	}
 }
