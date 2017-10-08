@@ -99,9 +99,13 @@ public class Crawler
 	public bool Step()
 	{
 		// Start the Crawler if it hasn't been already.
+		bool justStarted = false;
 		if (!started)
+		{
 			if (!Start())
 				return false;
+			justStarted = true;
+		}
 
 		if (distance > 0)
 		{
@@ -140,23 +144,30 @@ public class Crawler
 				return false;
 			}
 
-		// 	// Check if there's a parent Sprawler and possible directions to branch in (from the previous room).
-		// 	if (sprawler != null)
-		// 	{
-		// 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-		// 		{
-		// 			// Don't start branching crawlers in the direction this crawler is moving in and has already visited.
-		// 			if (dir != newFacing && dir != Nav.opposite[facing])
-		// 			{
-		// 				if (Nav.IsConnected(maze.rooms[position.y, position.x].value, dir))
-		// 				{
-		// 					// Queue a branching crawler in the parent Sprawler.
-		// 					Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-		// 					sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, null, null));
-		// 				}
-		// 			}
-		// 		}
-		// 	}
+			// Check if there's a parent Sprawler and possible directions to branch in.
+			if (sprawler != null)
+			{
+				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+				{
+					// Don't start branches in the direction this Crawler is moving in.
+					if (dir != facing)
+					{
+						/*
+						Don't start branches in the direction this Crawler just came from.
+						(unless it just started in which case there's no direction it came from)
+						*/
+						if (dir != Nav.opposite[facing] || justStarted)
+						{
+							if (Nav.IsConnected(maze.GetRoom(position).value, dir))
+							{
+								// Queue a branch in the parent Sprawler.
+								Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
+								sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
+							}
+						}
+					}
+				}
+			}
 		}
 
 		if (distance <= 0)
@@ -218,6 +229,11 @@ public class Sprawler
 
 	public bool Step()
 	{
+		// Add branches that were queued in the last step.
+		foreach (Crawler branch in queuedBranches)
+			AddCrawler(branch);
+		queuedBranches.Clear();
+
 		// Step the current crawler and remove it if it's finished.
 		if (!crawlers[currentCrawlerIndex].Step())
 			crawlers.RemoveAt(currentCrawlerIndex);
@@ -238,8 +254,6 @@ public class Sprawler
 		currentCrawlerIndex++;
 		if (currentCrawlerIndex >= crawlers.Count)
 			currentCrawlerIndex = 0;
-		
-		// TODO: Handle queued branches.
 
 		return true;
 	}
