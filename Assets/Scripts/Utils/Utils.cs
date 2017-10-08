@@ -41,6 +41,26 @@ public class Utils
         return output;
     }
 
+    /// <summary>
+    /// Formats a 2D grid neatly.
+    /// </summary>
+    /// <param name="grid"></param>
+	private string Format2DGrid(int[,] grid)
+	{
+		string output = "";
+		for (int y = 0; y < grid.GetLength(0); y++)
+		{
+			for (int x = 0; x < grid.GetLength(1); x++)
+			{
+				output += grid[y, x];
+				if (x < grid.GetLength(1) - 1)
+					output += ", ";
+			}
+			output += "\n";
+		}
+		return output;
+	}
+
     public static float NonZero(params float[] values)
     {
         foreach (float v in values)
