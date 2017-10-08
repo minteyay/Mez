@@ -193,10 +193,9 @@ public class MazeGenerator : MonoBehaviour
 						currentSprawlerRulesetIndex++;
 						if (currentSprawlerRulesetIndex >= ruleset.sprawlers.GetLength(0))
 						{
-							// If we've run all the SprawlerRulesets in the MazeRuleset, finish up the maze.
+							// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
 							currentSprawlerRulesetIndex = 0;
 							state = GenerationState.Finished;
-							return false;
 						}
 					}
 				}
@@ -204,7 +203,7 @@ public class MazeGenerator : MonoBehaviour
 
 			case GenerationState.Finished:
 				FinishMaze();
-				break;
+				return false;
 		}
 		return true;
 	}
