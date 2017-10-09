@@ -41,7 +41,11 @@ public class MazeGenerator : MonoBehaviour
 	private uint currentSprawlerRulesetIndex = 0;
 	public SprawlerRuleset currentSprawlerRuleset { get; private set; }
 	private uint numSprawlersRun = 0;
+	private uint numSprawlersFailed = 0;
 	private Sprawler currentSprawler = null;
+	private List<Room> currentSprawlerRooms = null;
+
+	private static uint MaxSprawlerFailures = 2;
 
 	public List<string> messageLog { get; private set; }
 
@@ -128,6 +132,7 @@ public class MazeGenerator : MonoBehaviour
 		maze = null;
 		ruleset = null;
 		currentSprawlerRuleset = null;
+		currentSprawlerRooms = null;
 		messageLog = null;
 	}
 
@@ -140,7 +145,7 @@ public class MazeGenerator : MonoBehaviour
 			// Running the Sprawlers in the current ruleset.
 			case GenerationState.RunningSprawlers:
 				currentSprawlerRuleset = ruleset.sprawlers[currentSprawlerRulesetIndex];
-
+				
 				// Create a new Sprawler if we don't have one to Step.
 				if (currentSprawler == null)
 				{
@@ -160,44 +165,52 @@ public class MazeGenerator : MonoBehaviour
 							break;
 					}
 
+					currentSprawlerRooms = new List<Room>();
 					currentSprawler = new Sprawler(maze, startRoom.position, currentSprawlerRuleset.size,
-						(Room room) => { room.theme = currentSprawlerRuleset.tileset; } );
+						(Room room) => { currentSprawlerRooms.Add(room); } );
 					messageLog.Add("Added sprawler at " + startRoom.position.ToString());
 				}
 
 				// Step the current Sprawler.
 				bool sprawlerFinished = !currentSprawler.Step();
 
-				if (stepThrough)
-				{
-					TextureMaze();
-					UpdateMazeUVs();
-
-					// TODO: Only update the updated rooms and their neighbours instead of the whole Maze.
-				}
-
 				if (sprawlerFinished)
 				{
-					if (currentSprawler.success)
-						messageLog.Add("Sprawler finished successfully");
-					else
-						messageLog.Add("Sprawler failed");
-
-					// If the current Sprawler finished, move to the next one.
-					currentSprawler = null;
-					numSprawlersRun++;
-					if (numSprawlersRun >= currentSprawlerRuleset.count)
+					if (!currentSprawler.success)
 					{
-						// If we've run enough Sprawlers to satisfy the SprawlerRuleset, move to the next SprawlerRuleset.
-						numSprawlersRun = 0;
-						currentSprawlerRulesetIndex++;
-						if (currentSprawlerRulesetIndex >= ruleset.sprawlers.GetLength(0))
+						messageLog.Add("Sprawler failed");
+						numSprawlersFailed++;
+						if (numSprawlersFailed >= MaxSprawlerFailures)
 						{
-							// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
-							currentSprawlerRulesetIndex = 0;
-							state = GenerationState.Finished;
+							Debug.LogWarning("Maximum amount of Sprawlers failed, moving to the next ruleset.");
+							NextSprawlerRuleset();
 						}
 					}
+					else
+					{
+						messageLog.Add("Sprawler finished successfully");
+
+						// Apply the new theme to the Sprawler's Rooms.
+						foreach (Room r in currentSprawlerRooms)
+							r.theme = ruleset.sprawlers[currentSprawlerRulesetIndex].tileset;
+						
+						if (stepThrough)
+						{
+							TextureMaze();
+							UpdateMazeUVs();
+
+							// TODO: Only update the updated rooms and their neighbours instead of the whole Maze.
+						}
+
+						// Move to the next Sprawler.
+						numSprawlersRun++;
+						if (numSprawlersRun >= currentSprawlerRuleset.count)
+						{
+							// If we've run all the Sprawlers in the current SprawlerRuleset, move to the next one.
+							NextSprawlerRuleset();
+						}
+					}
+					currentSprawler = null;
 				}
 				break;
 
@@ -206,6 +219,19 @@ public class MazeGenerator : MonoBehaviour
 				return false;
 		}
 		return true;
+	}
+
+	private void NextSprawlerRuleset()
+	{
+		numSprawlersRun = 0;
+		numSprawlersFailed = 0;
+		currentSprawlerRulesetIndex++;
+		if (currentSprawlerRulesetIndex >= ruleset.sprawlers.GetLength(0))
+		{
+			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
+			currentSprawlerRulesetIndex = 0;
+			state = GenerationState.Finished;
+		}
 	}
 
 	private void TextureMaze()
