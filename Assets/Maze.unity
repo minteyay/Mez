@@ -156,16 +156,6 @@ Prefab:
       propertyPath: stepThrough
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 114000012411839478, guid: 11b879a4caad40042ac4fe6c1e4a54ac,
-        type: 2}
-      propertyPath: roomDim.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114000013432157448, guid: 11b879a4caad40042ac4fe6c1e4a54ac,
-        type: 2}
-      propertyPath: whoa.start
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 11b879a4caad40042ac4fe6c1e4a54ac, type: 2}
   m_IsPrefabParent: 0
