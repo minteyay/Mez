@@ -187,7 +187,7 @@ public class Crawler
 /// </summary>
 public class Sprawler
 {
-	private List<Crawler> crawlers = new List<Crawler>();
+	public List<Crawler> crawlers { get; private set; }
 	private int currentCrawlerIndex = 0;
 	private uint size = 0;
 
@@ -205,6 +205,7 @@ public class Sprawler
 	/// <param name="onUpdate">Callback on all visited rooms.</param>
 	public Sprawler(Maze maze, Point position, uint size, Crawler.OnUpdate onUpdate = null)
 	{
+		crawlers = new List<Crawler>();
 		if (size <= 0)
 		{
 			Debug.LogWarning("Sprawler can't have a size of 0, defaulting to 1.");

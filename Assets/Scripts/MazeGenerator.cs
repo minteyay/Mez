@@ -44,6 +44,7 @@ public class MazeGenerator : MonoBehaviour
 	private uint numSprawlersFailed = 0;
 	private Sprawler currentSprawler = null;
 	private List<Room> currentSprawlerRooms = null;
+	private List<Room> newSprawlerRooms = null;
 
 	private static uint MaxSprawlerFailures = 2;
 
@@ -72,6 +73,7 @@ public class MazeGenerator : MonoBehaviour
 		this.onComplete = onComplete;
 
 		messageLog = new List<string>();
+		newSprawlerRooms = new List<Room>();
 
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
@@ -133,6 +135,7 @@ public class MazeGenerator : MonoBehaviour
 		ruleset = null;
 		currentSprawlerRuleset = null;
 		currentSprawlerRooms = null;
+		newSprawlerRooms = null;
 		messageLog = null;
 	}
 
@@ -167,12 +170,18 @@ public class MazeGenerator : MonoBehaviour
 
 					currentSprawlerRooms = new List<Room>();
 					currentSprawler = new Sprawler(maze, startRoom.position, currentSprawlerRuleset.size,
-						(Room room) => { currentSprawlerRooms.Add(room); } );
+						(Room room) => { newSprawlerRooms.Add(room); } );
 					messageLog.Add("Added sprawler at " + startRoom.position.ToString());
 				}
 
+				newSprawlerRooms.Clear();
+
 				// Step the current Sprawler.
 				bool sprawlerFinished = !currentSprawler.Step();
+
+				// Copy the newly added Rooms to the current Sprawler's Rooms.
+				foreach (Room r in newSprawlerRooms)
+					currentSprawlerRooms.Add(r);
 
 				if (sprawlerFinished)
 				{
@@ -220,6 +229,28 @@ public class MazeGenerator : MonoBehaviour
 		}
 		return true;
 	}
+
+#if DEBUG
+	private void OnDrawGizmos()
+	{
+		if (newSprawlerRooms != null)
+		{
+			foreach (Room r in newSprawlerRooms)
+			{
+				Gizmos.color = new Color(0.5f, 0.9f, 0.5f, 0.5f);
+				Gizmos.DrawCube(Nav.IndexToWorldPos(r.position, maze.roomDim) + new Vector3(0.0f, 1.0f, 0.0f), new Vector3(maze.roomDim.x, 2.0f, maze.roomDim.y));
+			}
+		}
+		if (currentSprawler != null)
+		{
+			foreach (Crawler c in currentSprawler.crawlers)
+			{
+				Gizmos.color = new Color(0.9f, 0.5f, 0.5f);
+				Gizmos.DrawSphere(Nav.IndexToWorldPos(c.position, maze.roomDim) + new Vector3(0.0f, 1.0f, 0.0f), 0.2f);
+			}
+		}
+	}
+#endif
 
 	private void NextSprawlerRuleset()
 	{
