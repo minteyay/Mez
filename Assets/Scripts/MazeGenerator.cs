@@ -115,10 +115,10 @@ public class MazeGenerator : MonoBehaviour
 		switch (grid[0, 0])
 		{
 			case 2:
-				maze.startRotation = new Vector3(0.0f, 180.0f, 0.0f);
+				maze.startRotation = new Vector3(0.0f, 0.0f, 0.0f);
 				break;
 			case 4:
-				maze.startRotation = new Vector3(0.0f, -90.0f, 0.0f);
+				maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
 				break;
 			default:
 				Debug.Log("Weird starting room " + grid[0, 0]);

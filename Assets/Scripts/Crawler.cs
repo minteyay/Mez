@@ -132,7 +132,7 @@ public class Crawler
 			}
 
 			// Check the validity of the next facing.
-			Point posDelta = position - nextPosition;
+			Point posDelta = nextPosition - position;
 			float deltaAngle = Mathf.Atan2((float)posDelta.y, (float)posDelta.x) * Mathf.Rad2Deg;
 			nextFacing = Nav.AngleToFacing(deltaAngle);
 
