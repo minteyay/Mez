@@ -245,8 +245,13 @@ public class MazeGenerator : MonoBehaviour
 		{
 			foreach (Crawler c in currentSprawler.crawlers)
 			{
-				Gizmos.color = new Color(0.9f, 0.5f, 0.5f);
-				Gizmos.DrawSphere(Nav.IndexToWorldPos(c.position, maze.roomDim) + new Vector3(0.0f, 1.0f, 0.0f), 0.2f);
+				Vector3 crawlerPosition = Nav.IndexToWorldPos(c.position, maze.roomDim) + new Vector3(0.0f, 1.0f, 0.0f);
+
+				Gizmos.color = Color.red;
+				Gizmos.DrawSphere(crawlerPosition, 0.2f);
+
+				Gizmos.color = Color.cyan;
+				Gizmos.DrawLine(crawlerPosition, crawlerPosition + new Vector3(Nav.DY[c.nextFacing], 0.0f, Nav.DX[c.nextFacing]));
 			}
 		}
 	}

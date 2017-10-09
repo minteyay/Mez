@@ -29,9 +29,9 @@ public class Crawler
 	
 	private Dir facing = Dir.N;
 	private uint distance = 0;
-	public Point position = null;
+	public Point position { get; private set; }
 
-	private Dir nextFacing = Dir.N;
+	public Dir nextFacing { get; private set; }
 	/// Position to move to on the next call to Step.
 	private Point nextPosition = null;
 
