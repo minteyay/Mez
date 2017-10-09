@@ -29,9 +29,9 @@ public class Crawler
 	
 	private Dir facing = Dir.N;
 	private uint distance = 0;
-	public Point position = null;
+	public Point position { get; private set; }
 
-	private Dir nextFacing = Dir.N;
+	public Dir nextFacing { get; private set; }
 	/// Position to move to on the next call to Step.
 	private Point nextPosition = null;
 
@@ -132,7 +132,7 @@ public class Crawler
 			}
 
 			// Check the validity of the next facing.
-			Point posDelta = position - nextPosition;
+			Point posDelta = nextPosition - position;
 			float deltaAngle = Mathf.Atan2((float)posDelta.y, (float)posDelta.x) * Mathf.Rad2Deg;
 			nextFacing = Nav.AngleToFacing(deltaAngle);
 

@@ -45,23 +45,22 @@ class Nav
 	public static Dir AngleToFacing(float angle)
 	{
 		// Scale the angle from 360 degrees to a quadrant of a circle (0-4)
-		if (angle < 0.0f)
+		while (angle < 0.0f)
 			angle += 360.0f;
 		angle /= 90.0f;
 
 		// Round to the closest quadrant of angle
-		int dir = Mathf.RoundToInt(angle);
+		int dir = Mathf.RoundToInt(angle) % 4;
 		switch (dir)
 		{
 			case 0:
-			case 4:
-				return Dir.W;
-			case 1:
-				return Dir.N;
-			case 2:
 				return Dir.E;
-			case 3:
+			case 1:
 				return Dir.S;
+			case 2:
+				return Dir.W;
+			case 3:
+				return Dir.N;
 			default:
 				Debug.Log("What the heck is dir " + dir);
 				break;
