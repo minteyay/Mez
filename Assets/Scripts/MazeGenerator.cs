@@ -46,7 +46,7 @@ public class MazeGenerator : MonoBehaviour
 	private List<Room> currentSprawlerRooms = null;
 	private List<Room> newSprawlerRooms = null;
 
-	private static uint MaxSprawlerFailures = 2;
+	private static uint MaxSprawlerFailures = 8;
 
 	public List<string> messageLog { get; private set; }
 

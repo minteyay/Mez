@@ -99,13 +99,10 @@ public class Crawler
 	public bool Step()
 	{
 		// Start the Crawler if it hasn't been already.
-		bool justStarted = false;
-		if (!started)
-		{
-			if (!Start())
-				return false;
-			justStarted = true;
-		}
+		if (!started && !Start())
+			return false;
+
+		bool validNextStep = true;
 
 		if (distance > 0)
 		{
@@ -128,7 +125,7 @@ public class Crawler
 				// Dead end or another room was hit, stop crawling.
 				if (onComplete != null)
 					onComplete.Invoke(maze.GetRoom(position));
-				return false;
+				validNextStep = false;
 			}
 
 			// Check the validity of the next facing.
@@ -141,7 +138,7 @@ public class Crawler
 				// Turns aren't allowed, but the crawler is trying to turn. Stop crawling.
 				if (onComplete != null)
 					onComplete.Invoke(maze.GetRoom(position));
-				return false;
+				validNextStep = false;
 			}
 
 			// Check if there's a parent Sprawler and possible directions to branch in.
@@ -149,21 +146,14 @@ public class Crawler
 			{
 				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 				{
-					// Don't start branches in the direction this Crawler is moving in.
-					if (dir != facing)
+					// Don't start branches in the direction this Crawler is moving in or behind it.
+					if (dir != nextFacing && dir != Nav.opposite[facing])
 					{
-						/*
-						Don't start branches in the direction this Crawler just came from.
-						(unless it just started in which case there's no direction it came from)
-						*/
-						if (dir != Nav.opposite[facing] || justStarted)
+						if (Nav.IsConnected(maze.GetRoom(position).value, dir))
 						{
-							if (Nav.IsConnected(maze.GetRoom(position).value, dir))
-							{
-								// Queue a branch in the parent Sprawler.
-								Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-								sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
-							}
+							// Queue a branch in the parent Sprawler.
+							Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
+							sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
 						}
 					}
 				}
@@ -178,6 +168,14 @@ public class Crawler
 				onComplete.Invoke(maze.GetRoom(position));
 			return false;
 		}
+		else if (!validNextStep)
+		{
+			// The next step won't be valid, stop crawling.
+			if (onComplete != null)
+				onComplete.Invoke(maze.GetRoom(position));
+			return false;
+		}
+
 		return true;
 	}
 }
@@ -215,17 +213,25 @@ public class Sprawler
 			this.size = size;
 		success = false;
 
-		// Check all possible directions to start crawlers in.
+		// Check all possible directions to start Crawlers in.
 		List<Dir> possibleDirs = new List<Dir>();
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
 			if (Nav.IsConnected(maze.rooms[position.y, position.x].value, dir))
 				possibleDirs.Add(dir);
 		}
-		Utils.Shuffle(Random.instance, possibleDirs);
-
-		// Create the first crawler.
-		AddCrawler(new Crawler(maze, position, possibleDirs[0], 0, onUpdate));
+		Dir randomDir = possibleDirs[Random.instance.Next(possibleDirs.Count)];
+		
+		// Start with two Crawlers in opposite directions if we can.
+		if (possibleDirs.Contains(Nav.opposite[randomDir]) && size > 1)
+		{
+			AddCrawler(new Crawler(maze, position + new Point(Nav.DX[randomDir], Nav.DY[randomDir]), randomDir, 0, onUpdate));
+			AddCrawler(new Crawler(maze, position, Nav.opposite[randomDir], 0, onUpdate));
+		}
+		else // Otherwise just start with one.
+		{
+			AddCrawler(new Crawler(maze, position, randomDir, 0, onUpdate));
+		}
 	}
 
 	public bool Step()
@@ -236,7 +242,7 @@ public class Sprawler
 		queuedBranches.Clear();
 
 		// Step the current crawler and remove it if it's finished.
-		if (!crawlers[currentCrawlerIndex].Step())
+		if (crawlers.Count > 0 && !crawlers[currentCrawlerIndex].Step())
 			crawlers.RemoveAt(currentCrawlerIndex);
 		size--;
 
@@ -247,8 +253,8 @@ public class Sprawler
 			return false;
 		}
 
-		// Stop if there aren't any crawlers left.
-		if (crawlers.Count == 0)
+		// Stop if there aren't any Crawlers left (active or queued).
+		if (crawlers.Count == 0 && queuedBranches.Count == 0)
 			return false;
 		
 		// Move to the next Crawler.
@@ -266,6 +272,10 @@ public class Sprawler
 	/// <param name="branch"></param>
 	public void QueueBranch(Crawler branch)
 	{
+		// Don't queue Crawlers that can't even start.
+		if (!branch.Start())
+			return;
+
 		queuedBranches.Add(branch);
 	}
 
@@ -281,6 +291,11 @@ public class Sprawler
 			Debug.LogWarning("Can't add a null Crawler to a Sprawler.");
 			return;
 		}
+
+		// Don't add Crawlers that can't even start.
+		if (!crawler.Start())
+			return;
+
 		crawlers.Add(crawler);
 		crawler.sprawler = this;
 	}
