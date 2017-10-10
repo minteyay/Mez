@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
 	private Player player = null;
 
 	public GameObject uiPrefab = null;
-	private UI ui = null;
 
 	private ThemeManager themeManager = null;
 
@@ -52,12 +51,11 @@ public class GameManager : MonoBehaviour
 		themeManager.LoadThemeRuleset("paperhouse", null);
 
 		// Load all tilesets
-		themeManager.LoadThemeTilesets("paperhouse", StartLevel);
+		themeManager.LoadThemeTilesets("paperhouse", GenerateLevel);
 
-        // Create the UI overlay.
+        // Create the UI.
 		GameObject uiInstance = Instantiate(uiPrefab);
 		uiInstance.name = "UI";
-		ui = uiInstance.GetComponent<UI>();
 	}
 
 	void Update()
@@ -134,24 +132,13 @@ public class GameManager : MonoBehaviour
 			player.Reset();
 		}
 
-		ui.FadeIn(StartMoving);
-	}
-
-	public void StartLevel()
-	{
-        // Generate a new maze.
-		GenerateLevel();
-	}
-
-	public void StartMoving()
-	{
 		player.canMove = true;
 	}
 
 	public void ResetLevel()
 	{
-        // Stop the player and fade the maze out.
+        // Stop the player and generate a new maze.
 		player.canMove = false;
-		ui.FadeOut(StartLevel);
+		GenerateLevel();
 	}
 }
