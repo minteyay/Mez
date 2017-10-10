@@ -120,7 +120,7 @@ public class Crawler
 			nextPosition = maze.MoveStraight(position, facing, false);
 
 			// Check the validity of the next position.
-			if (nextPosition == position || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != "default"))
+			if (nextPosition == position || maze.GetRoom(nextPosition) == null || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != "default"))
 			{
 				// Dead end or another room was hit, stop crawling.
 				if (onComplete != null)
@@ -151,9 +151,10 @@ public class Crawler
 					{
 						if (Nav.IsConnected(maze.GetRoom(position).value, dir))
 						{
-							// Queue a branch in the parent Sprawler.
+							// Queue a branch in the parent Sprawler if it's inside the maze.
 							Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-							sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
+							if (maze.GetRoom(branchPos) != null)
+								sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
 						}
 					}
 				}

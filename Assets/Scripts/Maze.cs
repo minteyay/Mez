@@ -18,10 +18,6 @@ public class Maze : MonoBehaviour
 	[HideInInspector]
 	public Vector3 startRotation;
 
-    /// Object indicating the end of the maze.
-	[HideInInspector]
-	public GameObject endPoint = null;
-
     /// <summary>
     /// Initialise the maze.
     /// </summary>
@@ -74,21 +70,6 @@ public class Maze : MonoBehaviour
 	}
 
     /// <summary>
-    /// Add an endpoint to the Maze.
-    /// </summary>
-    /// <param name="pos">Index position of the endpoint.</param>
-    /// <param name="endPoint">GameObject for the endpoint.</param>
-    /// <param name="rotation">Rotation of the endpoint.</param>
-	public void AddEndPoint(Point pos, GameObject endPoint, Quaternion rotation)
-	{
-		this.endPoint = (GameObject)Instantiate(endPoint,
-			new Vector3(pos.y * roomDim.y, 0.0f, pos.x * roomDim.x),
-			rotation);
-		this.endPoint.name = "End Point";
-		this.endPoint.transform.parent = transform;
-	}
-
-    /// <summary>
     /// Get the world position of the leftmost room that you can move to from the given world position.
     /// </summary>
     /// <param name="position">World position to move from.</param>
@@ -100,20 +81,27 @@ public class Maze : MonoBehaviour
 		Point newPos = new Point(position);
 		Dir chosenDir = facing;
 
+		if (GetRoom(position) == null)
+		{
+			newFacing = facing;
+			return newPos;
+		}
+		uint currentRoomValue = GetRoom(position).value;
+
         // Check if there's a connected room to the left.
-		if (IsConnected(position, Nav.left[facing]))
+		if (Nav.IsConnected(currentRoomValue, Nav.left[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 			chosenDir = Nav.left[facing];
 		}
         // Check if there's a connected room straight ahead.
-		else if (IsConnected(position, facing))
+		else if (Nav.IsConnected(currentRoomValue, facing))
 		{
 			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 			chosenDir = facing;
 		}
         // Check if there's a connected room to the right.
-		else if (IsConnected(position, Nav.right[facing]))
+		else if (Nav.IsConnected(currentRoomValue, Nav.right[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 			chosenDir = Nav.right[facing];
@@ -139,18 +127,23 @@ public class Maze : MonoBehaviour
 	public Point MoveStraight(Point position, Dir facing, bool allowUTurns = true)
 	{
 		Point newPos = new Point(position);
+
+		if (GetRoom(position) == null)
+			return newPos;
+		uint currentRoomValue = GetRoom(position).value;
+
         // Check if there's a connected room straight ahead.
-		if (IsConnected(position, facing))
+		if (Nav.IsConnected(currentRoomValue, facing))
 		{
 			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 		}
         // Check if there's a connected room to the left.
-		else if (IsConnected(position, Nav.left[facing]))
+		else if (Nav.IsConnected(currentRoomValue, Nav.left[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 		}
         // Check if there's a connected room to the right.
-		else if (IsConnected(position, Nav.right[facing]))
+		else if (Nav.IsConnected(currentRoomValue, Nav.right[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 		}
@@ -159,6 +152,7 @@ public class Maze : MonoBehaviour
 		{
 			newPos.Set(position.x + Nav.DX[Nav.opposite[facing]], position.y + Nav.DY[Nav.opposite[facing]]);
 		}
+
 		return newPos;
 	}
 
@@ -170,22 +164,5 @@ public class Maze : MonoBehaviour
 	public Point WorldToRoomPosition(Vector3 worldPos)
 	{
 		return Nav.WorldToIndexPos(worldPos, roomDim);
-	}
-
-    /// <summary>
-    /// Checks if the Room in the given index position is connected to another Room in the given direction.
-    /// </summary>
-    /// <param name="pos">Index position to check room connection from.</param>
-    /// <param name="dir">Direction to check for room connection.</param>
-    /// <returns>True if the room in the given index position was connected in the given direction, false if not.</returns>
-	private bool IsConnected(Point pos, Dir dir)
-	{
-		Point newPos = new Point(pos.x + Nav.DX[dir], pos.y + Nav.DY[dir]);
-		if (newPos.x >= 0 && newPos.x < rooms.GetLength(1) && newPos.y >= 0 && newPos.y < rooms.GetLength(0))
-		{
-			if (Nav.IsConnected(rooms[newPos.y, newPos.x].value, Nav.opposite[dir]))
-				return true;
-		}
-		return false;
 	}
 }
