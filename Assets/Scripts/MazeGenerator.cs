@@ -81,6 +81,7 @@ public class MazeGenerator : MonoBehaviour
 		grid = new uint[ruleset.size.y, ruleset.size.x];
 		CarvePassagesFrom(0, 0, grid, 0);
 
+		grid[0, 0] |= Nav.bits[Dir.N];
 		grid[endPointCoord.y, endPointCoord.x] |= Nav.bits[endPointDir];
 
         // Base GameObject for the maze.
@@ -111,19 +112,8 @@ public class MazeGenerator : MonoBehaviour
 			UpdateMazeUVs();
 		}
 
-        // Set the starting rotation based on the facing of the starting room.
-		switch (grid[0, 0])
-		{
-			case 2:
-				maze.startRotation = new Vector3(0.0f, 0.0f, 0.0f);
-				break;
-			case 4:
-				maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
-				break;
-			default:
-				Debug.Log("Weird starting room " + grid[0, 0]);
-				break;
-		}
+        // Set the starting rotation.
+		maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
 
 		if (onComplete != null)
 			onComplete.Invoke(maze);

@@ -117,19 +117,20 @@ public class GameManager : MonoBehaviour
 		// Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
-			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.Euler(maze.startRotation));
+			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(-10.0f, 0.0f, 0.0f), Quaternion.Euler(maze.startRotation));
 			playerInstance.name = "Player";
 			player = playerInstance.GetComponent<Player>();
 			player.maze = maze;
-			player.facing = Nav.AngleToFacing(maze.startRotation.y);
+			player.SetTarget(new Vector3(), Dir.S);
 		}
         // Reposition the player to the maze start if it exists.
         else
         {
 			player.maze = maze;
 			player.facing = Nav.AngleToFacing(maze.startRotation.y);
-			playerInstance.transform.position = new Vector3();
+			playerInstance.transform.position = new Vector3(-10.0f, 0.0f, 0.0f);
 			player.Reset();
+			player.SetTarget(new Vector3(), Dir.S);
 		}
 	}
 

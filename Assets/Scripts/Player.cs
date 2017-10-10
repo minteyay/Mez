@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
 	[SerializeField]
     private Vector3 target;
 	[SerializeField]
-	private Vector3 nextTarget;
+	private Vector3? nextTarget;
 
 	[SerializeField]
 	private Dir _facing;
@@ -127,16 +127,34 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	public void SetTarget(Vector3 target, Dir facing)
+	{
+		this.target = target;
+		this.facing = facing;
+		nextTarget = null;
+		
+		CalculateMoveDistance();
+	}
+
     /// <summary>
     /// Set a new target world position to move towards.
     /// </summary>
 	private void NewTarget()
 	{
-		target = nextTarget;
+		// If there's no next target, calculate one.
+		if (nextTarget == null)
+			nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
+
+		target = (Vector3)nextTarget;
 		facing = nextFacing;
 
 		nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
 
+		CalculateMoveDistance();
+	}
+
+	private void CalculateMoveDistance()
+	{
 		Vector3 targetDelta = transform.position - target;
 		if (facing != nextFacing)
 		{
