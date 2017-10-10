@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -122,5 +123,14 @@ class Nav
 	public static bool IsConnected(uint value, Dir facing)
 	{
 		return (value & bits[facing]) != 0;
+	}
+
+	public static List<Dir> GetConnections(uint value)
+	{
+		List<Dir> connections = new List<Dir>();
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+			if (IsConnected(value, dir))
+				connections.Add(dir);
+		return connections;
 	}
 }

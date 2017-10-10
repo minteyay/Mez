@@ -144,18 +144,15 @@ public class Crawler
 			// Check if there's a parent Sprawler and possible directions to branch in.
 			if (sprawler != null)
 			{
-				foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+				List<Dir> possibleDirs = Nav.GetConnections(maze.GetRoom(position).value);
+				foreach (Dir dir in possibleDirs)
 				{
-					// Don't start branches in the direction this Crawler is moving in or behind it.
 					if (dir != nextFacing && dir != Nav.opposite[facing])
 					{
-						if (Nav.IsConnected(maze.GetRoom(position).value, dir))
-						{
-							// Queue a branch in the parent Sprawler if it's inside the maze.
-							Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-							if (maze.GetRoom(branchPos) != null)
-								sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
-						}
+						// Queue a branch in the parent Sprawler if it's inside the maze.
+						Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
+						if (maze.GetRoom(branchPos) != null)
+							sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
 					}
 				}
 			}
@@ -214,13 +211,8 @@ public class Sprawler
 			this.size = size;
 		success = false;
 
-		// Check all possible directions to start Crawlers in.
-		List<Dir> possibleDirs = new List<Dir>();
-		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
-		{
-			if (Nav.IsConnected(maze.rooms[position.y, position.x].value, dir))
-				possibleDirs.Add(dir);
-		}
+		// Check possible directions to start Crawlers in.
+		List<Dir> possibleDirs = Nav.GetConnections(maze.GetRoom(position).value);
 		Dir randomDir = possibleDirs[Random.instance.Next(possibleDirs.Count)];
 		
 		// Start with two Crawlers in opposite directions if we can.
