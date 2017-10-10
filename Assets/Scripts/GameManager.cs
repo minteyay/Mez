@@ -61,8 +61,8 @@ public class GameManager : MonoBehaviour
 	void Update()
 	{
 #if !SCREENSAVER
-        // Generate a new maze (only when the player is moving).
-		if (Input.GetKeyDown(KeyCode.N) && player.canMove)
+        // Generate a new maze.
+		if (Input.GetKeyDown(KeyCode.N))
 		{
 			ResetLevel();
 		}
@@ -131,14 +131,11 @@ public class GameManager : MonoBehaviour
 			playerInstance.transform.position = new Vector3();
 			player.Reset();
 		}
-
-		player.canMove = true;
 	}
 
 	public void ResetLevel()
 	{
         // Stop the player and generate a new maze.
-		player.canMove = false;
 		GenerateLevel();
 	}
 }

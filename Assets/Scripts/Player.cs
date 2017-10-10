@@ -31,9 +31,6 @@ public class Player : MonoBehaviour
 	private float remainingTurnDist = 0.0f;
 
 	[HideInInspector]
-	public bool canMove = false;
-
-	[HideInInspector]
 	public Maze maze = null;
 
 	void Start()
@@ -43,23 +40,20 @@ public class Player : MonoBehaviour
 
 	void Update()
 	{
-		if (canMove)
-		{
-			// Move the player.
-			float toMove = movementSpeed * Time.deltaTime;
+		// Move the player.
+		float toMove = movementSpeed * Time.deltaTime;
+		Move(ref toMove);
+
+		// Get a new target once all the forwards moving and turning have been done.
+		if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+			NewTarget();
+
+		// Move again if there's still distance left to go.
+		if (toMove > 0.0f)
 			Move(ref toMove);
-
-			// Get a new target once all the forwards moving and turning have been done.
-			if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
-				NewTarget();
-
-			// Move again if there's still distance left to go.
-			if (toMove > 0.0f)
-				Move(ref toMove);
-			
-			if (toMove > 0.0f)
-				Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
-		}
+		
+		if (toMove > 0.0f)
+			Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
 	}
 
 	private void Move(ref float movementAmount)
