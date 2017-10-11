@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
 	[SerializeField]
     private Vector3 target;
 	[SerializeField]
-	private Vector3? nextTarget;
+	private Vector3 nextTarget;
 
 	[SerializeField]
 	private Dir _facing;
@@ -33,10 +33,9 @@ public class Player : MonoBehaviour
 	[HideInInspector]
 	public Maze maze = null;
 
-	void Start()
-	{
-		Reset();
-	}
+	public delegate void OutOfBoundsCallback();
+	[HideInInspector]
+	public OutOfBoundsCallback outOfBoundsCallback = null;
 
 	void Update()
 	{
@@ -127,11 +126,12 @@ public class Player : MonoBehaviour
 		}
 	}
 
-	public void SetTarget(Vector3 target, Dir facing)
+	public void SetTargets(Vector3 target, Dir facing, Vector3 nextTarget, Dir nextFacing)
 	{
 		this.target = target;
 		this.facing = facing;
-		nextTarget = null;
+		this.nextTarget = nextTarget;
+		this.nextFacing = nextFacing;
 		
 		CalculateMoveDistance();
 	}
@@ -141,9 +141,13 @@ public class Player : MonoBehaviour
     /// </summary>
 	private void NewTarget()
 	{
-		// If there's no next target, calculate one.
-		if (nextTarget == null)
-			nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
+		// If the current target falls outside the maze, we're out of bounds.
+		if (maze.GetRoom(maze.WorldToRoomPosition(target)) == null)
+		{
+			if (outOfBoundsCallback != null)
+				outOfBoundsCallback.Invoke();
+			return;
+		}
 
 		target = (Vector3)nextTarget;
 		facing = nextFacing;
@@ -183,6 +187,5 @@ public class Player : MonoBehaviour
 		remainingDist = 0.0f;
 		remainingTurnDist = 0.0f;
 		transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing), 0.0f);
-		NewTarget();
 	}
 }

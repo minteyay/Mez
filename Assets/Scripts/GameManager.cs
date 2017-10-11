@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
         // Generate a new maze.
 		if (Input.GetKeyDown(KeyCode.N))
 		{
-			ResetLevel();
+			GenerateLevel();
 		}
 #endif
 
@@ -117,26 +117,19 @@ public class GameManager : MonoBehaviour
 		// Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
-			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(-10.0f, 0.0f, 0.0f), Quaternion.Euler(maze.startRotation));
+			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
 			playerInstance.name = "Player";
 			player = playerInstance.GetComponent<Player>();
-			player.maze = maze;
-			player.SetTarget(new Vector3(), Dir.S);
+			player.outOfBoundsCallback = GenerateLevel;
 		}
-        // Reposition the player to the maze start if it exists.
-        else
-        {
-			player.maze = maze;
-			player.facing = Nav.AngleToFacing(maze.startRotation.y);
-			playerInstance.transform.position = new Vector3(-10.0f, 0.0f, 0.0f);
-			player.Reset();
-			player.SetTarget(new Vector3(), Dir.S);
-		}
-	}
 
-	public void ResetLevel()
-	{
-        // Stop the player and generate a new maze.
-		GenerateLevel();
+		player.maze = maze;
+		playerInstance.transform.position = new Vector3(-10.0f, 0.0f, 0.0f);
+		player.facing = Nav.AngleToFacing(maze.startRotation.y);
+		player.Reset();
+
+		Dir nextFacing;
+		Vector3 nextTarget = Nav.IndexToWorldPos(maze.MoveLeftmost(new Point(0, 0), Dir.S, out nextFacing), maze.roomDim);
+		player.SetTargets(new Vector3(), Dir.S, nextTarget, nextFacing);
 	}
 }
