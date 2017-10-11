@@ -17,6 +17,9 @@ public class Maze : MonoBehaviour
 	[HideInInspector]
 	public Point startPosition;
 
+	[HideInInspector]
+	public uint entranceLength = 0;
+
     /// <summary>
     /// Initialise the maze.
     /// </summary>
