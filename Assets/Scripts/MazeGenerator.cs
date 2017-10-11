@@ -16,9 +16,6 @@ public class MazeGenerator : MonoBehaviour
 	/// Ceiling model prefab.
 	[SerializeField] private GameObject ceiling = null;
 
-    /// End point prefab.
-	[SerializeField] private GameObject endPoint = null;
-
 	/// Should maze generation be stepped through manually?
 	[SerializeField] private bool stepThrough = false;
 

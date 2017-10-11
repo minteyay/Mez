@@ -9,7 +9,6 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty floor = null;
 	private SerializedProperty wall = null;
 	private SerializedProperty ceiling = null;
-	private SerializedProperty endPoint = null;
 
 	private SerializedProperty stepThrough = null;
 	private SerializedProperty state = null;
@@ -22,7 +21,6 @@ public class MazeGeneratorEditor : Editor
 		floor = serializedObject.FindProperty("floor");
 		wall = serializedObject.FindProperty("wall");
 		ceiling = serializedObject.FindProperty("ceiling");
-		endPoint = serializedObject.FindProperty("endPoint");
 
 		stepThrough = serializedObject.FindProperty("stepThrough");
 		state = serializedObject.FindProperty("_state");
@@ -37,7 +35,6 @@ public class MazeGeneratorEditor : Editor
 		EditorGUILayout.PropertyField(floor);
 		EditorGUILayout.PropertyField(wall);
 		EditorGUILayout.PropertyField(ceiling);
-		EditorGUILayout.PropertyField(endPoint);
 
 		GUILayout.Space(10.0f);
 
