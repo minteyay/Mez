@@ -5,6 +5,7 @@ using UnityEditor;
 public class MazeGeneratorEditor : Editor
 {
 	private SerializedProperty roomDim = null;
+	private SerializedProperty entranceLength = null;
 
 	private SerializedProperty floor = null;
 	private SerializedProperty wall = null;
@@ -17,6 +18,7 @@ public class MazeGeneratorEditor : Editor
 	private void OnEnable()
 	{
 		roomDim = serializedObject.FindProperty("roomDim");
+		entranceLength = serializedObject.FindProperty("entranceLength");
 
 		floor = serializedObject.FindProperty("floor");
 		wall = serializedObject.FindProperty("wall");
@@ -32,6 +34,7 @@ public class MazeGeneratorEditor : Editor
 		serializedObject.Update();
 
 		EditorGUILayout.PropertyField(roomDim);
+		EditorGUILayout.PropertyField(entranceLength);
 		EditorGUILayout.PropertyField(floor);
 		EditorGUILayout.PropertyField(wall);
 		EditorGUILayout.PropertyField(ceiling);

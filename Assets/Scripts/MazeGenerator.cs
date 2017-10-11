@@ -8,6 +8,8 @@ public class MazeGenerator : MonoBehaviour
 
     /// Size of a room in world dimensions.
 	[SerializeField] private Vector2 roomDim;
+	/// Length of the entrance corridor before a maze.
+	[SerializeField] private uint entranceLength = 0;
 
     /// Floor model prefab.
 	[SerializeField] private GameObject floor = null;
@@ -94,6 +96,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
 		maze.startPosition = new Point(startX, 0);
+		maze.entranceLength = entranceLength;
 
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
