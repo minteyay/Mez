@@ -59,6 +59,20 @@ public class Maze : MonoBehaviour
 		return neighbours;
 	}
 
+	public List<Dir> GetConnections(Room room)
+	{
+		List<Dir> connections = new List<Dir>();
+		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		{
+			if (Nav.IsConnected(room.value, dir))
+			{
+				if (GetRoom(room.position + new Point(Nav.DX[dir], Nav.DY[dir])) != null)
+					connections.Add(dir);
+			}
+		}
+		return connections;
+	}
+
     /// <summary>
     /// Parent a GameObject to the Room in the given index.
     /// </summary>

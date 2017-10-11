@@ -212,7 +212,7 @@ public class Sprawler
 		success = false;
 
 		// Check possible directions to start Crawlers in.
-		List<Dir> possibleDirs = Nav.GetConnections(maze.GetRoom(position).value);
+		List<Dir> possibleDirs = maze.GetConnections(maze.GetRoom(position));
 		Dir randomDir = possibleDirs[Random.instance.Next(possibleDirs.Count)];
 		
 		// Start with two Crawlers in opposite directions if we can.
