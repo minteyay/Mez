@@ -124,7 +124,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		player.maze = maze;
-		playerInstance.transform.position = maze.RoomToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength, 0.0f, 0.0f);
+		playerInstance.transform.position = maze.RoomToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.roomDim.y, 0.0f, 0.0f);
 		player.facing = Dir.S;
 		player.Reset();
 
