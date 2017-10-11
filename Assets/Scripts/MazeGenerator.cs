@@ -79,9 +79,11 @@ public class MazeGenerator : MonoBehaviour
 		endPointCoord = new Point(-1, -1);
 
 		grid = new uint[ruleset.size.y, ruleset.size.x];
-		CarvePassagesFrom(0, 0, grid, 0);
 
-		grid[0, 0] |= Nav.bits[Dir.N];
+		int startX = Random.instance.Next(ruleset.size.x);
+		CarvePassagesFrom(startX, 0, grid, 0);
+
+		grid[0, startX] |= Nav.bits[Dir.N];
 		grid[endPointCoord.y, endPointCoord.x] |= Nav.bits[endPointDir];
 
         // Base GameObject for the maze.
@@ -94,6 +96,7 @@ public class MazeGenerator : MonoBehaviour
 			return;
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
+		maze.startPosition = new Point(startX, 0);
 
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
@@ -111,9 +114,6 @@ public class MazeGenerator : MonoBehaviour
 			TextureMaze();
 			UpdateMazeUVs();
 		}
-
-        // Set the starting rotation.
-		maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
 
 		if (onComplete != null)
 			onComplete.Invoke(maze);

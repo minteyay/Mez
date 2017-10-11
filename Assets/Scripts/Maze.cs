@@ -14,9 +14,8 @@ public class Maze : MonoBehaviour
 	[HideInInspector]
 	public Vector2 roomDim;
 
-    /// Euler rotation that the player should start at.
 	[HideInInspector]
-	public Vector3 startRotation;
+	public Point startPosition;
 
     /// <summary>
     /// Initialise the maze.
