@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
 	private Player player = null;
 
 	public GameObject uiPrefab = null;
-	private UI ui = null;
 
 	private ThemeManager themeManager = null;
 
@@ -52,21 +51,20 @@ public class GameManager : MonoBehaviour
 		themeManager.LoadThemeRuleset("paperhouse", null);
 
 		// Load all tilesets
-		themeManager.LoadThemeTilesets("paperhouse", StartLevel);
+		themeManager.LoadThemeTilesets("paperhouse", GenerateLevel);
 
-        // Create the UI overlay.
+        // Create the UI.
 		GameObject uiInstance = Instantiate(uiPrefab);
 		uiInstance.name = "UI";
-		ui = uiInstance.GetComponent<UI>();
 	}
 
 	void Update()
 	{
 #if !SCREENSAVER
-        // Generate a new maze (only when the player is moving).
-		if (Input.GetKeyDown(KeyCode.N) && player.canMove)
+        // Generate a new maze.
+		if (Input.GetKeyDown(KeyCode.N))
 		{
-			ResetLevel();
+			GenerateLevel();
 		}
 #endif
 
@@ -119,39 +117,19 @@ public class GameManager : MonoBehaviour
 		// Create a new player if one doesn't already exist.
 		if (playerInstance == null)
 		{
-			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.Euler(maze.startRotation));
+			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
 			playerInstance.name = "Player";
 			player = playerInstance.GetComponent<Player>();
-			player.maze = maze;
-			player.facing = Nav.AngleToFacing(maze.startRotation.y);
-		}
-        // Reposition the player to the maze start if it exists.
-        else
-        {
-			player.maze = maze;
-			player.facing = Nav.AngleToFacing(maze.startRotation.y);
-			playerInstance.transform.position = new Vector3();
-			player.Reset();
+			player.outOfBoundsCallback = GenerateLevel;
 		}
 
-		ui.FadeIn(StartMoving);
-	}
+		player.maze = maze;
+		playerInstance.transform.position = new Vector3(-10.0f, 0.0f, 0.0f);
+		player.facing = Nav.AngleToFacing(maze.startRotation.y);
+		player.Reset();
 
-	public void StartLevel()
-	{
-        // Generate a new maze.
-		GenerateLevel();
-	}
-
-	public void StartMoving()
-	{
-		player.canMove = true;
-	}
-
-	public void ResetLevel()
-	{
-        // Stop the player and fade the maze out.
-		player.canMove = false;
-		ui.FadeOut(StartLevel);
+		Dir nextFacing;
+		Vector3 nextTarget = Nav.IndexToWorldPos(maze.MoveLeftmost(new Point(0, 0), Dir.S, out nextFacing), maze.roomDim);
+		player.SetTargets(new Vector3(), Dir.S, nextTarget, nextFacing);
 	}
 }

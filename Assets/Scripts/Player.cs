@@ -31,35 +31,28 @@ public class Player : MonoBehaviour
 	private float remainingTurnDist = 0.0f;
 
 	[HideInInspector]
-	public bool canMove = false;
-
-	[HideInInspector]
 	public Maze maze = null;
 
-	void Start()
-	{
-		Reset();
-	}
+	public delegate void OutOfBoundsCallback();
+	[HideInInspector]
+	public OutOfBoundsCallback outOfBoundsCallback = null;
 
 	void Update()
 	{
-		if (canMove)
-		{
-			// Move the player.
-			float toMove = movementSpeed * Time.deltaTime;
+		// Move the player.
+		float toMove = movementSpeed * Time.deltaTime;
+		Move(ref toMove);
+
+		// Get a new target once all the forwards moving and turning have been done.
+		if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+			NewTarget();
+
+		// Move again if there's still distance left to go.
+		if (toMove > 0.0f)
 			Move(ref toMove);
-
-			// Get a new target once all the forwards moving and turning have been done.
-			if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
-				NewTarget();
-
-			// Move again if there's still distance left to go.
-			if (toMove > 0.0f)
-				Move(ref toMove);
-			
-			if (toMove > 0.0f)
-				Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
-		}
+		
+		if (toMove > 0.0f)
+			Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
 	}
 
 	private void Move(ref float movementAmount)
@@ -133,16 +126,39 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	public void SetTargets(Vector3 target, Dir facing, Vector3 nextTarget, Dir nextFacing)
+	{
+		this.target = target;
+		this.facing = facing;
+		this.nextTarget = nextTarget;
+		this.nextFacing = nextFacing;
+		
+		CalculateMoveDistance();
+	}
+
     /// <summary>
     /// Set a new target world position to move towards.
     /// </summary>
 	private void NewTarget()
 	{
-		target = nextTarget;
+		// If the current target falls outside the maze, we're out of bounds.
+		if (maze.GetRoom(maze.WorldToRoomPosition(target)) == null)
+		{
+			if (outOfBoundsCallback != null)
+				outOfBoundsCallback.Invoke();
+			return;
+		}
+
+		target = (Vector3)nextTarget;
 		facing = nextFacing;
 
 		nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
 
+		CalculateMoveDistance();
+	}
+
+	private void CalculateMoveDistance()
+	{
 		Vector3 targetDelta = transform.position - target;
 		if (facing != nextFacing)
 		{
@@ -171,6 +187,5 @@ public class Player : MonoBehaviour
 		remainingDist = 0.0f;
 		remainingTurnDist = 0.0f;
 		transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing), 0.0f);
-		NewTarget();
 	}
 }

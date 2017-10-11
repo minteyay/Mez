@@ -59,8 +59,8 @@ public class MazeGenerator : MonoBehaviour
 	private uint endPointDist = 0;
     /// Index position of the end point.
 	private Point endPointCoord = new Point(-1, -1);
-    /// Y rotation of the end point.
-	private float endPointRotation = 0.0f;
+	/// Direction of the end point.
+	private Dir endPointDir = Dir.N;
 
     /// <summary>
     /// Generates a maze with the given ruleset.
@@ -80,6 +80,9 @@ public class MazeGenerator : MonoBehaviour
 
 		grid = new uint[ruleset.size.y, ruleset.size.x];
 		CarvePassagesFrom(0, 0, grid, 0);
+
+		grid[0, 0] |= Nav.bits[Dir.N];
+		grid[endPointCoord.y, endPointCoord.x] |= Nav.bits[endPointDir];
 
         // Base GameObject for the maze.
 		GameObject mazeInstance = new GameObject();
@@ -109,21 +112,8 @@ public class MazeGenerator : MonoBehaviour
 			UpdateMazeUVs();
 		}
 
-		maze.AddEndPoint(endPointCoord, endPoint, Quaternion.Euler(0.0f, endPointRotation, 0.0f));
-
-        // Set the starting rotation based on the facing of the starting room.
-		switch (grid[0, 0])
-		{
-			case 2:
-				maze.startRotation = new Vector3(0.0f, 0.0f, 0.0f);
-				break;
-			case 4:
-				maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
-				break;
-			default:
-				Debug.Log("Weird starting room " + grid[0, 0]);
-				break;
-		}
+        // Set the starting rotation.
+		maze.startRotation = new Vector3(0.0f, 90.0f, 0.0f);
 
 		if (onComplete != null)
 			onComplete.Invoke(maze);
@@ -163,8 +153,7 @@ public class MazeGenerator : MonoBehaviour
 							startRoom = maze.rooms[randomPoint.y, randomPoint.x];
 							break;
 						case SprawlerRuleset.Start.End:
-							Point endPoint = Nav.WorldToIndexPos(maze.endPoint.transform.position, maze.roomDim);
-							startRoom = maze.rooms[endPoint.y, endPoint.x];
+							startRoom = maze.rooms[endPointCoord.y, endPointCoord.x];
 							break;
 					}
 
@@ -335,20 +324,21 @@ public class MazeGenerator : MonoBehaviour
 			}
 		}
 
-        // Set the end point here if its deeper in the maze than the previous one.
 		if (distance > endPointDist)
 		{
-			endPointCoord.Set(x, y);
-			endPointDist = distance;
+			List<Dir> possibleEndPointDirs = new List<Dir>();
+			if (x == 0)							possibleEndPointDirs.Add(Dir.W);
+			if (y == 0)							possibleEndPointDirs.Add(Dir.N);
+			if (x == (grid.GetLength(0) - 1))	possibleEndPointDirs.Add(Dir.E);
+			if (y == (grid.GetLength(1) - 1))	possibleEndPointDirs.Add(Dir.S);
 
-            // Check which way to face the end point in.
-			foreach (Dir dir in directions)
+			if (possibleEndPointDirs.Count > 0)
 			{
-				if (Nav.IsConnected(grid[y, x], dir))
-				{
-					endPointRotation = Nav.FacingToAngle(dir);
-					break;
-				}
+				endPointCoord.Set(x, y);
+				endPointDist = distance;
+
+				Utils.Shuffle(Random.instance, possibleEndPointDirs);
+				endPointDir = possibleEndPointDirs[0];
 			}
 		}
 	}
@@ -453,11 +443,8 @@ public class MazeGenerator : MonoBehaviour
 			{
 				Point neighbourPos = room.position + new Point(Nav.DX[dir], Nav.DY[dir]);
 				Room neighbourRoom = maze.GetRoom(neighbourPos);
-				if (neighbourRoom != null)
-				{
-					if (room.theme != neighbourRoom.theme)
-						fixedValue &= ~Nav.bits[dir];
-				}
+				if (neighbourRoom == null || room.theme != neighbourRoom.theme)
+					fixedValue &= ~Nav.bits[dir];
 			}
 		}
 
