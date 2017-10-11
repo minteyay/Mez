@@ -18,6 +18,9 @@ public class MazeGenerator : MonoBehaviour
 	/// Ceiling model prefab.
 	[SerializeField] private GameObject ceiling = null;
 
+	/// Corridor prefab.
+	[SerializeField] private GameObject corridor = null;
+
 	/// Should maze generation be stepped through manually?
 	[SerializeField] private bool stepThrough = false;
 
@@ -98,6 +101,7 @@ public class MazeGenerator : MonoBehaviour
 		maze.startPosition = new Point(startX, 0);
 		maze.entranceLength = entranceLength;
 
+		CreateCorridors(mazeInstance);
 		CreateRooms(grid, maze, ruleset.tileset);
 		CreateRoomGeometry(maze);
 		UpdateMazeUVs();
@@ -360,6 +364,19 @@ public class MazeGenerator : MonoBehaviour
 				maze.AddRoom(room);
 			}
 		}
+	}
+
+	private void CreateCorridors(GameObject mazeInstance)
+	{
+		GameObject entrance = Instantiate(corridor, maze.RoomToWorldPosition(maze.startPosition) - new Vector3(maze.roomDim.y / 2.0f, 0.0f, 0.0f), Quaternion.identity, mazeInstance.transform);
+		entrance.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
+		entrance.name = "Entrance";
+
+		GameObject exit = Instantiate(corridor,
+			maze.RoomToWorldPosition(endPointCoord) + new Vector3(Nav.DY[endPointDir] * (maze.roomDim.y / 2.0f), 0.0f, Nav.DX[endPointDir] * (maze.roomDim.x / 2.0f)),
+			Quaternion.Euler(0.0f, Nav.FacingToAngle(endPointDir), 0.0f), mazeInstance.transform);
+		exit.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
+		exit.name = "Exit";
 	}
 
 	/// <summary>

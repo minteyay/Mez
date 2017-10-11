@@ -54,10 +54,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomDim: {x: 2, y: 2}
+  entranceLength: 6
   floor: {fileID: 1254603710341132, guid: 7a85777f7e6ce4710bd0fb25ef18f729, type: 2}
   wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}
   ceiling: {fileID: 1119517059742150, guid: b2152f833e69d46fe8cd566bef6ecaaa, type: 2}
-  endPoint: {fileID: 1000014044703306, guid: 869142d0a3ae8484a85a3414c8b86564, type: 2}
+  corridor: {fileID: 1403645412382046, guid: a1c8a50d9fe474307a860e8334fe9d59, type: 2}
   stepThrough: 0
   _state: 0
 --- !u!114 &114000013432157448
