@@ -86,5 +86,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31feab9603402452f8c7a71c25471532, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultShader: {fileID: 10752, guid: 0000000000000000f000000000000000, type: 0}
-  defaultMaterial: {fileID: 2100000, guid: 7bf28f08169664c33ba9b010eb4288fe, type: 2}
+  defaultShader: {fileID: 4800000, guid: dceb00b7fe0ce40799b96f119e82b91c, type: 3}
+  defaultMaterial: {fileID: 2100000, guid: 6ce0001df61e9429f973706e5f5d1717, type: 2}
