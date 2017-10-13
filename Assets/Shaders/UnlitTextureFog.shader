@@ -3,8 +3,6 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_Color("Fog color", Color) = (1, 1, 1, 1)
-		_Distance("Fog distance", Range(0, 20)) = 10
 	}
 	SubShader
 	{
@@ -44,15 +42,15 @@
 			}
 
 			sampler2D _MainTex;
-			float4 _Color;
-			float _Distance;
+			float4 _FogColor;
+			float _FogDistance;
 
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				float fade = length(i.pos) / _Distance;
+				float fade = length(i.pos) / _FogDistance;
 
-				fixed4 col = lerp(tex, _Color, fade);
+				fixed4 col = lerp(tex, _FogColor, fade);
 				return col;
 			}
 
