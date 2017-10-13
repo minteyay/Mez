@@ -43,14 +43,15 @@
 
 			sampler2D _MainTex;
 			float4 _FogColor;
-			float _FogDistance;
+			float _FogMinDistance;
+			float _FogMaxDistance;
 
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				float fade = clamp(length(i.pos) / _FogDistance, 0, 1);
+				float fade = (length(i.pos) - _FogMinDistance) / (_FogMaxDistance - _FogMinDistance);
 
-				fixed4 col = lerp(tex, _FogColor, fade);
+				fixed4 col = lerp(tex, _FogColor, clamp(fade, 0, 1));
 				return col;
 			}
 

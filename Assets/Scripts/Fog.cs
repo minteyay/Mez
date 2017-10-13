@@ -2,11 +2,18 @@
 
 public class Fog : MonoBehaviour
 {
-    [SerializeField] private float _distance = 1.0f;
-    public float distance
+    [SerializeField] private float _minDistance = 1.0f;
+    public float minDistance
     {
-        get { return _distance; }
-        set { _distance = value; DistanceChanged(); }
+        get { return _minDistance; }
+        set { _minDistance = value; MinDistanceChanged(); MaxDistanceChanged(); }
+    }
+
+    [SerializeField] private float _maxDistance = 1.0f;
+    public float maxDistance
+    {
+        get { return _maxDistance; }
+        set { _maxDistance = value; MaxDistanceChanged(); }
     }
 
     [SerializeField] private Color _color = new Color();
@@ -16,11 +23,23 @@ public class Fog : MonoBehaviour
         set { _color = value; ColorChanged(); }
     }
 
-    private void DistanceChanged()
+    private void MinDistanceChanged()
     {
-        if (_distance < 0.0f)
-            _distance = 0.0f;
-        Shader.SetGlobalFloat("_FogDistance", _distance);
+        // Min distance must be positive.
+        if (_minDistance < 0.0f)
+            _minDistance = 0.0f;
+        Shader.SetGlobalFloat("_FogMinDistance", _minDistance);
+    }
+
+    private void MaxDistanceChanged()
+    {
+        // Max distance can't be less than min distance.
+        if (_maxDistance < _minDistance)
+            _maxDistance = _minDistance;
+        // Max distance must be positive.
+        if (_maxDistance < 0.0f)
+            _maxDistance = 0.0f;
+        Shader.SetGlobalFloat("_FogMaxDistance", _maxDistance);
     }
 
     private void ColorChanged()
@@ -30,7 +49,8 @@ public class Fog : MonoBehaviour
 
     private void OnValidate()
     {
-        DistanceChanged();
+        MinDistanceChanged();
+        MaxDistanceChanged();
         ColorChanged();
     }
 }
