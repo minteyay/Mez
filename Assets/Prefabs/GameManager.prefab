@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 114000013432157448}
   - component: {fileID: 114000012411839478}
   - component: {fileID: 114888064288550234}
+  - component: {fileID: 114870257832778122}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -75,6 +76,22 @@ MonoBehaviour:
   playerPrefab: {fileID: 1000010283996220, guid: f69be4e633f39b7408dd8b1c82223da4,
     type: 2}
   uiPrefab: {fileID: 1120142567645020, guid: 1508260b8fc390649a43c33c8f535090, type: 2}
+--- !u!114 &114870257832778122
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013263908144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0767cbe15c8954e079452c4496023347, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _minDistance: 2
+  _maxDistance: 5
+  _nearColor: {r: 0, g: 0, b: 0, a: 0}
+  _farColor: {r: 1, g: 1, b: 1, a: 0}
+  _steps: 6
 --- !u!114 &114888064288550234
 MonoBehaviour:
   m_ObjectHideFlags: 1
