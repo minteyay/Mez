@@ -45,13 +45,26 @@
 			float4 _FogColor;
 			float _FogMinDistance;
 			float _FogMaxDistance;
+			float _FogSteps;
 
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				float fade = (length(i.pos) - _FogMinDistance) / (_FogMaxDistance - _FogMinDistance);
 
-				fixed4 col = lerp(tex, _FogColor, clamp(fade, 0, 1));
+				// Position on the min - max distance range [0 - 1].
+				float distance = (length(i.pos) - _FogMinDistance) / (_FogMaxDistance - _FogMinDistance);
+
+				float fade;
+				if (_FogSteps > 0.0)
+				{
+					fade = round(distance * _FogSteps) / _FogSteps;
+				}
+				else
+				{
+					fade = distance;
+				}
+
+				fixed4 col = lerp(tex, _FogColor, saturate(fade));
 				return col;
 			}
 
