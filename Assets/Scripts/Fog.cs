@@ -2,7 +2,7 @@
 
 public class Fog : MonoBehaviour
 {
-    [SerializeField] private float _distance = 10.0f;
+    [SerializeField] private float _distance = 1.0f;
     public float distance
     {
         get { return _distance; }
