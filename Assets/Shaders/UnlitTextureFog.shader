@@ -48,7 +48,7 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				float fade = length(i.pos) / _FogDistance;
+				float fade = clamp(length(i.pos) / _FogDistance, 0, 1);
 
 				fixed4 col = lerp(tex, _FogColor, fade);
 				return col;
