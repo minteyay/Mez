@@ -42,8 +42,7 @@
 			}
 
 			sampler2D _MainTex;
-			float4 _FogNearColor;
-			float4 _FogFarColor;
+			float4 _FogColor;
 			float _FogMinDistance;
 			float _FogMaxDistance;
 			float _FogSteps;
@@ -57,16 +56,11 @@
 
 				float fade;
 				if (_FogSteps > 0.0)
-				{
 					fade = round(distance * _FogSteps) / _FogSteps;
-				}
 				else
-				{
 					fade = distance;
-				}
-				fade = saturate(fade);
 
-				fixed4 col = lerp(tex, lerp(_FogNearColor, _FogFarColor, fade), fade);
+				fixed4 col = lerp(tex, _FogColor, saturate(fade));
 				return col;
 			}
 

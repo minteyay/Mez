@@ -18,18 +18,11 @@ public class Fog : MonoBehaviour
         set { _maxDistance = value; MaxDistanceChanged(); }
     }
 
-    [SerializeField] private Color _nearColor = new Color();
-    public Color nearColor
+    [SerializeField] private Color _color = new Color();
+    public Color color
     {
-        get { return _nearColor; }
-        set { _nearColor = value; NearColorChanged(); }
-    }
-
-    [SerializeField] private Color _farColor = new Color();
-    public Color farColor
-    {
-        get { return _farColor; }
-        set { _farColor = value; FarColorChanged(); }
+        get { return _color; }
+        set { _color = value; ColorChanged(); }
     }
 
     [SerializeField] private uint _steps = 0;
@@ -58,14 +51,9 @@ public class Fog : MonoBehaviour
         Shader.SetGlobalFloat("_FogMaxDistance", _maxDistance);
     }
 
-    private void NearColorChanged()
+    private void ColorChanged()
     {
-        Shader.SetGlobalColor("_FogNearColor", _nearColor);
-    }
-
-    private void FarColorChanged()
-    {
-        Shader.SetGlobalColor("_FogFarColor", _farColor);
+        Shader.SetGlobalColor("_FogColor", _color);
     }
 
     private void StepsChanged()
@@ -77,8 +65,7 @@ public class Fog : MonoBehaviour
     {
         MinDistanceChanged();
         MaxDistanceChanged();
-        NearColorChanged();
-        FarColorChanged();
+        ColorChanged();
         StepsChanged();
     }
 }

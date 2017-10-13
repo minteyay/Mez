@@ -89,8 +89,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _minDistance: 2
   _maxDistance: 5
-  _nearColor: {r: 0, g: 0, b: 0, a: 0}
-  _farColor: {r: 1, g: 1, b: 1, a: 0}
+  _color: {r: 1, g: 1, b: 1, a: 0}
   _steps: 6
 --- !u!114 &114888064288550234
 MonoBehaviour:
