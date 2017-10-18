@@ -60,6 +60,8 @@ MonoBehaviour:
   wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}
   ceiling: {fileID: 1119517059742150, guid: b2152f833e69d46fe8cd566bef6ecaaa, type: 2}
   corridor: {fileID: 1403645412382046, guid: a1c8a50d9fe474307a860e8334fe9d59, type: 2}
+  regularShader: {fileID: 10752, guid: 0000000000000000f000000000000000, type: 0}
+  seamlessShader: {fileID: 4800000, guid: adc9f2ed451704029961842d9a1498c1, type: 3}
   stepThrough: 0
   _state: 0
 --- !u!114 &114000013432157448
@@ -87,10 +89,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0767cbe15c8954e079452c4496023347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minDistance: 2
-  _maxDistance: 5
+  _minDistance: 20
+  _maxDistance: 20.00001
   _color: {r: 1, g: 1, b: 1, a: 0}
-  _steps: 6
+  _steps: 1
 --- !u!114 &114888064288550234
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -102,5 +104,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31feab9603402452f8c7a71c25471532, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultShader: {fileID: 4800000, guid: dceb00b7fe0ce40799b96f119e82b91c, type: 3}
-  defaultMaterial: {fileID: 2100000, guid: 6ce0001df61e9429f973706e5f5d1717, type: 2}
+  defaultTexture: {fileID: 2800000, guid: 36e639f5355f243cdbda948fba01251a, type: 3}

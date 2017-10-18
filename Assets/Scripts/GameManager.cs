@@ -48,10 +48,8 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
-		themeManager.LoadThemeRuleset("paperhouse", null);
-
-		// Load all tilesets
-		themeManager.LoadThemeTilesets("paperhouse", GenerateLevel);
+		// Load the theme.
+		themeManager.LoadTheme("paperhouse", GenerateLevel);
 
         // Create the UI.
 		GameObject uiInstance = Instantiate(uiPrefab);

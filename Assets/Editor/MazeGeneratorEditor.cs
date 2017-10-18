@@ -12,6 +12,9 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty ceiling = null;
 	private SerializedProperty corridor = null;
 
+	private SerializedProperty regularShader = null;
+	private SerializedProperty seamlessShader = null;
+
 	private SerializedProperty stepThrough = null;
 	private SerializedProperty state = null;
 	private MazeGenerator mazeGenerator = null;
@@ -25,6 +28,9 @@ public class MazeGeneratorEditor : Editor
 		wall = serializedObject.FindProperty("wall");
 		ceiling = serializedObject.FindProperty("ceiling");
 		corridor = serializedObject.FindProperty("corridor");
+
+		regularShader = serializedObject.FindProperty("regularShader");
+		seamlessShader = serializedObject.FindProperty("seamlessShader");
 
 		stepThrough = serializedObject.FindProperty("stepThrough");
 		state = serializedObject.FindProperty("_state");
@@ -41,6 +47,8 @@ public class MazeGeneratorEditor : Editor
 		EditorGUILayout.PropertyField(wall);
 		EditorGUILayout.PropertyField(ceiling);
 		EditorGUILayout.PropertyField(corridor);
+		EditorGUILayout.PropertyField(regularShader);
+		EditorGUILayout.PropertyField(seamlessShader);
 
 		GUILayout.Space(10.0f);
 
