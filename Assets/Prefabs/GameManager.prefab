@@ -87,10 +87,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0767cbe15c8954e079452c4496023347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minDistance: 2
-  _maxDistance: 5
+  _minDistance: 20
+  _maxDistance: 20.00001
   _color: {r: 1, g: 1, b: 1, a: 0}
-  _steps: 6
+  _steps: 1
 --- !u!114 &114888064288550234
 MonoBehaviour:
   m_ObjectHideFlags: 1

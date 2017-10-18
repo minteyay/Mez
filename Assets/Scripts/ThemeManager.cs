@@ -12,11 +12,13 @@ public class ThemeManager : MonoBehaviour
 	public Dictionary<string, MazeRuleset> Rulesets { get; private set; }
 	public Dictionary<string, Material> Tilesets { get; private set; }
 
+	private LoadingComplete callback = null;
+	private bool rulesetLoaded = false;
 	private int tilesetsLoaded = 0;
 	private int tilesetsToLoad = 0;
 
-	public Shader defaultShader = null;
-	public Material defaultMaterial = null;
+	[SerializeField] private Shader defaultShader = null;
+	[SerializeField] private Material defaultMaterial = null;
 
 	public void Awake()
 	{
@@ -37,20 +39,39 @@ public class ThemeManager : MonoBehaviour
 		}
 	}
 
-	public void LoadThemeRuleset(string themeName, LoadingComplete callback)
+	public void LoadTheme(string themeName, LoadingComplete callback)
 	{
+		this.callback = callback;
+
+		LoadThemeRuleset(themeName);
+		LoadThemeTilesets(themeName);
+	}
+
+	private void UpdateLoadingState()
+	{
+		if (!rulesetLoaded) return;
+		if (tilesetsLoaded < tilesetsToLoad) return;
+
+		if (callback != null)
+			callback.Invoke();
+	}
+
+	private void LoadThemeRuleset(string themeName)
+	{
+		rulesetLoaded = false;
+		
 		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".json";
 		if (!System.IO.File.Exists(rulesetPath))
 		{
-			Debug.LogWarning("Trying to load tileset \"" + rulesetPath + "\" which doesn't exist!");
+			Debug.LogWarning("Trying to load ruleset \"" + rulesetPath + "\" which doesn't exist!");
 			callback();
 			return;
 		}
 
-		StartCoroutine(DoLoadThemeRuleset(rulesetPath, callback));
+		StartCoroutine(DoLoadThemeRuleset(rulesetPath));
 	}
 
-	private IEnumerator<WWW> DoLoadThemeRuleset(string rulesetPath, LoadingComplete callback)
+	private IEnumerator<WWW> DoLoadThemeRuleset(string rulesetPath)
 	{
 		WWW www = new WWW("file://" + rulesetPath);
 		yield return www;
@@ -59,33 +80,17 @@ public class ThemeManager : MonoBehaviour
 		string rulesetName = rulesetPath.Substring(rulesetPath.LastIndexOf('/') + 1, rulesetPath.LastIndexOf(".json") - rulesetPath.LastIndexOf('/') - 1);
 		Rulesets.Add(rulesetName, ruleset);
 
-		if (callback != null)
-			callback();
+		rulesetLoaded = true;
+		UpdateLoadingState();
 	}
 
-	public void LoadThemeTilesets(string themeName, LoadingComplete callback)
+	private void LoadThemeTilesets(string themeName)
 	{
-		if (tilesetsToLoad != 0)
-		{
-			Debug.LogWarning("Already loading a batch of tilesets, wait for it to finish loading before starting another!");
-			return;
-		}
-		tilesetsLoaded = 0;
-
 		string[] tilesetPaths = System.IO.Directory.GetFiles(Application.dataPath + "/Themes/" + themeName, "*.png");
 		tilesetsToLoad = tilesetPaths.Length;
+		tilesetsLoaded = 0;
 		foreach (string path in tilesetPaths)
-			LoadTileset(path, () => TilesetLoaded(callback));
-	}
-
-	private void TilesetLoaded(LoadingComplete callback)
-	{
-		tilesetsLoaded++;
-		if (tilesetsLoaded < tilesetsToLoad)
-			return;
-		if (callback != null)
-			callback();
-		tilesetsToLoad = 0;
+			LoadTileset(path, () => { tilesetsLoaded++; UpdateLoadingState(); } );
 	}
 
 	public void LoadTileset(string tilesetPath, LoadingComplete callback)
