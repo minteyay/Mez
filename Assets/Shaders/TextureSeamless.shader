@@ -1,8 +1,8 @@
-﻿Shader "Unlit/Autotile Texture" 
+﻿Shader "Unlit/Texture Seamless" 
 {
 	Properties
 	{
-		_AutotileTex ("Autotiled texture", 2D) = "white" {}
+		_MainTex ("Main texture", 2D) = "white" {}
 		_SeamlessTex ("Seamless texture", 2D) = "white" {}
 	}
 	SubShader
@@ -19,7 +19,7 @@
 
 			#include "UnityCG.cginc"
 
-			sampler2D _AutotileTex;
+			sampler2D _MainTex;
 			sampler2D _SeamlessTex;
 			float4 _SeamlessTex_ST;
 
@@ -47,10 +47,10 @@
 
 			fixed4 frag (v2f i) : COLOR
 			{
-				fixed4 autotileTex = tex2D(_AutotileTex, i.uv0);
+				fixed4 mainTex = tex2D(_MainTex, i.uv0);
 				fixed4 seamlessTex = tex2D(_SeamlessTex, i.uv1);
 
-				fixed4 color = autotileTex + (1.0 - autotileTex.a) * seamlessTex;
+				fixed4 color = mainTex + (1.0 - mainTex.a) * seamlessTex;
 				return color;
 			}
 

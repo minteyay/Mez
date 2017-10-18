@@ -17,9 +17,11 @@ public class MazeGenerator : MonoBehaviour
 	[SerializeField] private GameObject wall = null;
 	/// Ceiling model prefab.
 	[SerializeField] private GameObject ceiling = null;
-
 	/// Corridor prefab.
 	[SerializeField] private GameObject corridor = null;
+
+	[SerializeField] private Shader regularShader = null;
+	[SerializeField] private Shader seamlessShader = null;
 
 	/// Should maze generation be stepped through manually?
 	[SerializeField] private bool stepThrough = false;
@@ -278,14 +280,18 @@ public class MazeGenerator : MonoBehaviour
 	{
 		MaterialSetter roomMaterialSetter = room.instance.GetComponent<MaterialSetter>();
 		// If the Room's tileset exists in the ThemeManager, apply it to the room instance.
-		if (themeManager.Tilesets.ContainsKey(room.theme))
+		if (themeManager.Textures.ContainsKey(room.theme))
 		{
-			roomMaterialSetter.SetMaterial(themeManager.Tilesets[room.theme]);
+			Material material = new Material(regularShader);
+			material.mainTexture = themeManager.Textures[room.theme];
+			roomMaterialSetter.SetMaterial(material);
 		}
 		// Try applying the default tileset if the Room's one isn't loaded.
-		else if (themeManager.Tilesets.ContainsKey("default"))
+		else if (themeManager.Textures.ContainsKey("default"))
 		{
-			roomMaterialSetter.SetMaterial(themeManager.Tilesets["default"]);
+			Material material = new Material(regularShader);
+			material.mainTexture = themeManager.Textures["default"];
+			roomMaterialSetter.SetMaterial(material);
 			Debug.LogWarning("Tileset named \"" + room.theme + "\" not found in supplied ThemeManager, using default material.", room.instance);
 		}
 		// Even the default tileset wasn't found, so leave the Room untextured.

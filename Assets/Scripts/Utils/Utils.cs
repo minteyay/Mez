@@ -45,7 +45,7 @@ public class Utils
     /// Formats a 2D grid neatly.
     /// </summary>
     /// <param name="grid"></param>
-	private string Format2DGrid(int[,] grid)
+	public static string Format2DGrid(int[,] grid)
 	{
 		string output = "";
 		for (int y = 0; y < grid.GetLength(0); y++)
@@ -75,5 +75,18 @@ public class Utils
             if (v != 0)
                 return v;
         return 0;
+    }
+
+    public static string ParseFileName(string path)
+    {
+        int begin = path.LastIndexOf('/');
+        if (begin == -1)
+            begin = 0;
+        else
+            begin++;
+        int end = path.LastIndexOf('.');
+        if (end == -1)
+            end = path.Length;
+        return path.Substring(begin, end - begin);
     }
 }
