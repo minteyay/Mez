@@ -8,7 +8,7 @@ public class MazeGenerator : MonoBehaviour
 
     /// Size of a room in world dimensions.
 	[SerializeField] private Vector2 roomDim;
-	/// Length of the entrance corridor before a maze.
+	/// Length of the entrance corridor before a maze (in rooms).
 	[SerializeField] private uint entranceLength = 0;
 
     /// Floor model prefab.
@@ -57,6 +57,7 @@ public class MazeGenerator : MonoBehaviour
 	private ThemeManager themeManager = null;
 	private const string floorSuffix = "_floor";
 	private const string ceilingSuffix = "_ceiling";
+	private Dictionary<string, Material> tilesets = null;
 
 	public delegate void OnComplete(Maze maze);
 	private OnComplete onComplete = null;
@@ -80,6 +81,7 @@ public class MazeGenerator : MonoBehaviour
 
 		messageLog = new List<string>();
 		newSprawlerRooms = new List<Room>();
+		tilesets = new Dictionary<string, Material>();
 
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
@@ -135,6 +137,7 @@ public class MazeGenerator : MonoBehaviour
 		currentSprawlerRooms = null;
 		newSprawlerRooms = null;
 		messageLog = null;
+		tilesets = null;
 	}
 
 	public bool Step()
@@ -280,50 +283,58 @@ public class MazeGenerator : MonoBehaviour
 
 	private void TextureRoom(Room room)
 	{
-		Material regularMaterial = new Material(regularShader);
-		Material floorMaterial = regularMaterial;
-		Material ceilingMaterial = regularMaterial;
-
-		// Use the room's tileset if it's loaded.
-		if (themeManager.Textures.ContainsKey(room.theme))
+		// Create the material(s) for the room if they haven't been created yet.
+		if (!tilesets.ContainsKey(room.theme))
 		{
-			Texture2D tileset = themeManager.Textures[room.theme];
-			regularMaterial.mainTexture = tileset;
+			Material regularMaterial = new Material(regularShader);
+			Material floorMaterial = regularMaterial;
+			Material ceilingMaterial = regularMaterial;
 
-			// Use a seamless texture for the floor if one exists.
-			if (themeManager.Textures.ContainsKey(room.theme + floorSuffix))
+			// Use the room's tileset if it's loaded.
+			if (themeManager.Textures.ContainsKey(room.theme))
 			{
-				floorMaterial = new Material(seamlessShader);
-				floorMaterial.mainTexture = tileset;
-				floorMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + floorSuffix]);
-				floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
+				Texture2D tileset = themeManager.Textures[room.theme];
+				regularMaterial.mainTexture = tileset;
+
+				// Create a seamless texture for the floor if one exists.
+				if (themeManager.Textures.ContainsKey(room.theme + floorSuffix))
+				{
+					floorMaterial = new Material(seamlessShader);
+					floorMaterial.mainTexture = tileset;
+					floorMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + floorSuffix]);
+					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
+				}
+
+				// Create a seamless texture for the ceiling if one exists.
+				if (themeManager.Textures.ContainsKey(room.theme + ceilingSuffix))
+				{
+					ceilingMaterial = new Material(seamlessShader);
+					ceilingMaterial.mainTexture = tileset;
+					ceilingMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + ceilingSuffix]);
+					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
+				}
+			}
+			// If the room's tileset isn't loaded, try using the default one.
+			else if (themeManager.Textures.ContainsKey("default"))
+			{
+				Texture2D tileset = themeManager.Textures["default"];
+				regularMaterial.mainTexture = tileset;
+				Debug.LogWarning("Tried using tileset called \"" + room.theme + "\" but it isn't loaded, using the default tileset.", room.instance);
+			}
+			// The default tileset wasn't loaded either.
+			else
+			{
+				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + room.theme + "\" isn't loaded, but the default one isn't loaded either.", room.instance);
 			}
 
-			// Use a seamless texture for the ceiling if one exists.
-			if (themeManager.Textures.ContainsKey(room.theme + ceilingSuffix))
-			{
-				ceilingMaterial = new Material(seamlessShader);
-				ceilingMaterial.mainTexture = tileset;
-				ceilingMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + ceilingSuffix]);
-				ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
-			}
-		}
-		// If the room's tileset isn't loaded, try using the default one.
-		else if (themeManager.Textures.ContainsKey("default"))
-		{
-			Texture2D tileset = themeManager.Textures["default"];
-			regularMaterial.mainTexture = tileset;
-			Debug.LogWarning("Tried using tileset called \"" + room.theme + "\" but it isn't loaded, using the default tileset.", room.instance);
-		}
-		// The default tileset wasn't loaded either so the room is untextured.
-		else
-		{
-			Debug.LogWarning("Tried using the default tileset since a tileset named \"" + room.theme + "\" isn't loaded, but the default one isn't loaded either.", room.instance);
+			tilesets.Add(room.theme, regularMaterial);
+			tilesets.Add(room.theme + floorSuffix, floorMaterial);
+			tilesets.Add(room.theme + ceilingSuffix, ceilingMaterial);
 		}
 
-		room.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(regularMaterial);
-		room.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(floorMaterial);
-		room.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(ceilingMaterial);
+		room.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme]);
+		room.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme + floorSuffix]);
+		room.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme + ceilingSuffix]);
 	}
 
     /// <summary>
