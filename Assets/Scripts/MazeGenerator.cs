@@ -281,13 +281,16 @@ public class MazeGenerator : MonoBehaviour
 	private void TextureRoom(Room room)
 	{
 		Material regularMaterial = new Material(regularShader);
-		Material floorMaterial = null;
-		Material ceilingMaterial = null;
+		Material floorMaterial = regularMaterial;
+		Material ceilingMaterial = regularMaterial;
 
+		// Use the room's tileset if it's loaded.
 		if (themeManager.Textures.ContainsKey(room.theme))
 		{
 			Texture2D tileset = themeManager.Textures[room.theme];
 			regularMaterial.mainTexture = tileset;
+
+			// Use a seamless texture for the floor if one exists.
 			if (themeManager.Textures.ContainsKey(room.theme + floorSuffix))
 			{
 				floorMaterial = new Material(seamlessShader);
@@ -295,8 +298,8 @@ public class MazeGenerator : MonoBehaviour
 				floorMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + floorSuffix]);
 				floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
 			}
-			else
-				floorMaterial = regularMaterial;
+
+			// Use a seamless texture for the ceiling if one exists.
 			if (themeManager.Textures.ContainsKey(room.theme + ceilingSuffix))
 			{
 				ceilingMaterial = new Material(seamlessShader);
@@ -304,21 +307,18 @@ public class MazeGenerator : MonoBehaviour
 				ceilingMaterial.SetTexture("_SeamlessTex", themeManager.Textures[room.theme + ceilingSuffix]);
 				ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / roomDim.x, 1.0f / roomDim.y));
 			}
-			else
-				ceilingMaterial = regularMaterial;
 		}
+		// If the room's tileset isn't loaded, try using the default one.
 		else if (themeManager.Textures.ContainsKey("default"))
 		{
 			Texture2D tileset = themeManager.Textures["default"];
 			regularMaterial.mainTexture = tileset;
-			floorMaterial = regularMaterial;
-			ceilingMaterial = regularMaterial;
+			Debug.LogWarning("Tried using tileset called \"" + room.theme + "\" but it isn't loaded, using the default tileset.", room.instance);
 		}
+		// The default tileset wasn't loaded either so the room is untextured.
 		else
 		{
-			floorMaterial = regularMaterial;
-			ceilingMaterial = regularMaterial;
-			Debug.LogWarning("Tried using \"default\" tileset since a tileset named \"" + room.theme + "\" wasn't found, but the default one wasn't found either.", room.instance);
+			Debug.LogWarning("Tried using the default tileset since a tileset named \"" + room.theme + "\" isn't loaded, but the default one isn't loaded either.", room.instance);
 		}
 
 		room.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(regularMaterial);
