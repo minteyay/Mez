@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
 	void Start()
 	{
 		// Load the theme.
-		themeManager.LoadTheme("paperhouse", GenerateLevel);
+		themeManager.LoadTheme("dark", GenerateLevel);
 
         // Create the UI.
 		GameObject uiInstance = Instantiate(uiPrefab);
@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
 			Resources.UnloadUnusedAssets();
 		}
 
-		MazeRuleset ruleset = themeManager.Rulesets["paperhouse"];
+		MazeRuleset ruleset = themeManager.Rulesets["dark"];
 
         // Generate a new maze.
 		mazeGen.GenerateMaze(ruleset, themeManager, LevelGenerated);

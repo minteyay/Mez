@@ -110,7 +110,7 @@ public class ThemeManager : MonoBehaviour
 		WWW www = new WWW("file://" + path);
 		yield return www;
 
-		Texture2D texture = new Texture2D(128, 128, TextureFormat.RGBA32, false, false);
+		Texture2D texture = new Texture2D(0, 0, TextureFormat.RGBA32, false, false);
 		texture.anisoLevel = 0;
 		texture.filterMode = FilterMode.Point;
 		www.LoadImageIntoTexture(texture);

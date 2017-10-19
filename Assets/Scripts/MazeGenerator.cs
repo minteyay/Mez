@@ -112,7 +112,11 @@ public class MazeGenerator : MonoBehaviour
 		CreateRoomGeometry(maze);
 		UpdateMazeUVs();
 
-		state = GenerationState.RunningSprawlers;
+		if (ruleset.sprawlers.Length > 0)
+			state = GenerationState.RunningSprawlers;
+		else
+			state = GenerationState.Finished;
+		
 		if (!stepThrough)
 			while (Step()) {}
 	}
@@ -317,8 +321,7 @@ public class MazeGenerator : MonoBehaviour
 			// If the room's tileset isn't loaded, try using the default one.
 			else if (themeManager.Textures.ContainsKey("default"))
 			{
-				Texture2D tileset = themeManager.Textures["default"];
-				regularMaterial.mainTexture = tileset;
+				regularMaterial.mainTexture = themeManager.Textures["default"];
 				Debug.LogWarning("Tried using tileset called \"" + room.theme + "\" but it isn't loaded, using the default tileset.", room.instance);
 			}
 			// The default tileset wasn't loaded either.
