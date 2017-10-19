@@ -1,0 +1,9 @@
+{
+    "name": "Dark",
+    "tileset": "blinds",
+    "size": { "x": 5, "y": 5 },
+    "sprawlers":
+    [
+        
+    ]
+}
