@@ -47,6 +47,7 @@ public class Crawler
 
 	/// Can the Crawler turn?
 	private bool allowTurns = true;
+
 	/// Can the Crawler only step on Rooms with the default theme?
 	private bool onlyStepOnDefault = false;
 
@@ -85,7 +86,7 @@ public class Crawler
 	public bool Start()
 	{
 		// Check the starting room's theme if it's relevant.
-		if (onlyStepOnDefault && maze.GetRoom(position).theme != "default")
+		if (onlyStepOnDefault && maze.GetRoom(position).theme != maze.defaultTheme)
 			return false;
 		
 		started = true;
@@ -120,7 +121,7 @@ public class Crawler
 			nextPosition = maze.MoveStraight(position, facing, false);
 
 			// Check the validity of the next position.
-			if (nextPosition == position || maze.GetRoom(nextPosition) == null || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != "default"))
+			if (nextPosition == position || maze.GetRoom(nextPosition) == null || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != maze.defaultTheme))
 			{
 				// Dead end or another room was hit, stop crawling.
 				if (onComplete != null)

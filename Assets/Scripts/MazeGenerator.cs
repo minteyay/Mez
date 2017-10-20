@@ -104,11 +104,12 @@ public class MazeGenerator : MonoBehaviour
 			return;
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
+		maze.defaultTheme = ruleset.tileset;
 		maze.startPosition = new Point(startX, 0);
 		maze.entranceLength = entranceLength;
 
 		CreateCorridors(mazeInstance);
-		CreateRooms(grid, maze, ruleset.tileset);
+		CreateRooms(grid, maze);
 		CreateRoomGeometry(maze);
 		UpdateMazeUVs();
 
@@ -397,7 +398,7 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     /// <param name="grid">2D grid of bitwise room values.</param>
     /// <param name="maze">Maze to add the rooms into.</param>
-	private void CreateRooms(uint[,] grid, Maze maze, string defaultTheme = "default")
+	private void CreateRooms(uint[,] grid, Maze maze)
 	{
 		for (uint y = 0; y < grid.GetLength(0); y++)
 		{
@@ -405,7 +406,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				room.theme = defaultTheme;
+				room.theme = ruleset.tileset;
 				maze.AddRoom(room);
 			}
 		}
