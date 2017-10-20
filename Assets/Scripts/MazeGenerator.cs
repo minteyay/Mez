@@ -162,7 +162,7 @@ public class MazeGenerator : MonoBehaviour
 					switch (currentSprawlerRuleset.start)
 					{
 						case SprawlerRuleset.Start.Start:
-							startRoom = maze.rooms[0, 0];
+							startRoom = maze.rooms[maze.startPosition.y, maze.startPosition.x];
 							break;
 						case SprawlerRuleset.Start.Random:
 							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
