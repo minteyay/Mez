@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// Class containing a mishmash of different utility functions.
+/// </summary>
 public class Utils
 {
     /// <summary>
     /// Shuffles a list.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="rnd">Random number generator to use in shuffling.</param>
-    /// <param name="list">List to shuffle.</param>
     public static void Shuffle<T>(System.Random rnd, IList<T> list)
     {
-        // Shuffle the list for an amount of times equals to its size.
         int n = list.Count;
         while (n > 1)
         {
@@ -24,11 +23,8 @@ public class Utils
     }
 
     /// <summary>
-    /// Gets a pretty string representation of a list.
+    /// Makes a pretty string representation of a list.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="list"></param>
-    /// <returns></returns>
     public static string ListToString<T>(IList<T> list)
     {
         string output = "";
@@ -42,9 +38,8 @@ public class Utils
     }
 
     /// <summary>
-    /// Formats a 2D grid neatly.
+    /// Formats a 2D integer grid neatly.
     /// </summary>
-    /// <param name="grid"></param>
 	public static string Format2DGrid(int[,] grid)
 	{
 		string output = "";
@@ -61,6 +56,9 @@ public class Utils
 		return output;
 	}
 
+    /// <summary>
+    /// Returns the first non-zero value given.
+    /// </summary>
     public static float NonZero(params float[] values)
     {
         foreach (float v in values)
@@ -69,6 +67,9 @@ public class Utils
         return 0.0f;
     }
 
+    /// <summary>
+    /// Returns the first non-zero value given.
+    /// </summary>
     public static int NonZero(params int[] values)
     {
         foreach (int v in values)
@@ -77,6 +78,9 @@ public class Utils
         return 0;
     }
 
+    /// <summary>
+    /// Parses a file name from a path by stripping it of the folder structure and file extension.
+    /// </summary>
     public static string ParseFileName(string path)
     {
         int begin = path.LastIndexOf('/');

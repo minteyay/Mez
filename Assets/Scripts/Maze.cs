@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
 
 public class Maze : MonoBehaviour
@@ -52,7 +51,7 @@ public class Maze : MonoBehaviour
 	public List<Tile> GetNeighbours(Tile tile)
 	{
 		List<Tile> neighbours = new List<Tile>();
-		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
 			if (Nav.IsConnected(tile.value, dir))
 			{
@@ -67,7 +66,7 @@ public class Maze : MonoBehaviour
 	public List<Dir> GetConnections(Tile tile)
 	{
 		List<Dir> connections = new List<Dir>();
-		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
 			if (Nav.IsConnected(tile.value, dir))
 			{

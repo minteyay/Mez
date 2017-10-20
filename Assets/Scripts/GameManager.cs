@@ -3,19 +3,19 @@
 public class GameManager : MonoBehaviour
 {
 	public GameObject playerPrefab = null;
-	private GameObject playerInstance = null;
-	private Player player = null;
+	private GameObject _playerInstance = null;
+	private Player _player = null;
 
 	public GameObject uiPrefab = null;
 
-	private ThemeManager themeManager = null;
+	private ThemeManager _themeManager = null;
 
-	private MazeGenerator mazeGen = null;
-	private Maze maze = null;
+	private MazeGenerator _mazeGen = null;
+	private Maze _maze = null;
 
     // Manager singleton instance and getter.
 	private static GameManager _instance;
-	public static GameManager Instance
+	public static GameManager instance
 	{
 		get
 		{
@@ -36,8 +36,8 @@ public class GameManager : MonoBehaviour
 
 	void Awake()
 	{
-		themeManager = GetComponent<ThemeManager>();
-		mazeGen = GetComponent<MazeGenerator>();
+		_themeManager = GetComponent<ThemeManager>();
+		_mazeGen = GetComponent<MazeGenerator>();
 
 #if UNITY_STANDALONE && SCREENSAVER
         // Set the resolution to the highest one available.
@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
 	void Start()
 	{
 		// Load the theme.
-		themeManager.LoadTheme("dark", GenerateLevel);
+		_themeManager.LoadTheme("dark", GenerateLevel);
 
         // Create the UI.
 		GameObject uiInstance = Instantiate(uiPrefab);
@@ -95,39 +95,39 @@ public class GameManager : MonoBehaviour
 	public void GenerateLevel()
 	{
         // Destroy the maze if one exists.
-		if (maze)
+		if (_maze)
 		{
-			Destroy(maze.gameObject);
+			Destroy(_maze.gameObject);
 			Resources.UnloadUnusedAssets();
 		}
 
-		MazeRuleset ruleset = themeManager.Rulesets["dark"];
+		MazeRuleset ruleset = _themeManager.Rulesets["dark"];
 
         // Generate a new maze.
-		mazeGen.GenerateMaze(ruleset, themeManager, LevelGenerated);
+		_mazeGen.GenerateMaze(ruleset, _themeManager, LevelGenerated);
 	}
 
 	private void LevelGenerated(Maze maze)
 	{
 		// Store the generated maze.
-		this.maze = maze;
+		this._maze = maze;
 
 		// Create a new player if one doesn't already exist.
-		if (playerInstance == null)
+		if (_playerInstance == null)
 		{
-			playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
-			playerInstance.name = "Player";
-			player = playerInstance.GetComponent<Player>();
-			player.outOfBoundsCallback = GenerateLevel;
+			_playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
+			_playerInstance.name = "Player";
+			_player = _playerInstance.GetComponent<Player>();
+			_player.outOfBoundsCallback = GenerateLevel;
 		}
 
-		player.maze = maze;
-		playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileDim.y, 0.0f, 0.0f);
-		player.facing = Dir.S;
-		player.Reset();
+		_player.maze = maze;
+		_playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileDim.y, 0.0f, 0.0f);
+		_player.facing = Dir.S;
+		_player.Reset();
 
 		Dir nextFacing;
 		Vector3 nextTarget = Nav.TileToWorldPos(maze.MoveLeftmost(maze.startPosition, Dir.S, out nextFacing), maze.tileDim);
-		player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, nextTarget, nextFacing);
+		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, nextTarget, nextFacing);
 	}
 }

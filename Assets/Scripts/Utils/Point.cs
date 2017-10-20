@@ -1,6 +1,8 @@
-﻿using System;
-
-[Serializable]
+﻿
+/// <summary>
+/// A 2D integer coordinate / vector.
+/// </summary>
+[System.Serializable]
 public class Point
 {
 	public int x;
