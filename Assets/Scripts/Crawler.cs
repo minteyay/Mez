@@ -3,22 +3,22 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// A class that travels along the maze, executing a given function on rooms it passes through.
-/// Can be stepped forwards one room at a time. Stops when it hits a dead end or when trying to turn if allowTurns == false.
+/// A class that travels along the maze, executing a given function on tiles it passes through.
+/// Can be stepped forwards one tile at a time. Stops when it hits a dead end or when trying to turn if allowTurns == false.
 /// </summary>
 public class Crawler
 {
 	/// <summary>
-	/// Callback that gets whenever the Crawler enters a room.
+	/// Callback that gets whenever the Crawler enters a tile.
 	/// </summary>
-	/// <param name="room">Room that was crawled to.</param>
-	public delegate void OnUpdate(Room room);
+	/// <param name="tile">Tile that was crawled to.</param>
+	public delegate void OnUpdate(Tile tile);
 
 	/// <summary>
 	/// Callback that gets called when the Crawler is finished crawling.
 	/// </summary>
-	/// <param name="room">Room the Crawler stopped at.</param>
-	public delegate void OnComplete(Room room);
+	/// <param name="tile">Tile the Crawler stopped at.</param>
+	public delegate void OnComplete(Tile tile);
 
 	/// Default distance to crawl when it's not specified.
 	private static uint DefaultDistance = 2048;
@@ -35,12 +35,12 @@ public class Crawler
 	/// Position to move to on the next call to Step.
 	private Point nextPosition = null;
 
-	/// Has the Crawler visited the starting room?
+	/// Has the Crawler visited the starting tile?
 	private bool started = false;
 	/// Did the Crawler reach the desired distance?
 	public bool success { get; private set; }
 
-	/// Callback on every visited room.
+	/// Callback on every visited tile.
 	private OnUpdate onUpdate = null;
 	/// Callback when crawling finishes.
 	private OnComplete onComplete = null;
@@ -48,18 +48,18 @@ public class Crawler
 	/// Can the Crawler turn?
 	private bool allowTurns = true;
 
-	/// Can the Crawler only step on Rooms with the default theme?
+	/// Can the Crawler only step on Tiles with the default theme?
 	private bool onlyStepOnDefault = false;
 
 	/// <summary>
 	/// Create a new Crawler.
 	/// </summary>
 	/// <param name="maze">Maze to crawl in.</param>
-	/// <param name="position">Position of the room to start crawling from.</param>
+	/// <param name="position">Position of the tile to start crawling from.</param>
 	/// <param name="facing">Direction to start crawling towards.</param>
-	/// <param name="distance">Number of rooms to move through, including the starting room. Passing 0 means the Crawler will try to move a distance of DefaultDistance.</param>
-	/// <param name="onUpdate">Callback on all visited rooms.</param>
-	/// <param name="onComplete">Callback on the room this Crawler stops in.</param>
+	/// <param name="distance">Number of tiles to move through, including the starting tile. Passing 0 means the Crawler will try to move a distance of DefaultDistance.</param>
+	/// <param name="onUpdate">Callback on all visited tiles.</param>
+	/// <param name="onComplete">Callback on the tile this Crawler stops in.</param>
 	/// <param name="allowTurns">Whether or not this Crawler is allowed to turn at all. Dead ends will still stop the Crawler.</param>
 	public Crawler(Maze maze, Point position, Dir facing, uint distance = 0,
 		OnUpdate onUpdate = null, OnComplete onComplete = null, bool allowTurns = true,
@@ -81,12 +81,12 @@ public class Crawler
 	}
 
 	/// <summary>
-	/// Step on the starting room. This will get called in the first call to Step if not called otherwise.
+	/// Step on the starting tile. This will get called in the first call to Step if not called otherwise.
 	/// </summary>
 	public bool Start()
 	{
-		// Check the starting room's theme if it's relevant.
-		if (onlyStepOnDefault && maze.GetRoom(position).theme != maze.defaultTheme)
+		// Check the starting tile's theme if it's relevant.
+		if (onlyStepOnDefault && maze.GetTile(position).theme != maze.defaultTheme)
 			return false;
 		
 		started = true;
@@ -94,7 +94,7 @@ public class Crawler
 	}
 
 	/// <summary>
-	/// Step the Crawler forwards by one room (including the starting position).
+	/// Step the Crawler forwards by one tile (including the starting position).
 	/// </summary>
 	/// <returns>True if the Crawler still has distance to go, false if it finished.</returns>
 	public bool Step()
@@ -113,19 +113,19 @@ public class Crawler
 			facing = nextFacing;
 			position = nextPosition;
 
-			// Callback on the new room.
+			// Callback on the new tile.
 			if (onUpdate != null)
-				onUpdate.Invoke(maze.GetRoom(position));
+				onUpdate.Invoke(maze.GetTile(position));
 			
 			// Calculate the next position to move to.
 			nextPosition = maze.MoveStraight(position, facing, false);
 
 			// Check the validity of the next position.
-			if (nextPosition == position || maze.GetRoom(nextPosition) == null || (onlyStepOnDefault && maze.GetRoom(nextPosition).theme != maze.defaultTheme))
+			if (nextPosition == position || maze.GetTile(nextPosition) == null || (onlyStepOnDefault && maze.GetTile(nextPosition).theme != maze.defaultTheme))
 			{
-				// Dead end or another room was hit, stop crawling.
+				// Dead end or another tile was hit, stop crawling.
 				if (onComplete != null)
-					onComplete.Invoke(maze.GetRoom(position));
+					onComplete.Invoke(maze.GetTile(position));
 				validNextStep = false;
 			}
 
@@ -138,21 +138,21 @@ public class Crawler
 			{
 				// Turns aren't allowed, but the crawler is trying to turn. Stop crawling.
 				if (onComplete != null)
-					onComplete.Invoke(maze.GetRoom(position));
+					onComplete.Invoke(maze.GetTile(position));
 				validNextStep = false;
 			}
 
 			// Check if there's a parent Sprawler and possible directions to branch in.
 			if (sprawler != null)
 			{
-				List<Dir> possibleDirs = Nav.GetConnections(maze.GetRoom(position).value);
+				List<Dir> possibleDirs = Nav.GetConnections(maze.GetTile(position).value);
 				foreach (Dir dir in possibleDirs)
 				{
 					if (dir != nextFacing && dir != Nav.opposite[facing])
 					{
 						// Queue a branch in the parent Sprawler if it's inside the maze.
 						Point branchPos = position + new Point(Nav.DX[dir], Nav.DY[dir]);
-						if (maze.GetRoom(branchPos) != null)
+						if (maze.GetTile(branchPos) != null)
 							sprawler.QueueBranch(new Crawler(maze, branchPos, dir, 0, onUpdate, onComplete));
 					}
 				}
@@ -164,14 +164,14 @@ public class Crawler
 			// No distance left, the Crawler finished successfully, stop crawling.
 			success = true;
 			if (onComplete != null)
-				onComplete.Invoke(maze.GetRoom(position));
+				onComplete.Invoke(maze.GetTile(position));
 			return false;
 		}
 		else if (!validNextStep)
 		{
 			// The next step won't be valid, stop crawling.
 			if (onComplete != null)
-				onComplete.Invoke(maze.GetRoom(position));
+				onComplete.Invoke(maze.GetTile(position));
 			return false;
 		}
 
@@ -180,7 +180,7 @@ public class Crawler
 }
 
 /// <summary>
-/// A class that starts from a room in a maze and starts running Crawlers in all directions until a given amount of rooms have been visited.
+/// A class that starts from a tile in a maze and starts running Crawlers in all directions until a given amount of tiles have been visited.
 /// </summary>
 public class Sprawler
 {
@@ -197,9 +197,9 @@ public class Sprawler
 	/// Create a Sprawler and run it.
 	/// </summary>
 	/// <param name="maze">Maze to sprawl in.</param>
-	/// <param name="position">Room position to start sprawling from.</param>
-	/// <param name="size">Number of rooms to visit.</param>
-	/// <param name="onUpdate">Callback on all visited rooms.</param>
+	/// <param name="position">Tile position to start sprawling from.</param>
+	/// <param name="size">Number of tiles to visit.</param>
+	/// <param name="onUpdate">Callback on all visited tiles.</param>
 	public Sprawler(Maze maze, Point position, uint size, Crawler.OnUpdate onUpdate = null)
 	{
 		crawlers = new List<Crawler>();
@@ -213,7 +213,7 @@ public class Sprawler
 		success = false;
 
 		// Check possible directions to start Crawlers in.
-		List<Dir> possibleDirs = maze.GetConnections(maze.GetRoom(position));
+		List<Dir> possibleDirs = maze.GetConnections(maze.GetTile(position));
 		Dir randomDir = possibleDirs[Random.instance.Next(possibleDirs.Count)];
 		
 		// Start with two Crawlers in opposite directions if we can.

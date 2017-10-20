@@ -142,7 +142,7 @@ public class Player : MonoBehaviour
 	private void NewTarget()
 	{
 		// If the current target falls outside the maze, we're out of bounds.
-		if (maze.GetRoom(maze.WorldToRoomPosition(target)) == null)
+		if (maze.GetTile(maze.WorldToTilePosition(target)) == null)
 		{
 			if (outOfBoundsCallback != null)
 				outOfBoundsCallback.Invoke();
@@ -152,7 +152,7 @@ public class Player : MonoBehaviour
 		target = (Vector3)nextTarget;
 		facing = nextFacing;
 
-		nextTarget = maze.RoomToWorldPosition(maze.MoveLeftmost(maze.WorldToRoomPosition(target), facing, out nextFacing));
+		nextTarget = maze.TileToWorldPosition(maze.MoveLeftmost(maze.WorldToTilePosition(target), facing, out nextFacing));
 
 		CalculateMoveDistance();
 	}

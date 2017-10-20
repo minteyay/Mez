@@ -54,7 +54,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2452945cc09e6648aebf2592e451cb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomDim: {x: 2, y: 2}
+  tileDim: {x: 2, y: 2}
   entranceLength: 6
   floor: {fileID: 1254603710341132, guid: 7a85777f7e6ce4710bd0fb25ef18f729, type: 2}
   wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}

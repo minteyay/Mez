@@ -6,13 +6,13 @@ public class Maze : MonoBehaviour
 {
 	public Point size;
 
-    /// 2D array of rooms in the Maze.
+    /// 2D array of tiles in the Maze.
 	[HideInInspector]
-	public Room[,] rooms;
+	public Tile[,] tiles;
 
-    /// Size of a room in world dimensions.
+    /// Size of a tile in world dimensions.
 	[HideInInspector]
-	public Vector2 roomDim;
+	public Vector2 tileDim;
 
 	[HideInInspector]
 	public Point startPosition;
@@ -26,37 +26,37 @@ public class Maze : MonoBehaviour
     /// <summary>
     /// Initialise the maze.
     /// </summary>
-    /// <param name="width">Width of the maze in rooms.</param>
-    /// <param name="height">Height of the maze in rooms.</param>
-    /// <param name="roomDim">Size of a room in world dimensions.</param>
-	public void Initialise(uint width, uint height, Vector2 roomDim)
+    /// <param name="width">Width of the maze in tiles.</param>
+    /// <param name="height">Height of the maze in tiles.</param>
+    /// <param name="tileDim">Size of a tile in world dimensions.</param>
+	public void Initialise(uint width, uint height, Vector2 tileDim)
 	{
 		size = new Point((int)width, (int)height);
-		rooms = new Room[height, width];
-		this.roomDim = roomDim;
+		tiles = new Tile[height, width];
+		this.tileDim = tileDim;
 	}
 
-	public void AddRoom(Room room)
+	public void AddTile(Tile tile)
 	{
-		rooms[room.position.y, room.position.x] = room;
-		room.instance.transform.parent = transform;
+		tiles[tile.position.y, tile.position.x] = tile;
+		tile.instance.transform.parent = transform;
 	}
 
-	public Room GetRoom(Point pos)
+	public Tile GetTile(Point pos)
 	{
-		if (pos.x < 0 || pos.y < 0 || pos.x >= rooms.GetLength(1) || pos.y >= rooms.GetLength(0))
+		if (pos.x < 0 || pos.y < 0 || pos.x >= tiles.GetLength(1) || pos.y >= tiles.GetLength(0))
 			return null;
-		return rooms[pos.y, pos.x];
+		return tiles[pos.y, pos.x];
 	}
 
-	public List<Room> GetNeighbours(Room room)
+	public List<Tile> GetNeighbours(Tile tile)
 	{
-		List<Room> neighbours = new List<Room>();
+		List<Tile> neighbours = new List<Tile>();
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
-			if (Nav.IsConnected(room.value, dir))
+			if (Nav.IsConnected(tile.value, dir))
 			{
-				Room neighbour = GetRoom(room.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+				Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
 				if (neighbour != null)
 					neighbours.Add(neighbour);
 			}
@@ -64,14 +64,14 @@ public class Maze : MonoBehaviour
 		return neighbours;
 	}
 
-	public List<Dir> GetConnections(Room room)
+	public List<Dir> GetConnections(Tile tile)
 	{
 		List<Dir> connections = new List<Dir>();
 		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
 		{
-			if (Nav.IsConnected(room.value, dir))
+			if (Nav.IsConnected(tile.value, dir))
 			{
-				if (GetRoom(room.position + new Point(Nav.DX[dir], Nav.DY[dir])) != null)
+				if (GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir])) != null)
 					connections.Add(dir);
 			}
 		}
@@ -79,48 +79,48 @@ public class Maze : MonoBehaviour
 	}
 
     /// <summary>
-    /// Parent a GameObject to the Room in the given index.
+    /// Parent a GameObject to the Tile in the given index.
     /// </summary>
-    /// <param name="pos">Index position of the Room to parent the GameObject to.</param>
-    /// <param name="item">Item to parent to a Room.</param>
+    /// <param name="pos">Index position of the Tile to parent the GameObject to.</param>
+    /// <param name="item">Item to parent to a Tile.</param>
 	public void AddItem(Point pos, GameObject item)
 	{
-		item.transform.SetParent(rooms[pos.y, pos.x].instance.transform, false);
+		item.transform.SetParent(tiles[pos.y, pos.x].instance.transform, false);
 	}
 
     /// <summary>
-    /// Get the world position of the leftmost room that you can move to from the given world position.
+    /// Get the world position of the leftmost tile that you can move to from the given world position.
     /// </summary>
     /// <param name="position">World position to move from.</param>
-    /// <param name="facing">Facing to find the leftmost room from.</param>
-    /// <param name="newFacing">New facing towards the leftmost room.</param>
-    /// <returns>Position of the leftmost room to move to.</returns>
+    /// <param name="facing">Facing to find the leftmost tile from.</param>
+    /// <param name="newFacing">New facing towards the leftmost tile.</param>
+    /// <returns>Position of the leftmost tile to move to.</returns>
 	public Point MoveLeftmost(Point position, Dir facing, out Dir newFacing)
 	{
 		Point newPos = new Point(position);
 		Dir chosenDir = facing;
 
-		if (GetRoom(position) == null)
+		if (GetTile(position) == null)
 		{
 			newFacing = facing;
 			return newPos;
 		}
-		uint currentRoomValue = GetRoom(position).value;
+		uint currentTileValue = GetTile(position).value;
 
-        // Check if there's a connected room to the left.
-		if (Nav.IsConnected(currentRoomValue, Nav.left[facing]))
+        // Check if there's a connected tile to the left.
+		if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 			chosenDir = Nav.left[facing];
 		}
-        // Check if there's a connected room straight ahead.
-		else if (Nav.IsConnected(currentRoomValue, facing))
+        // Check if there's a connected tile straight ahead.
+		else if (Nav.IsConnected(currentTileValue, facing))
 		{
 			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 			chosenDir = facing;
 		}
-        // Check if there's a connected room to the right.
-		else if (Nav.IsConnected(currentRoomValue, Nav.right[facing]))
+        // Check if there's a connected tile to the right.
+		else if (Nav.IsConnected(currentTileValue, Nav.right[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 			chosenDir = Nav.right[facing];
@@ -137,32 +137,32 @@ public class Maze : MonoBehaviour
 	}
 
     /// <summary>
-    /// Get the world position of the room straight ahead from the given world position.
+    /// Get the world position of the tile straight ahead from the given world position.
     /// </summary>
     /// <param name="position">World position to move from.</param>
-    /// <param name="facing">Facing to find the room straight ahead from.</param>
+    /// <param name="facing">Facing to find the tile straight ahead from.</param>
     /// <param name="allowUTurns">If U turns are allowed.</param>
-    /// <returns>World position of the room straight ahead to move to. Same as the input world position if U turns weren't allowed and one was hit.</returns>
+    /// <returns>World position of the tile straight ahead to move to. Same as the input world position if U turns weren't allowed and one was hit.</returns>
 	public Point MoveStraight(Point position, Dir facing, bool allowUTurns = true)
 	{
 		Point newPos = new Point(position);
 
-		if (GetRoom(position) == null)
+		if (GetTile(position) == null)
 			return newPos;
-		uint currentRoomValue = GetRoom(position).value;
+		uint currentTileValue = GetTile(position).value;
 
-        // Check if there's a connected room straight ahead.
-		if (Nav.IsConnected(currentRoomValue, facing))
+        // Check if there's a connected tile straight ahead.
+		if (Nav.IsConnected(currentTileValue, facing))
 		{
 			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
 		}
-        // Check if there's a connected room to the left.
-		else if (Nav.IsConnected(currentRoomValue, Nav.left[facing]))
+        // Check if there's a connected tile to the left.
+		else if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
 		}
-        // Check if there's a connected room to the right.
-		else if (Nav.IsConnected(currentRoomValue, Nav.right[facing]))
+        // Check if there's a connected tile to the right.
+		else if (Nav.IsConnected(currentTileValue, Nav.right[facing]))
 		{
 			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
 		}
@@ -175,13 +175,13 @@ public class Maze : MonoBehaviour
 		return newPos;
 	}
 
-	public Vector3 RoomToWorldPosition(Point roomPos)
+	public Vector3 TileToWorldPosition(Point tilePos)
 	{
-		return Nav.IndexToWorldPos(roomPos, roomDim);
+		return Nav.TileToWorldPos(tilePos, tileDim);
 	}
 
-	public Point WorldToRoomPosition(Vector3 worldPos)
+	public Point WorldToTilePosition(Vector3 worldPos)
 	{
-		return Nav.WorldToIndexPos(worldPos, roomDim);
+		return Nav.WorldToTilePos(worldPos, tileDim);
 	}
 }
