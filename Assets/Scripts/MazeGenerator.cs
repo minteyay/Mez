@@ -42,8 +42,10 @@ public class MazeGenerator : MonoBehaviour
 	private Maze maze = null;
 
 	private MazeRuleset ruleset = null;
+	private Dictionary<string, RoomStyle> roomStyles = null;
+	
 	private uint currentSprawlerRulesetIndex = 0;
-	public SprawlerRuleset currentSprawlerRuleset { get; private set; }
+	public RoomRuleset currentSprawlerRuleset { get; private set; }
 	private uint numSprawlersRun = 0;
 	private uint numSprawlersFailed = 0;
 	private Sprawler currentSprawler = null;
@@ -57,7 +59,7 @@ public class MazeGenerator : MonoBehaviour
 	private ThemeManager themeManager = null;
 	private const string floorSuffix = "_floor";
 	private const string ceilingSuffix = "_ceiling";
-	private Dictionary<string, Material> tilesets = null;
+	private Dictionary<string, Material> tilesetMaterials = null;
 
 	public delegate void OnComplete(Maze maze);
 	private OnComplete onComplete = null;
@@ -79,9 +81,13 @@ public class MazeGenerator : MonoBehaviour
 		this.themeManager = themeManager;
 		this.onComplete = onComplete;
 
+		roomStyles = new Dictionary<string, RoomStyle>();
+		foreach (RoomStyle tileset in ruleset.roomStyles)
+			roomStyles.Add(tileset.name, tileset);
+
 		messageLog = new List<string>();
 		newSprawlerRooms = new List<Room>();
-		tilesets = new Dictionary<string, Material>();
+		tilesetMaterials = new Dictionary<string, Material>();
 
 		endPointDist = 0;
 		endPointCoord = new Point(-1, -1);
@@ -104,7 +110,7 @@ public class MazeGenerator : MonoBehaviour
 			return;
 		}
 		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, roomDim);
-		maze.defaultTheme = ruleset.tileset;
+		maze.defaultTheme = ruleset.defaultTileset;
 		maze.startPosition = new Point(startX, 0);
 		maze.entranceLength = entranceLength;
 
@@ -114,7 +120,7 @@ public class MazeGenerator : MonoBehaviour
 		TextureMaze();
 		UpdateMazeUVs();
 
-		if (ruleset.sprawlers.Length > 0)
+		if (ruleset.rooms.Length > 0)
 			state = GenerationState.RunningSprawlers;
 		else
 			state = GenerationState.Finished;
@@ -139,11 +145,12 @@ public class MazeGenerator : MonoBehaviour
 		grid = null;
 		maze = null;
 		ruleset = null;
+		roomStyles = null;
 		currentSprawlerRuleset = null;
 		currentSprawlerRooms = null;
 		newSprawlerRooms = null;
 		messageLog = null;
-		tilesets = null;
+		tilesetMaterials = null;
 	}
 
 	public bool Step()
@@ -154,7 +161,7 @@ public class MazeGenerator : MonoBehaviour
 		{
 			// Running the Sprawlers in the current ruleset.
 			case GenerationState.RunningSprawlers:
-				currentSprawlerRuleset = ruleset.sprawlers[currentSprawlerRulesetIndex];
+				currentSprawlerRuleset = ruleset.rooms[currentSprawlerRulesetIndex];
 				
 				// Create a new Sprawler if we don't have one to Step.
 				if (currentSprawler == null)
@@ -162,14 +169,14 @@ public class MazeGenerator : MonoBehaviour
 					Room startRoom = null;
 					switch (currentSprawlerRuleset.start)
 					{
-						case SprawlerRuleset.Start.Start:
+						case RoomRuleset.Start.Start:
 							startRoom = maze.rooms[maze.startPosition.y, maze.startPosition.x];
 							break;
-						case SprawlerRuleset.Start.Random:
+						case RoomRuleset.Start.Random:
 							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
 							startRoom = maze.rooms[randomPoint.y, randomPoint.x];
 							break;
-						case SprawlerRuleset.Start.End:
+						case RoomRuleset.Start.End:
 							startRoom = maze.rooms[endPointCoord.y, endPointCoord.x];
 							break;
 					}
@@ -207,7 +214,7 @@ public class MazeGenerator : MonoBehaviour
 
 						// Apply the new theme to the Sprawler's Rooms.
 						foreach (Room r in currentSprawlerRooms)
-							r.theme = ruleset.sprawlers[currentSprawlerRulesetIndex].tileset;
+							r.theme = roomStyles[ruleset.rooms[currentSprawlerRulesetIndex].style].tileset;
 						
 						if (stepThrough)
 						{
@@ -268,7 +275,7 @@ public class MazeGenerator : MonoBehaviour
 		numSprawlersRun = 0;
 		numSprawlersFailed = 0;
 		currentSprawlerRulesetIndex++;
-		if (currentSprawlerRulesetIndex >= ruleset.sprawlers.GetLength(0))
+		if (currentSprawlerRulesetIndex >= ruleset.rooms.GetLength(0))
 		{
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
 			currentSprawlerRulesetIndex = 0;
@@ -290,7 +297,7 @@ public class MazeGenerator : MonoBehaviour
 	private void TextureRoom(Room room)
 	{
 		// Create the material(s) for the room if they haven't been created yet.
-		if (!tilesets.ContainsKey(room.theme))
+		if (!tilesetMaterials.ContainsKey(room.theme))
 		{
 			Material regularMaterial = new Material(regularShader);
 			Material floorMaterial = regularMaterial;
@@ -332,14 +339,14 @@ public class MazeGenerator : MonoBehaviour
 				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + room.theme + "\" isn't loaded, but the default one isn't loaded either.", room.instance);
 			}
 
-			tilesets.Add(room.theme, regularMaterial);
-			tilesets.Add(room.theme + floorSuffix, floorMaterial);
-			tilesets.Add(room.theme + ceilingSuffix, ceilingMaterial);
+			tilesetMaterials.Add(room.theme, regularMaterial);
+			tilesetMaterials.Add(room.theme + floorSuffix, floorMaterial);
+			tilesetMaterials.Add(room.theme + ceilingSuffix, ceilingMaterial);
 		}
 
-		room.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme]);
-		room.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme + floorSuffix]);
-		room.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(tilesets[room.theme + ceilingSuffix]);
+		room.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[room.theme]);
+		room.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[room.theme + floorSuffix]);
+		room.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[room.theme + ceilingSuffix]);
 	}
 
     /// <summary>
@@ -407,7 +414,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the room and add it to the Maze.
 				Room room = new Room(grid[y, x], new Point((int)x, (int)y));
-				room.theme = ruleset.tileset;
+				room.theme = ruleset.defaultTileset;
 				maze.AddRoom(room);
 			}
 		}
