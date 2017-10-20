@@ -20,6 +20,9 @@ public class Maze : MonoBehaviour
 	[HideInInspector]
 	public uint entranceLength = 0;
 
+	[HideInInspector]
+	public string defaultTheme = "";
+
     /// <summary>
     /// Initialise the maze.
     /// </summary>
