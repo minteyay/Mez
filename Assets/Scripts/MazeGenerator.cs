@@ -111,6 +111,7 @@ public class MazeGenerator : MonoBehaviour
 		CreateCorridors(mazeInstance);
 		CreateRooms(grid, maze);
 		CreateRoomGeometry(maze);
+		TextureMaze();
 		UpdateMazeUVs();
 
 		if (ruleset.sprawlers.Length > 0)
