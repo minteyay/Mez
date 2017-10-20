@@ -6,9 +6,10 @@ public class MazeRuleset
 {
     public string name = "";
     public Point size = new Point(2, 2);
-    public string tileset = "default";
+    public string defaultTileset = "default";
 
-    public SprawlerRuleset[] sprawlers;
+    public RoomStyle[] roomStyles;
+    public RoomRuleset[] rooms;
 
     public static MazeRuleset FromJSON(string data)
     {
@@ -17,25 +18,30 @@ public class MazeRuleset
 }
 
 [System.Serializable]
-public class SprawlerRuleset
+public class RoomStyle
+{
+    public string name = "";
+    public string tileset = "";
+}
+
+[System.Serializable]
+public class RoomRuleset
 {
     public enum Start { Random, Start, End }
 
-    public string name = "";
-    public string tileset = "default";
+    public string style = "";
     public Start start = Start.Random;
     public uint count = 1;
     public uint size = 1;
 
-    public static SprawlerRuleset FromJSON(string data)
+    public static RoomRuleset FromJSON(string data)
     {
-        return JsonUtility.FromJson<SprawlerRuleset>(data);
+        return JsonUtility.FromJson<RoomRuleset>(data);
     }
 
     public override string ToString()
     {
-        return "Name : " + name + '\n'
-         + "Tileset : " + tileset + '\n'
+        return "Style : " + style + '\n'
          + "Start : " + start.ToString() + '\n'
          + "Count : " + count.ToString() + '\n'
          + "Size : " + size.ToString();
