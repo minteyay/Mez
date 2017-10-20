@@ -249,14 +249,14 @@ public class MazeGenerator : MonoBehaviour
 			foreach (Tile tile in newSprawlerTiles)
 			{
 				Gizmos.color = new Color(0.5f, 0.9f, 0.5f, 0.5f);
-				Gizmos.DrawCube(Nav.TileToWorldPos(tile.position, maze.tileDim) + new Vector3(0.0f, 1.0f, 0.0f), new Vector3(maze.tileDim.x, 2.0f, maze.tileDim.y));
+				Gizmos.DrawCube(Nav.TileToWorldPos(tile.position, maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f), new Vector3(maze.tileSize.x, 2.0f, maze.tileSize.y));
 			}
 		}
 		if (currentSprawler != null)
 		{
 			foreach (Crawler c in currentSprawler.crawlers)
 			{
-				Vector3 crawlerPosition = Nav.TileToWorldPos(c.position, maze.tileDim) + new Vector3(0.0f, 1.0f, 0.0f);
+				Vector3 crawlerPosition = Nav.TileToWorldPos(c.position, maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f);
 
 				Gizmos.color = Color.red;
 				Gizmos.DrawSphere(crawlerPosition, 0.2f);
@@ -420,12 +420,12 @@ public class MazeGenerator : MonoBehaviour
 
 	private void CreateCorridors(GameObject mazeInstance)
 	{
-		GameObject entrance = Instantiate(corridor, maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.tileDim.y / 2.0f, 0.0f, 0.0f), Quaternion.identity, mazeInstance.transform);
+		GameObject entrance = Instantiate(corridor, maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.tileSize.y / 2.0f, 0.0f, 0.0f), Quaternion.identity, mazeInstance.transform);
 		entrance.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
 		entrance.name = "Entrance";
 
 		GameObject exit = Instantiate(corridor,
-			maze.TileToWorldPosition(endPointCoord) + new Vector3(Nav.DY[endPointDir] * (maze.tileDim.y / 2.0f), 0.0f, Nav.DX[endPointDir] * (maze.tileDim.x / 2.0f)),
+			maze.TileToWorldPosition(endPointCoord) + new Vector3(Nav.DY[endPointDir] * (maze.tileSize.y / 2.0f), 0.0f, Nav.DX[endPointDir] * (maze.tileSize.x / 2.0f)),
 			Quaternion.Euler(0.0f, Nav.FacingToAngle(endPointDir), 0.0f), mazeInstance.transform);
 		exit.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
 		exit.name = "Exit";

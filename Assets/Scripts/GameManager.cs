@@ -122,12 +122,12 @@ public class GameManager : MonoBehaviour
 		}
 
 		_player.maze = maze;
-		_playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileDim.y, 0.0f, 0.0f);
+		_playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileSize.y, 0.0f, 0.0f);
 		_player.facing = Dir.S;
 		_player.Reset();
 
 		Dir nextFacing;
-		Vector3 nextTarget = Nav.TileToWorldPos(maze.MoveLeftmost(maze.startPosition, Dir.S, out nextFacing), maze.tileDim);
+		Vector3 nextTarget = Nav.TileToWorldPos(maze.MoveLeftmost(maze.startPosition, Dir.S, out nextFacing), maze.tileSize);
 		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, nextTarget, nextFacing);
 	}
 }

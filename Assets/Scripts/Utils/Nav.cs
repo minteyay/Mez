@@ -85,7 +85,7 @@ class Nav
 	}
 
     /// <summary>
-    /// Turns a tile position in the maze into a world position, depending on tile size.
+    /// Converts a tile position in the maze into a world position, depending on tile size.
     /// </summary>
 	public static Vector3 TileToWorldPos(Point tilePos, Vector2 tileDim)
 	{

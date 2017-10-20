@@ -1,38 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// An object representing a 2D maze.
+/// Requires initialisation before use.
+/// </summary>
 public class Maze : MonoBehaviour
 {
-	public Point size;
+	/// Size of the maze in tiles.
+	public Point size { get; private set; }
+	/// Size of a tile in world dimensions.
+	public Vector2 tileSize { get; private set; }
 
-    /// 2D array of tiles in the Maze.
-	[HideInInspector]
-	public Tile[,] tiles;
+	[HideInInspector] public Point startPosition;
+	[HideInInspector] public uint entranceLength = 0;
+	[HideInInspector] public string defaultTheme = "";
 
-    /// Size of a tile in world dimensions.
-	[HideInInspector]
-	public Vector2 tileDim;
+	[HideInInspector] public Tile[,] tiles;
 
-	[HideInInspector]
-	public Point startPosition;
-
-	[HideInInspector]
-	public uint entranceLength = 0;
-
-	[HideInInspector]
-	public string defaultTheme = "";
-
-    /// <summary>
-    /// Initialise the maze.
-    /// </summary>
     /// <param name="width">Width of the maze in tiles.</param>
     /// <param name="height">Height of the maze in tiles.</param>
-    /// <param name="tileDim">Size of a tile in world dimensions.</param>
-	public void Initialise(uint width, uint height, Vector2 tileDim)
+    /// <param name="tileSize">Size of a tile in world dimensions.</param>
+	public void Initialise(uint width, uint height, Vector2 tileSize)
 	{
 		size = new Point((int)width, (int)height);
 		tiles = new Tile[height, width];
-		this.tileDim = tileDim;
+		this.tileSize = tileSize;
 	}
 
 	public void AddTile(Tile tile)
@@ -41,15 +34,17 @@ public class Maze : MonoBehaviour
 		tile.instance.transform.parent = transform;
 	}
 
-	public Tile GetTile(Point pos)
+	/// <returns>Tile in the given position, null if the position is out of bounds.</returns>
+	public Tile GetTile(Point position)
 	{
-		if (pos.x < 0 || pos.y < 0 || pos.x >= tiles.GetLength(1) || pos.y >= tiles.GetLength(0))
+		if (position.x < 0 || position.y < 0 || position.x >= size.x || position.y >= size.y)
 			return null;
-		return tiles[pos.y, pos.x];
+		return tiles[position.y, position.x];
 	}
 
 	public List<Tile> GetNeighbours(Tile tile)
 	{
+		// TODO: Use the functions in Utils.
 		List<Tile> neighbours = new List<Tile>();
 		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
@@ -65,6 +60,7 @@ public class Maze : MonoBehaviour
 
 	public List<Dir> GetConnections(Tile tile)
 	{
+		// TODO: Use the functions in Utils.
 		List<Dir> connections = new List<Dir>();
 		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
@@ -78,13 +74,12 @@ public class Maze : MonoBehaviour
 	}
 
     /// <summary>
-    /// Parent a GameObject to the Tile in the given index.
+    /// Add an item to the tile in the given position.
     /// </summary>
-    /// <param name="pos">Index position of the Tile to parent the GameObject to.</param>
-    /// <param name="item">Item to parent to a Tile.</param>
-	public void AddItem(Point pos, GameObject item)
+	public void AddItem(Point position, GameObject item)
 	{
-		item.transform.SetParent(tiles[pos.y, pos.x].instance.transform, false);
+		// TODO: Out of bounds checking.
+		item.transform.SetParent(tiles[position.y, position.x].instance.transform, false);
 	}
 
     /// <summary>
@@ -96,6 +91,7 @@ public class Maze : MonoBehaviour
     /// <returns>Position of the leftmost tile to move to.</returns>
 	public Point MoveLeftmost(Point position, Dir facing, out Dir newFacing)
 	{
+		// TODO: Combine this with MoveStraight.
 		Point newPos = new Point(position);
 		Dir chosenDir = facing;
 
@@ -174,13 +170,19 @@ public class Maze : MonoBehaviour
 		return newPos;
 	}
 
+	/// <summary>
+    /// Converts a tile position in the maze into a world position.
+    /// </summary>
 	public Vector3 TileToWorldPosition(Point tilePos)
 	{
-		return Nav.TileToWorldPos(tilePos, tileDim);
+		return Nav.TileToWorldPos(tilePos, tileSize);
 	}
 
+	/// <summary>
+    /// Converts a world position into a tile position in the maze.
+    /// </summary>
 	public Point WorldToTilePosition(Vector3 worldPos)
 	{
-		return Nav.WorldToTilePos(worldPos, tileDim);
+		return Nav.WorldToTilePos(worldPos, tileSize);
 	}
 }
