@@ -59,15 +59,15 @@ class Autotile
     }
 
     /// <summary>
-    /// Checks if the two rooms both have walls facing the given direction.
-    /// Does not check for a wall in between the rooms since it doesn't know their positions.
+    /// Checks if the two tiles both have walls facing the given direction.
+    /// Does not check for a wall in between the tiles since it doesn't know their positions.
     /// </summary>
-    /// <param name="roomA">First room to check for walls.</param>
-    /// <param name="roomB">Second room to check for walls.</param>
+    /// <param name="tileA">First tile to check for walls.</param>
+    /// <param name="tileB">Second tile to check for walls.</param>
     /// <param name="dir">Direction to check for walls in.</param>
-    /// <returns>True if both rooms have walls facing the given direction, false otherwise.</returns>
-    public static bool IsWallConnected(uint roomA, uint roomB, Dir dir)
+    /// <returns>True if both tiles have walls facing the given direction, false otherwise.</returns>
+    public static bool IsWallConnected(uint tileA, uint tileB, Dir dir)
     {
-        return (!Nav.IsConnected(roomA, dir)) && (!Nav.IsConnected(roomB, dir));
+        return (!Nav.IsConnected(tileA, dir)) && (!Nav.IsConnected(tileB, dir));
     }
 }

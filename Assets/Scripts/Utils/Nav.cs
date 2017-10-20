@@ -13,7 +13,7 @@ public enum Dir { N, S, E, W };
 class Nav
 {
 	/// <summary>
-    /// Bits to set in the bitwise room value depending on the direction of other rooms it's connected to.
+    /// Bits to set in the bitwise tile value depending on the direction of other tiles it's connected to.
     /// </summary>
 	public static Dictionary<Dir, uint> bits = new Dictionary<Dir, uint>()
 	{ { Dir.N, 1 }, { Dir.E, 2 }, { Dir.S, 4 }, { Dir.W, 8 } };
@@ -92,34 +92,34 @@ class Nav
 	}
 
     /// <summary>
-    /// Turns a world position into an index position in the maze, depending on the size of a room in the maze.
+    /// Turns a world position into an tile position in the maze, depending on the size of a tile in the maze.
     /// </summary>
     /// <param name="position">World position.</param>
-    /// <param name="roomDim">Size of a room in the maze.</param>
-    /// <returns>Index position in the maze.</returns>
-	public static Point WorldToIndexPos(Vector3 position, Vector2 roomDim)
+    /// <param name="tileDim">Size of a tile in the maze.</param>
+    /// <returns>Tile position in the maze.</returns>
+	public static Point WorldToTilePos(Vector3 position, Vector2 tileDim)
 	{
-		return new Point(Mathf.RoundToInt(position.z / roomDim.x), Mathf.RoundToInt(position.x / roomDim.y));
+		return new Point(Mathf.RoundToInt(position.z / tileDim.x), Mathf.RoundToInt(position.x / tileDim.y));
 	}
 
     /// <summary>
-    /// Turns an index position in the maze into a world position, depending on the size of a room in the maze.
+    /// Turns an tile position in the maze into a world position, depending on the size of a tile in the maze.
     /// </summary>
-    /// <param name="index">Index position in the maze.</param>
-    /// <param name="roomDim">Size of a room in the maze.</param>
+    /// <param name="tilePos">Tile position in the maze.</param>
+    /// <param name="tileDim">Size of a tile in the maze.</param>
     /// <returns>World position.</returns>
-	public static Vector3 IndexToWorldPos(Point index, Vector2 roomDim)
+	public static Vector3 TileToWorldPos(Point tilePos, Vector2 tileDim)
 	{
-		return new Vector3(index.y * roomDim.y, 0f, index.x * roomDim.x);
+		return new Vector3(tilePos.y * tileDim.y, 0f, tilePos.x * tileDim.x);
 	}
 
     /// <summary>
-    /// Checks if a room is connected to a cardinal direction.
+    /// Checks if a tile is connected to a cardinal direction.
     /// This is done by checking if the correct bit is set in the input value.
     /// </summary>
-    /// <param name="value">Bitwise connection value of a room.</param>
+    /// <param name="value">Bitwise connection value of a tile.</param>
     /// <param name="facing">Cardinal direction to check for a connection.</param>
-    /// <returns>True if the room is connected in the cardinal direction facing, false if not.</returns>
+    /// <returns>True if the tile is connected in the cardinal direction facing, false if not.</returns>
 	public static bool IsConnected(uint value, Dir facing)
 	{
 		return (value & bits[facing]) != 0;
