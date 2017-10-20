@@ -16,7 +16,7 @@ public class Maze : MonoBehaviour
 	[HideInInspector] public uint entranceLength = 0;
 	[HideInInspector] public string defaultTheme = "";
 
-	[HideInInspector] public Tile[,] tiles;
+	private Tile[,] _tiles;
 
     /// <param name="width">Width of the maze in tiles.</param>
     /// <param name="height">Height of the maze in tiles.</param>
@@ -24,22 +24,28 @@ public class Maze : MonoBehaviour
 	public void Initialise(uint width, uint height, Vector2 tileSize)
 	{
 		size = new Point((int)width, (int)height);
-		tiles = new Tile[height, width];
+		_tiles = new Tile[height, width];
 		this.tileSize = tileSize;
 	}
 
 	public void AddTile(Tile tile)
 	{
-		tiles[tile.position.y, tile.position.x] = tile;
+		_tiles[tile.position.y, tile.position.x] = tile;
 		tile.instance.transform.parent = transform;
+	}
+
+	/// <returns>Tile in the given position, null if the position is out of bounds.</returns>
+	public Tile GetTile(int x, int y)
+	{
+		if (x < 0 || y < 0 || x >= size.x || y >= size.y)
+			return null;
+		return _tiles[y, x];
 	}
 
 	/// <returns>Tile in the given position, null if the position is out of bounds.</returns>
 	public Tile GetTile(Point position)
 	{
-		if (position.x < 0 || position.y < 0 || position.x >= size.x || position.y >= size.y)
-			return null;
-		return tiles[position.y, position.x];
+		return GetTile(position.x, position.y);
 	}
 
 	public List<Tile> GetNeighbours(Tile tile)
@@ -79,7 +85,7 @@ public class Maze : MonoBehaviour
 	public void AddItem(Point position, GameObject item)
 	{
 		// TODO: Out of bounds checking.
-		item.transform.SetParent(tiles[position.y, position.x].instance.transform, false);
+		item.transform.SetParent(_tiles[position.y, position.x].instance.transform, false);
 	}
 
     /// <summary>

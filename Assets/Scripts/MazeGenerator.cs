@@ -7,24 +7,20 @@ public class MazeGenerator : MonoBehaviour
 	/* Editor parameters. */
 
     /// Size of a tile in world dimensions.
-	[SerializeField] private Vector2 tileDim;
+	[SerializeField] private Vector2 _tileSize;
 	/// Length of the entrance corridor before a maze (in tiles).
-	[SerializeField] private uint entranceLength = 0;
+	[SerializeField] private uint _entranceLength = 0;
 
-    /// Floor model prefab.
-	[SerializeField] private GameObject floor = null;
-	/// Wall model prefab.
-	[SerializeField] private GameObject wall = null;
-	/// Ceiling model prefab.
-	[SerializeField] private GameObject ceiling = null;
-	/// Corridor prefab.
-	[SerializeField] private GameObject corridor = null;
+	[SerializeField] private GameObject _floor = null;
+	[SerializeField] private GameObject _wall = null;
+	[SerializeField] private GameObject _ceiling = null;
+	[SerializeField] private GameObject _corridor = null;
 
-	[SerializeField] private Shader regularShader = null;
-	[SerializeField] private Shader seamlessShader = null;
+	[SerializeField] private Shader _regularShader = null;
+	[SerializeField] private Shader _seamlessShader = null;
 
 	/// Should maze generation be stepped through manually?
-	[SerializeField] private bool stepThrough = false;
+	[SerializeField] private bool _stepThrough = false;
 
 	/* Variables used during maze generation. */
 
@@ -38,85 +34,85 @@ public class MazeGenerator : MonoBehaviour
 	[SerializeField] private GenerationState _state;
 	public GenerationState state { get { return _state; } private set { _state = value; } }
 
-	private uint[,] grid = null;
-	private Maze maze = null;
+	private uint[,] _grid = null;
+	private Maze _maze = null;
 
-	private MazeRuleset ruleset = null;
-	private Dictionary<string, RoomStyle> roomStyles = null;
+	private MazeRuleset _ruleset = null;
+	private Dictionary<string, RoomStyle> _roomStyles = null;
 	
-	private uint currentSprawlerRulesetIndex = 0;
+	private uint _currentSprawlerRulesetIndex = 0;
 	public RoomRuleset currentSprawlerRuleset { get; private set; }
-	private uint numSprawlersRun = 0;
-	private uint numSprawlersFailed = 0;
-	private Sprawler currentSprawler = null;
-	private List<Tile> currentSprawlerTiles = null;
-	private List<Tile> newSprawlerTiles = null;
+	private uint _numSprawlersRun = 0;
+	private uint _numSprawlersFailed = 0;
+	private Sprawler _currentSprawler = null;
+	private List<Tile> _currentSprawlerTiles = null;
+	private List<Tile> _newSprawlerTiles = null;
 
 	private static uint MaxSprawlerFailures = 8;
 
 	public List<string> messageLog { get; private set; }
 
-	private ThemeManager themeManager = null;
-	private const string floorSuffix = "_floor";
-	private const string ceilingSuffix = "_ceiling";
-	private Dictionary<string, Material> tilesetMaterials = null;
+	private ThemeManager _themeManager = null;
+	private const string FloorSuffix = "_floor";
+	private const string CeilingSuffix = "_ceiling";
+	private Dictionary<string, Material> _tilesetMaterials = null;
 
 	public delegate void OnComplete(Maze maze);
-	private OnComplete onComplete = null;
+	private OnComplete _onComplete = null;
 
 	/// Distance to the end point from the start of the maze.
-	private uint endPointDist = 0;
+	private uint _endPointDist = 0;
     /// Index position of the end point.
-	private Point endPointCoord = new Point(-1, -1);
+	private Point _endPointCoord = new Point(-1, -1);
 	/// Direction of the end point.
-	private Dir endPointDir = Dir.N;
+	private Dir _endPointDir = Dir.N;
 
     /// <summary>
-    /// Generates a maze with the given ruleset.
+    /// Asynchronously generates a maze.
+	/// Returns the finished maze as a parameter to onComplete.
     /// </summary>
-    /// <returns>A brand-new maze to play with.</returns>
 	public void GenerateMaze(MazeRuleset ruleset, ThemeManager themeManager, OnComplete onComplete)
 	{
-		this.ruleset = ruleset;
-		this.themeManager = themeManager;
-		this.onComplete = onComplete;
+		_ruleset = ruleset;
+		_themeManager = themeManager;
+		_onComplete = onComplete;
 
-		roomStyles = new Dictionary<string, RoomStyle>();
+		_roomStyles = new Dictionary<string, RoomStyle>();
 		foreach (RoomStyle tileset in ruleset.roomStyles)
-			roomStyles.Add(tileset.name, tileset);
+			_roomStyles.Add(tileset.name, tileset);
 
 		messageLog = new List<string>();
-		newSprawlerTiles = new List<Tile>();
-		tilesetMaterials = new Dictionary<string, Material>();
+		_newSprawlerTiles = new List<Tile>();
+		_tilesetMaterials = new Dictionary<string, Material>();
 
-		endPointDist = 0;
-		endPointCoord = new Point(-1, -1);
+		_endPointDist = 0;
+		_endPointCoord = new Point(-1, -1);
 
-		grid = new uint[ruleset.size.y, ruleset.size.x];
+		_grid = new uint[ruleset.size.y, ruleset.size.x];
 
 		int startX = Random.instance.Next(ruleset.size.x);
-		CarvePassagesFrom(startX, 0, grid, 0);
+		CarvePassagesFrom(startX, 0, _grid, 0);
 
-		grid[0, startX] |= Nav.bits[Dir.N];
-		grid[endPointCoord.y, endPointCoord.x] |= Nav.bits[endPointDir];
+		_grid[0, startX] |= Nav.bits[Dir.N];
+		_grid[_endPointCoord.y, _endPointCoord.x] |= Nav.bits[_endPointDir];
 
         // Base GameObject for the maze.
 		GameObject mazeInstance = new GameObject();
 		mazeInstance.name = "Maze";
-		maze = mazeInstance.AddComponent<Maze>();
-		if (maze == null)
+		_maze = mazeInstance.AddComponent<Maze>();
+		if (_maze == null)
 		{
 			Debug.LogError("Maze prefab has no Maze script attached!");
 			return;
 		}
-		maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, tileDim);
-		maze.defaultTheme = ruleset.defaultTileset;
-		maze.startPosition = new Point(startX, 0);
-		maze.entranceLength = entranceLength;
+		_maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, _tileSize);
+		_maze.defaultTheme = ruleset.defaultTileset;
+		_maze.startPosition = new Point(startX, 0);
+		_maze.entranceLength = _entranceLength;
 
 		CreateCorridors(mazeInstance);
-		CreateTiles(grid, maze);
-		CreateTileGeometry(maze);
+		CreateTiles(_grid, _maze);
+		CreateTileGeometry(_maze);
 		TextureMaze();
 		UpdateMazeUVs();
 
@@ -125,32 +121,32 @@ public class MazeGenerator : MonoBehaviour
 		else
 			state = GenerationState.Finished;
 		
-		if (!stepThrough)
+		if (!_stepThrough)
 			while (Step()) {}
 	}
 
 	private void FinishMaze()
 	{
-		if (!stepThrough)
+		if (!_stepThrough)
 		{
 			TextureMaze();
 			UpdateMazeUVs();
 		}
 
-		if (onComplete != null)
-			onComplete.Invoke(maze);
+		if (_onComplete != null)
+			_onComplete.Invoke(_maze);
 		state = GenerationState.Idle;
 
 		// Remove all of the unnecessary objects.
-		grid = null;
-		maze = null;
-		ruleset = null;
-		roomStyles = null;
+		_grid = null;
+		_maze = null;
+		_ruleset = null;
+		_roomStyles = null;
 		currentSprawlerRuleset = null;
-		currentSprawlerTiles = null;
-		newSprawlerTiles = null;
+		_currentSprawlerTiles = null;
+		_newSprawlerTiles = null;
 		messageLog = null;
-		tilesetMaterials = null;
+		_tilesetMaterials = null;
 	}
 
 	public bool Step()
@@ -161,48 +157,50 @@ public class MazeGenerator : MonoBehaviour
 		{
 			// Running the Sprawlers in the current ruleset.
 			case GenerationState.RunningSprawlers:
-				currentSprawlerRuleset = ruleset.rooms[currentSprawlerRulesetIndex];
+				currentSprawlerRuleset = _ruleset.rooms[_currentSprawlerRulesetIndex];
 				
 				// Create a new Sprawler if we don't have one to Step.
-				if (currentSprawler == null)
+				if (_currentSprawler == null)
 				{
 					Tile startTile = null;
 					switch (currentSprawlerRuleset.start)
 					{
 						case RoomRuleset.Start.Start:
-							startTile = maze.tiles[maze.startPosition.y, maze.startPosition.x];
+							startTile = _maze.GetTile(_maze.startPosition);
 							break;
 						case RoomRuleset.Start.Random:
-							Point randomPoint = new Point(Random.instance.Next(maze.size.x), Random.instance.Next(maze.size.y));
-							startTile = maze.tiles[randomPoint.y, randomPoint.x];
+							Point randomPoint = new Point(Random.instance.Next(_maze.size.x), Random.instance.Next(_maze.size.y));
+							startTile = _maze.GetTile(randomPoint);
 							break;
 						case RoomRuleset.Start.End:
-							startTile = maze.tiles[endPointCoord.y, endPointCoord.x];
+							startTile = _maze.GetTile(_endPointCoord);
 							break;
 					}
+					if (startTile == null)
+						Debug.LogError("Sprawler starting room went out of bounds!");
 
-					currentSprawlerTiles = new List<Tile>();
-					currentSprawler = new Sprawler(maze, startTile.position, currentSprawlerRuleset.size,
-						(Tile tile) => { newSprawlerTiles.Add(tile); } );
+					_currentSprawlerTiles = new List<Tile>();
+					_currentSprawler = new Sprawler(_maze, startTile.position, currentSprawlerRuleset.size,
+						(Tile tile) => { _newSprawlerTiles.Add(tile); } );
 					messageLog.Add("Added sprawler at " + startTile.position.ToString());
 				}
 
-				newSprawlerTiles.Clear();
+				_newSprawlerTiles.Clear();
 
 				// Step the current Sprawler.
-				bool sprawlerFinished = !currentSprawler.Step();
+				bool sprawlerFinished = !_currentSprawler.Step();
 
 				// Copy the newly added Tiles to the current Sprawler's Tiles.
-				foreach (Tile tile in newSprawlerTiles)
-					currentSprawlerTiles.Add(tile);
+				foreach (Tile tile in _newSprawlerTiles)
+					_currentSprawlerTiles.Add(tile);
 
 				if (sprawlerFinished)
 				{
-					if (!currentSprawler.success)
+					if (!_currentSprawler.success)
 					{
 						messageLog.Add("Sprawler failed");
-						numSprawlersFailed++;
-						if (numSprawlersFailed >= MaxSprawlerFailures)
+						_numSprawlersFailed++;
+						if (_numSprawlersFailed >= MaxSprawlerFailures)
 						{
 							Debug.LogWarning("Maximum amount of Sprawlers failed, moving to the next ruleset.");
 							NextSprawlerRuleset();
@@ -213,24 +211,24 @@ public class MazeGenerator : MonoBehaviour
 						messageLog.Add("Sprawler finished successfully");
 
 						// Apply the new theme to the Sprawler's Tiles.
-						foreach (Tile tile in currentSprawlerTiles)
-							tile.theme = roomStyles[ruleset.rooms[currentSprawlerRulesetIndex].style].tileset;
+						foreach (Tile tile in _currentSprawlerTiles)
+							tile.theme = _roomStyles[_ruleset.rooms[_currentSprawlerRulesetIndex].style].tileset;
 						
-						if (stepThrough)
+						if (_stepThrough)
 						{
 							TextureMaze();
 							UpdateMazeUVs();
 						}
 
 						// Move to the next Sprawler.
-						numSprawlersRun++;
-						if (numSprawlersRun >= currentSprawlerRuleset.count)
+						_numSprawlersRun++;
+						if (_numSprawlersRun >= currentSprawlerRuleset.count)
 						{
 							// If we've run all the Sprawlers in the current SprawlerRuleset, move to the next one.
 							NextSprawlerRuleset();
 						}
 					}
-					currentSprawler = null;
+					_currentSprawler = null;
 				}
 				break;
 
@@ -244,19 +242,19 @@ public class MazeGenerator : MonoBehaviour
 #if DEBUG
 	private void OnDrawGizmos()
 	{
-		if (newSprawlerTiles != null)
+		if (_newSprawlerTiles != null)
 		{
-			foreach (Tile tile in newSprawlerTiles)
+			foreach (Tile tile in _newSprawlerTiles)
 			{
 				Gizmos.color = new Color(0.5f, 0.9f, 0.5f, 0.5f);
-				Gizmos.DrawCube(Nav.TileToWorldPos(tile.position, maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f), new Vector3(maze.tileSize.x, 2.0f, maze.tileSize.y));
+				Gizmos.DrawCube(Nav.TileToWorldPos(tile.position, _maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f), new Vector3(_maze.tileSize.x, 2.0f, _maze.tileSize.y));
 			}
 		}
-		if (currentSprawler != null)
+		if (_currentSprawler != null)
 		{
-			foreach (Crawler c in currentSprawler.crawlers)
+			foreach (Crawler c in _currentSprawler.crawlers)
 			{
-				Vector3 crawlerPosition = Nav.TileToWorldPos(c.position, maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f);
+				Vector3 crawlerPosition = Nav.TileToWorldPos(c.position, _maze.tileSize) + new Vector3(0.0f, 1.0f, 0.0f);
 
 				Gizmos.color = Color.red;
 				Gizmos.DrawSphere(crawlerPosition, 0.2f);
@@ -270,24 +268,24 @@ public class MazeGenerator : MonoBehaviour
 
 	private void NextSprawlerRuleset()
 	{
-		numSprawlersRun = 0;
-		numSprawlersFailed = 0;
-		currentSprawlerRulesetIndex++;
-		if (currentSprawlerRulesetIndex >= ruleset.rooms.GetLength(0))
+		_numSprawlersRun = 0;
+		_numSprawlersFailed = 0;
+		_currentSprawlerRulesetIndex++;
+		if (_currentSprawlerRulesetIndex >= _ruleset.rooms.GetLength(0))
 		{
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
-			currentSprawlerRulesetIndex = 0;
+			_currentSprawlerRulesetIndex = 0;
 			state = GenerationState.Finished;
 		}
 	}
 
 	private void TextureMaze()
 	{
-		for (uint y = 0; y < maze.tiles.GetLength(0); y++)
+		for (int y = 0; y < _maze.size.y; y++)
 		{
-			for (uint x = 0; x < maze.tiles.GetLength(1); x++)
+			for (int x = 0; x < _maze.size.x; x++)
 			{
-				TextureTile(maze.tiles[y, x]);
+				TextureTile(_maze.GetTile(x, y));
 			}
 		}
 	}
@@ -295,40 +293,40 @@ public class MazeGenerator : MonoBehaviour
 	private void TextureTile(Tile tile)
 	{
 		// Create the material(s) for the tile if they haven't been created yet.
-		if (!tilesetMaterials.ContainsKey(tile.theme))
+		if (!_tilesetMaterials.ContainsKey(tile.theme))
 		{
-			Material regularMaterial = new Material(regularShader);
+			Material regularMaterial = new Material(_regularShader);
 			Material floorMaterial = regularMaterial;
 			Material ceilingMaterial = regularMaterial;
 
 			// Use the tile's tileset if it's loaded.
-			if (themeManager.Textures.ContainsKey(tile.theme))
+			if (_themeManager.Textures.ContainsKey(tile.theme))
 			{
-				Texture2D tileset = themeManager.Textures[tile.theme];
+				Texture2D tileset = _themeManager.Textures[tile.theme];
 				regularMaterial.mainTexture = tileset;
 
 				// Create a seamless texture for the floor if one exists.
-				if (themeManager.Textures.ContainsKey(tile.theme + floorSuffix))
+				if (_themeManager.Textures.ContainsKey(tile.theme + FloorSuffix))
 				{
-					floorMaterial = new Material(seamlessShader);
+					floorMaterial = new Material(_seamlessShader);
 					floorMaterial.mainTexture = tileset;
-					floorMaterial.SetTexture("_SeamlessTex", themeManager.Textures[tile.theme + floorSuffix]);
-					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / tileDim.x, 1.0f / tileDim.y));
+					floorMaterial.SetTexture("_SeamlessTex", _themeManager.Textures[tile.theme + FloorSuffix]);
+					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
 				}
 
 				// Create a seamless texture for the ceiling if one exists.
-				if (themeManager.Textures.ContainsKey(tile.theme + ceilingSuffix))
+				if (_themeManager.Textures.ContainsKey(tile.theme + CeilingSuffix))
 				{
-					ceilingMaterial = new Material(seamlessShader);
+					ceilingMaterial = new Material(_seamlessShader);
 					ceilingMaterial.mainTexture = tileset;
-					ceilingMaterial.SetTexture("_SeamlessTex", themeManager.Textures[tile.theme + ceilingSuffix]);
-					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / tileDim.x, 1.0f / tileDim.y));
+					ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.Textures[tile.theme + CeilingSuffix]);
+					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
 				}
 			}
 			// If the tile's tileset isn't loaded, try using the default one.
-			else if (themeManager.Textures.ContainsKey("default"))
+			else if (_themeManager.Textures.ContainsKey("default"))
 			{
-				regularMaterial.mainTexture = themeManager.Textures["default"];
+				regularMaterial.mainTexture = _themeManager.Textures["default"];
 				Debug.LogWarning("Tried using tileset called \"" + tile.theme + "\" but it isn't loaded, using the default tileset.", tile.instance);
 			}
 			// The default tileset wasn't loaded either.
@@ -337,14 +335,14 @@ public class MazeGenerator : MonoBehaviour
 				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + tile.theme + "\" isn't loaded, but the default one isn't loaded either.", tile.instance);
 			}
 
-			tilesetMaterials.Add(tile.theme, regularMaterial);
-			tilesetMaterials.Add(tile.theme + floorSuffix, floorMaterial);
-			tilesetMaterials.Add(tile.theme + ceilingSuffix, ceilingMaterial);
+			_tilesetMaterials.Add(tile.theme, regularMaterial);
+			_tilesetMaterials.Add(tile.theme + FloorSuffix, floorMaterial);
+			_tilesetMaterials.Add(tile.theme + CeilingSuffix, ceilingMaterial);
 		}
 
-		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[tile.theme]);
-		tile.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[tile.theme + floorSuffix]);
-		tile.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(tilesetMaterials[tile.theme + ceilingSuffix]);
+		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme]);
+		tile.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme + FloorSuffix]);
+		tile.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme + CeilingSuffix]);
 	}
 
     /// <summary>
@@ -380,7 +378,7 @@ public class MazeGenerator : MonoBehaviour
 			}
 		}
 
-		if (distance > endPointDist)
+		if (distance > _endPointDist)
 		{
 			List<Dir> possibleEndPointDirs = new List<Dir>();
 			if (x == 0)							possibleEndPointDirs.Add(Dir.W);
@@ -390,11 +388,11 @@ public class MazeGenerator : MonoBehaviour
 
 			if (possibleEndPointDirs.Count > 0)
 			{
-				endPointCoord.Set(x, y);
-				endPointDist = distance;
+				_endPointCoord.Set(x, y);
+				_endPointDist = distance;
 
 				Utils.Shuffle(Random.instance, possibleEndPointDirs);
-				endPointDir = possibleEndPointDirs[0];
+				_endPointDir = possibleEndPointDirs[0];
 			}
 		}
 	}
@@ -412,7 +410,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the tile and add it to the Maze.
 				Tile tile = new Tile(grid[y, x], new Point((int)x, (int)y));
-				tile.theme = ruleset.defaultTileset;
+				tile.theme = _ruleset.defaultTileset;
 				maze.AddTile(tile);
 			}
 		}
@@ -420,14 +418,14 @@ public class MazeGenerator : MonoBehaviour
 
 	private void CreateCorridors(GameObject mazeInstance)
 	{
-		GameObject entrance = Instantiate(corridor, maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.tileSize.y / 2.0f, 0.0f, 0.0f), Quaternion.identity, mazeInstance.transform);
-		entrance.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
+		GameObject entrance = Instantiate(_corridor, _maze.TileToWorldPosition(_maze.startPosition) - new Vector3(_maze.tileSize.y / 2.0f, 0.0f, 0.0f), Quaternion.identity, mazeInstance.transform);
+		entrance.transform.localScale = new Vector3(_entranceLength, 1.0f, 1.0f);
 		entrance.name = "Entrance";
 
-		GameObject exit = Instantiate(corridor,
-			maze.TileToWorldPosition(endPointCoord) + new Vector3(Nav.DY[endPointDir] * (maze.tileSize.y / 2.0f), 0.0f, Nav.DX[endPointDir] * (maze.tileSize.x / 2.0f)),
-			Quaternion.Euler(0.0f, Nav.FacingToAngle(endPointDir), 0.0f), mazeInstance.transform);
-		exit.transform.localScale = new Vector3(entranceLength, 1.0f, 1.0f);
+		GameObject exit = Instantiate(_corridor,
+			_maze.TileToWorldPosition(_endPointCoord) + new Vector3(Nav.DY[_endPointDir] * (_maze.tileSize.y / 2.0f), 0.0f, Nav.DX[_endPointDir] * (_maze.tileSize.x / 2.0f)),
+			Quaternion.Euler(0.0f, Nav.FacingToAngle(_endPointDir), 0.0f), mazeInstance.transform);
+		exit.transform.localScale = new Vector3(_entranceLength, 1.0f, 1.0f);
 		exit.name = "Exit";
 	}
 
@@ -437,16 +435,16 @@ public class MazeGenerator : MonoBehaviour
 	/// <param name="maze">Maze to generate tile geometries for.</param>
 	private void CreateTileGeometry(Maze maze)
 	{
-		for (uint y = 0; y < maze.tiles.GetLength(0); y++)
+		for (int y = 0; y < maze.size.y; y++)
 		{
-			for (uint x = 0; x < maze.tiles.GetLength(1); x++)
+			for (int x = 0; x < maze.size.x; x++)
 			{
-				maze.tiles[y, x].instance.AddComponent<MaterialSetter>();
-				maze.tiles[y, x].instance.transform.position = new Vector3(y * tileDim.y, 0.0f, x * tileDim.x);
+				maze.GetTile(x, y).instance.AddComponent<MaterialSetter>();
+				maze.GetTile(x, y).instance.transform.position = new Vector3(y * _tileSize.y, 0.0f, x * _tileSize.x);
 
-				CreateFloor(maze.tiles[y, x]);
-				CreateCeiling(maze.tiles[y, x]);
-				CreateWalls(maze.tiles[y, x]);
+				CreateFloor(maze.GetTile(x, y));
+				CreateCeiling(maze.GetTile(x, y));
+				CreateWalls(maze.GetTile(x, y));
 			}
 		}
 	}
@@ -457,7 +455,7 @@ public class MazeGenerator : MonoBehaviour
 	/// <param name="tile"></param>
 	private void CreateFloor(Tile tile)
 	{
-		GameObject floorInstance = (GameObject)Instantiate(floor,
+		GameObject floorInstance = (GameObject)Instantiate(_floor,
 					new Vector3(),
 					Quaternion.Euler(0.0f, Autotile.tileRotations[tile.value], 0.0f));
 		floorInstance.name = "Floor";
@@ -470,7 +468,7 @@ public class MazeGenerator : MonoBehaviour
 	/// <param name="tile"></param>
 	private void CreateCeiling(Tile tile)
 	{
-		GameObject ceilingInstance = (GameObject)Instantiate(ceiling,
+		GameObject ceilingInstance = (GameObject)Instantiate(_ceiling,
 					new Vector3(),
 					Quaternion.Euler(0.0f, Autotile.tileRotations[tile.value], 0.0f));
 		ceilingInstance.name = "Ceiling";
@@ -494,10 +492,10 @@ public class MazeGenerator : MonoBehaviour
             // If the tile isn't connected in this direction, create a wall.
 			if ((tile.value & Nav.bits[dir]) == 0)
 			{
-				GameObject wallInstance = (GameObject)Instantiate(wall, new Vector3(),
+				GameObject wallInstance = (GameObject)Instantiate(_wall, new Vector3(),
 						Quaternion.Euler(0.0f, Nav.FacingToAngle(dir), 0.0f));
 				wallInstance.transform.SetParent(wallsInstance.transform, false);
-				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-tileDim.y / 2.0f, 0.0f, 0.0f);
+				wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-_tileSize.y / 2.0f, 0.0f, 0.0f);
 				wallInstance.name = Nav.bits[dir].ToString();
 			}
 		}
@@ -511,7 +509,7 @@ public class MazeGenerator : MonoBehaviour
 			if ((tile.value & Nav.bits[dir]) != 0)
 			{
 				Point neighbourPos = tile.position + new Point(Nav.DX[dir], Nav.DY[dir]);
-				Tile neighbourTile = maze.GetTile(neighbourPos);
+				Tile neighbourTile = _maze.GetTile(neighbourPos);
 				if (neighbourTile == null || tile.theme != neighbourTile.theme)
 					fixedValue &= ~Nav.bits[dir];
 			}
@@ -527,11 +525,11 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void UpdateMazeUVs()
 	{
-		for (uint y = 0; y < maze.tiles.GetLength(0); y++)
+		for (int y = 0; y < _maze.size.y; y++)
 		{
-			for (uint x = 0; x < maze.tiles.GetLength(1); x++)
+			for (int x = 0; x < _maze.size.x; x++)
 			{
-				UpdateTileUV(maze.tiles[y, x]);
+				UpdateTileUV(_maze.GetTile(x, y));
 			}
 		}
 	}
@@ -554,6 +552,8 @@ public class MazeGenerator : MonoBehaviour
 
 	private void AutotileWalls(Tile tile, uint fixedTileValue)
 	{
+		// TODO: Refactor to use utils instead of reimplementing stuff.
+
 		// Autotile the wall, using the other tiles around it.
 		uint wallValue = 0;
 
@@ -569,9 +569,9 @@ public class MazeGenerator : MonoBehaviour
 				if (Nav.IsConnected(fixedTileValue, Nav.left[dir]))
 				{
 					Point leftPos = tile.position + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]);
-					if (leftPos.x >= 0 && leftPos.x < maze.tiles.GetLength(1) && leftPos.y >= 0 && leftPos.y < maze.tiles.GetLength(0))
+					if (leftPos.x >= 0 && leftPos.x < _maze.size.x && leftPos.y >= 0 && leftPos.y < _maze.size.y)
 					{
-						if (Autotile.IsWallConnected(tile.value, maze.tiles[leftPos.y, leftPos.x].value, dir))
+						if (Autotile.IsWallConnected(tile.value, _maze.GetTile(leftPos).value, dir))
 							wallValue |= 1;
 					}
 				}
@@ -579,9 +579,9 @@ public class MazeGenerator : MonoBehaviour
 				if (Nav.IsConnected(fixedTileValue, Nav.right[dir]))
 				{
 					Point rightPos = tile.position + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]);
-					if (rightPos.x >= 0 && rightPos.x < maze.tiles.GetLength(1) && rightPos.y >= 0 && rightPos.y < maze.tiles.GetLength(0))
+					if (rightPos.x >= 0 && rightPos.x < _maze.size.x && rightPos.y >= 0 && rightPos.y < _maze.size.y)
 					{
-						if (Autotile.IsWallConnected(tile.value, maze.tiles[rightPos.y, rightPos.x].value, dir))
+						if (Autotile.IsWallConnected(tile.value, _maze.GetTile(rightPos).value, dir))
 							wallValue |= 2;
 					}
 				}
