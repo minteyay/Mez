@@ -54,15 +54,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2452945cc09e6648aebf2592e451cb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileDim: {x: 2, y: 2}
-  entranceLength: 6
-  floor: {fileID: 1254603710341132, guid: 7a85777f7e6ce4710bd0fb25ef18f729, type: 2}
-  wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}
-  ceiling: {fileID: 1119517059742150, guid: b2152f833e69d46fe8cd566bef6ecaaa, type: 2}
-  corridor: {fileID: 1403645412382046, guid: a1c8a50d9fe474307a860e8334fe9d59, type: 2}
-  regularShader: {fileID: 10752, guid: 0000000000000000f000000000000000, type: 0}
-  seamlessShader: {fileID: 4800000, guid: adc9f2ed451704029961842d9a1498c1, type: 3}
-  stepThrough: 0
+  _tileSize: {x: 2, y: 2}
+  _entranceLength: 6
+  _floor: {fileID: 1254603710341132, guid: 7a85777f7e6ce4710bd0fb25ef18f729, type: 2}
+  _wall: {fileID: 1000011718839850, guid: a451282d26e69964183ac1c76dd6be07, type: 2}
+  _ceiling: {fileID: 1119517059742150, guid: b2152f833e69d46fe8cd566bef6ecaaa, type: 2}
+  _corridor: {fileID: 1403645412382046, guid: a1c8a50d9fe474307a860e8334fe9d59, type: 2}
+  _regularShader: {fileID: 10752, guid: 0000000000000000f000000000000000, type: 0}
+  _seamlessShader: {fileID: 4800000, guid: adc9f2ed451704029961842d9a1498c1, type: 3}
+  _stepThrough: 0
   _state: 0
 --- !u!114 &114000013432157448
 MonoBehaviour:

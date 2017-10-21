@@ -1,10 +1,15 @@
 using UnityEngine;
-using System.Collections.Generic;
 
+/// <summary>
+/// Class containing utilities for matching bitwise values of tiles to their graphical representations in tilesets.
+/// </summary>
 class Autotile
 {
+    /// Tile index offset to the start of wall tiles.
     public static uint wallTileStartIndex = 0;
+    /// Tile index offset to the start of floor tiles.
     public static uint floorTileStartIndex = 4;
+    /// Tile index offset to the start of ceiling tiles.
     public static uint ceilingTileStartIndex = 10;
 
     /// Rotations for tiles indexed by their 4-bit bitwise value.
@@ -25,47 +30,25 @@ class Autotile
     };
 
     /// <summary>
-    /// Calculates a normalised (0-1) UV coordinate in a texture based on the index of the desired tile.
-    /// Assumes there are 4 x 4 tiles in the texture.
+    /// Calculates a normalised UV coordinate in a texture based on the index position of the desired tile and the number of tiles in the texture.
     /// </summary>
-    /// <param name="index">Index of the desired tile.</param>
-    /// <returns>Normalised (0-1) UV coordinate in a texture.</returns>
-    public static Vector2 GetUVOffsetByIndex(uint index)
+    public static Vector2 GetUVOffsetByIndex(uint index, uint horizontalTiles = 4, uint verticalTiles = 4)
     {
-        return GetUVOffsetByIndex(index, 4, 4);
-    }
-
-    /// <summary>
-    /// Calculates a normalised (0-1) UV coordinate in a texture based on the index of the desired tile.
-    /// </summary>
-    /// <param name="index">Index of the desired tile.</param>
-    /// <param name="hTiles">Number of horizontal tiles in a texture.</param>
-    /// <param name="vTiles">Number of vertical tiles in a texture.</param>
-    /// <returns>Normalised (0-1) UV coordinate in a texture.</returns>
-    public static Vector2 GetUVOffsetByIndex(uint index, uint hTiles, uint vTiles)
-    {
-        if (hTiles <= 0 || vTiles <= 0)
+        if (horizontalTiles <= 0 || verticalTiles <= 0)
         {
             Debug.LogError("hTiles and vTiles have to be > 0 !");
             return new Vector2();
         }
         
-        uint hPos = index % hTiles;
-        uint vPos = index / vTiles;
-        return new Vector2(
-            (1.0f / hTiles) * hPos,
-            (1.0f / vTiles) * vPos
-        );
+        uint hPos = index % horizontalTiles;
+        uint vPos = index / verticalTiles;
+        return new Vector2(hPos * (1.0f / horizontalTiles), vPos * (1.0f / verticalTiles));
     }
 
     /// <summary>
-    /// Checks if the two tiles both have walls facing the given direction.
+    /// Checks if two tiles both have walls facing the given direction.
     /// Does not check for a wall in between the tiles since it doesn't know their positions.
     /// </summary>
-    /// <param name="tileA">First tile to check for walls.</param>
-    /// <param name="tileB">Second tile to check for walls.</param>
-    /// <param name="dir">Direction to check for walls in.</param>
-    /// <returns>True if both tiles have walls facing the given direction, false otherwise.</returns>
     public static bool IsWallConnected(uint tileA, uint tileB, Dir dir)
     {
         return (!Nav.IsConnected(tileA, dir)) && (!Nav.IsConnected(tileB, dir));

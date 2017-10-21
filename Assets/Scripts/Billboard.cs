@@ -9,10 +9,8 @@ public class Billboard : MonoBehaviour
 	{
 		if (Camera.main == null)
 			return;
-        // Get a look rotation towards the main camera.
+		
 		Quaternion towardsCamera = Quaternion.LookRotation(transform.position - Camera.main.transform.position, Vector3.up);
-
-        // Only use the Y euler rotation from the look rotation.
 		Vector3 lookEulers = towardsCamera.eulerAngles;
 		lookEulers.x = lookEulers.z = 0.0f;
 		transform.rotation = Quaternion.Euler(lookEulers);

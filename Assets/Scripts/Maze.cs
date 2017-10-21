@@ -1,73 +1,77 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// An object representing a 2D maze.
+/// Requires initialisation before use.
+/// </summary>
 public class Maze : MonoBehaviour
 {
-	public Point size;
+	/// Size of the maze in tiles.
+	public Point size { get; private set; }
+	/// Size of a tile in world dimensions.
+	public Vector2 tileSize { get; private set; }
 
-    /// 2D array of tiles in the Maze.
-	[HideInInspector]
-	public Tile[,] tiles;
+	[HideInInspector] public Point startPosition;
+	[HideInInspector] public uint entranceLength = 0;
+	[HideInInspector] public string defaultTheme = "";
 
-    /// Size of a tile in world dimensions.
-	[HideInInspector]
-	public Vector2 tileDim;
+	private Tile[,] _tiles;
 
-	[HideInInspector]
-	public Point startPosition;
-
-	[HideInInspector]
-	public uint entranceLength = 0;
-
-	[HideInInspector]
-	public string defaultTheme = "";
-
-    /// <summary>
-    /// Initialise the maze.
-    /// </summary>
     /// <param name="width">Width of the maze in tiles.</param>
     /// <param name="height">Height of the maze in tiles.</param>
-    /// <param name="tileDim">Size of a tile in world dimensions.</param>
-	public void Initialise(uint width, uint height, Vector2 tileDim)
+    /// <param name="tileSize">Size of a tile in world dimensions.</param>
+	public void Initialise(uint width, uint height, Vector2 tileSize)
 	{
 		size = new Point((int)width, (int)height);
-		tiles = new Tile[height, width];
-		this.tileDim = tileDim;
+		_tiles = new Tile[height, width];
+		this.tileSize = tileSize;
 	}
 
 	public void AddTile(Tile tile)
 	{
-		tiles[tile.position.y, tile.position.x] = tile;
+		_tiles[tile.position.y, tile.position.x] = tile;
 		tile.instance.transform.parent = transform;
 	}
 
-	public Tile GetTile(Point pos)
+	/// <returns>Tile in the given position, null if the position is out of bounds.</returns>
+	public Tile GetTile(int x, int y)
 	{
-		if (pos.x < 0 || pos.y < 0 || pos.x >= tiles.GetLength(1) || pos.y >= tiles.GetLength(0))
+		if (x < 0 || y < 0 || x >= size.x || y >= size.y)
 			return null;
-		return tiles[pos.y, pos.x];
+		return _tiles[y, x];
 	}
 
+	/// <returns>Tile in the given position, null if the position is out of bounds.</returns>
+	public Tile GetTile(Point position)
+	{
+		return GetTile(position.x, position.y);
+	}
+
+	/// <summary>
+	/// Lists the neighbouring tiles for a specified tile.
+	/// </summary>
 	public List<Tile> GetNeighbours(Tile tile)
 	{
 		List<Tile> neighbours = new List<Tile>();
-		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		List<Dir> connections = Nav.GetConnections(tile.value);
+		foreach (Dir dir in connections)
 		{
-			if (Nav.IsConnected(tile.value, dir))
-			{
-				Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
-				if (neighbour != null)
-					neighbours.Add(neighbour);
-			}
+			Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+			if (neighbour != null)
+				neighbours.Add(neighbour);
 		}
 		return neighbours;
 	}
 
+	/// <summary>
+	/// Lists the cardinal directions a tile is connected to other tiles in.
+	/// Directions where there aren't neighbouring tiles aren't included, use GetConnections in Nav if they should be.
+	/// </summary>
 	public List<Dir> GetConnections(Tile tile)
 	{
 		List<Dir> connections = new List<Dir>();
-		foreach (Dir dir in Enum.GetValues(typeof(Dir)))
+		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
 			if (Nav.IsConnected(tile.value, dir))
 			{
@@ -79,13 +83,13 @@ public class Maze : MonoBehaviour
 	}
 
     /// <summary>
-    /// Parent a GameObject to the Tile in the given index.
+    /// Add an item to the tile in the given position.
     /// </summary>
-    /// <param name="pos">Index position of the Tile to parent the GameObject to.</param>
-    /// <param name="item">Item to parent to a Tile.</param>
-	public void AddItem(Point pos, GameObject item)
+	public void AddItem(Point position, GameObject item)
 	{
-		item.transform.SetParent(tiles[pos.y, pos.x].instance.transform, false);
+		Tile tile = GetTile(position);
+		if (tile != null)
+			item.transform.SetParent(tile.instance.transform, false);
 	}
 
     /// <summary>
@@ -97,6 +101,7 @@ public class Maze : MonoBehaviour
     /// <returns>Position of the leftmost tile to move to.</returns>
 	public Point MoveLeftmost(Point position, Dir facing, out Dir newFacing)
 	{
+		// TODO: Combine this with MoveStraight.
 		Point newPos = new Point(position);
 		Dir chosenDir = facing;
 
@@ -175,13 +180,19 @@ public class Maze : MonoBehaviour
 		return newPos;
 	}
 
+	/// <summary>
+    /// Converts a tile position in the maze into a world position.
+    /// </summary>
 	public Vector3 TileToWorldPosition(Point tilePos)
 	{
-		return Nav.TileToWorldPos(tilePos, tileDim);
+		return Nav.TileToWorldPos(tilePos, tileSize);
 	}
 
+	/// <summary>
+    /// Converts a world position into a tile position in the maze.
+    /// </summary>
 	public Point WorldToTilePosition(Vector3 worldPos)
 	{
-		return Nav.WorldToTilePos(worldPos, tileDim);
+		return Nav.WorldToTilePos(worldPos, tileSize);
 	}
 }

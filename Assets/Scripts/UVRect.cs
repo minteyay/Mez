@@ -31,13 +31,13 @@ public class UVRect : MonoBehaviour
 	}
 
 	public Mesh sourceMesh = null;
-	private Mesh mesh = null;
+	private Mesh _mesh = null;
 
 	void Start()
 	{
-		mesh = Instantiate(sourceMesh);
-		mesh.name = sourceMesh.name;
-		GetComponent<MeshFilter>().sharedMesh = mesh;
+		_mesh = Instantiate(sourceMesh);
+		_mesh.name = sourceMesh.name;
+		GetComponent<MeshFilter>().sharedMesh = _mesh;
 
 		UpdateUV();
 	}
@@ -52,15 +52,15 @@ public class UVRect : MonoBehaviour
 
 	private void UpdateUV()
 	{
-		if (mesh)
+		if (_mesh)
 		{
-			if (mesh.vertexCount != 4)
+			if (_mesh.vertexCount != 4)
 			{
 				Debug.Log("UVRect can only be used with MeshFilters with 4 vertices (such as a Plane).");
 				return;
 			}
 
-			Vector2[] uvs = new Vector2[mesh.vertexCount];
+			Vector2[] uvs = new Vector2[_mesh.vertexCount];
 
             // The Y coordinate is reversed in UV coords.
 			Vector2 fixedOffset = new Vector2(_offset.x, -_offset.y);
@@ -70,7 +70,7 @@ public class UVRect : MonoBehaviour
 			uvs[2] = new Vector2(0.0f, 0.0f) + fixedOffset;
 			uvs[3] = new Vector2(_dimensions.x, 0.0f) + fixedOffset;
 
-			mesh.uv = uvs;
+			_mesh.uv = uvs;
 		}
 	}
 }

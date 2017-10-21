@@ -4,81 +4,81 @@ using UnityEditor;
 [CustomEditor(typeof(MazeGenerator))]
 public class MazeGeneratorEditor : Editor
 {
-	private SerializedProperty tileDim = null;
-	private SerializedProperty entranceLength = null;
+	private SerializedProperty _tileSize = null;
+	private SerializedProperty _entranceLength = null;
 
-	private SerializedProperty floor = null;
-	private SerializedProperty wall = null;
-	private SerializedProperty ceiling = null;
-	private SerializedProperty corridor = null;
+	private SerializedProperty _floor = null;
+	private SerializedProperty _wall = null;
+	private SerializedProperty _ceiling = null;
+	private SerializedProperty _corridor = null;
 
-	private SerializedProperty regularShader = null;
-	private SerializedProperty seamlessShader = null;
+	private SerializedProperty _regularShader = null;
+	private SerializedProperty _seamlessShader = null;
 
-	private SerializedProperty stepThrough = null;
-	private SerializedProperty state = null;
-	private MazeGenerator mazeGenerator = null;
+	private SerializedProperty _stepThrough = null;
+	private SerializedProperty _state = null;
+	private MazeGenerator _mazeGenerator = null;
 
 	private void OnEnable()
 	{
-		tileDim = serializedObject.FindProperty("tileDim");
-		entranceLength = serializedObject.FindProperty("entranceLength");
+		_tileSize = serializedObject.FindProperty("_tileSize");
+		_entranceLength = serializedObject.FindProperty("_entranceLength");
 
-		floor = serializedObject.FindProperty("floor");
-		wall = serializedObject.FindProperty("wall");
-		ceiling = serializedObject.FindProperty("ceiling");
-		corridor = serializedObject.FindProperty("corridor");
+		_floor = serializedObject.FindProperty("_floor");
+		_wall = serializedObject.FindProperty("_wall");
+		_ceiling = serializedObject.FindProperty("_ceiling");
+		_corridor = serializedObject.FindProperty("_corridor");
 
-		regularShader = serializedObject.FindProperty("regularShader");
-		seamlessShader = serializedObject.FindProperty("seamlessShader");
+		_regularShader = serializedObject.FindProperty("_regularShader");
+		_seamlessShader = serializedObject.FindProperty("_seamlessShader");
 
-		stepThrough = serializedObject.FindProperty("stepThrough");
-		state = serializedObject.FindProperty("_state");
-		mazeGenerator = (MazeGenerator)target;
+		_stepThrough = serializedObject.FindProperty("_stepThrough");
+		_state = serializedObject.FindProperty("_state");
+		_mazeGenerator = (MazeGenerator)target;
 	}
 
 	public override void OnInspectorGUI()
 	{
 		serializedObject.Update();
 
-		EditorGUILayout.PropertyField(tileDim);
-		EditorGUILayout.PropertyField(entranceLength);
-		EditorGUILayout.PropertyField(floor);
-		EditorGUILayout.PropertyField(wall);
-		EditorGUILayout.PropertyField(ceiling);
-		EditorGUILayout.PropertyField(corridor);
-		EditorGUILayout.PropertyField(regularShader);
-		EditorGUILayout.PropertyField(seamlessShader);
+		EditorGUILayout.PropertyField(_tileSize);
+		EditorGUILayout.PropertyField(_entranceLength);
+		EditorGUILayout.PropertyField(_floor);
+		EditorGUILayout.PropertyField(_wall);
+		EditorGUILayout.PropertyField(_ceiling);
+		EditorGUILayout.PropertyField(_corridor);
+		EditorGUILayout.PropertyField(_regularShader);
+		EditorGUILayout.PropertyField(_seamlessShader);
 
 		GUILayout.Space(10.0f);
 
-		EditorGUILayout.PropertyField(stepThrough, new GUIContent("Manual step-through"));
-		if (stepThrough.boolValue)
+		EditorGUILayout.PropertyField(_stepThrough, new GUIContent("Manual step-through"));
+		if (_stepThrough.boolValue)
 		{
 			GUI.enabled = false;
-			EditorGUILayout.PropertyField(state, new GUIContent("Maze generation state"));
+			EditorGUILayout.PropertyField(_state, new GUIContent("Maze generation state"));
 			GUI.enabled = true;
 
-			MazeGenerator.GenerationState mazeGenState = (MazeGenerator.GenerationState)state.intValue;
+			MazeGenerator.State mazeGenState = (MazeGenerator.State)_state.intValue;
 
-			if (mazeGenState == MazeGenerator.GenerationState.Idle)
+			if (mazeGenState == MazeGenerator.State.Idle)
 				GUI.enabled = false;
 			if (GUILayout.Button("Step"))
 				((MazeGenerator)target).Step();
 			GUI.enabled = true;
 
-			if (mazeGenerator.currentSprawlerRuleset != null)
+			if (_mazeGenerator.currentSprawlerRuleset != null)
 			{
 				EditorGUILayout.LabelField("Current sprawler ruleset", EditorStyles.boldLabel);
-				EditorGUILayout.TextArea(mazeGenerator.currentSprawlerRuleset.ToString());
+				EditorGUILayout.TextArea(_mazeGenerator.currentSprawlerRuleset.ToString());
 			}
 
-			if (mazeGenerator.messageLog != null && mazeGenerator.messageLog.Count > 0)
+			if (_mazeGenerator.messageLog != null && _mazeGenerator.messageLog.Count > 0)
 			{
 				EditorGUILayout.LabelField("Sprawler events", EditorStyles.boldLabel);
 
 				string messageLog = "";
-				string[] sprawlerMessages = mazeGenerator.messageLog.ToArray();
+				string[] sprawlerMessages = _mazeGenerator.messageLog.ToArray();
 				for (int i = 0; i < sprawlerMessages.Length; i++)
 				{
 					messageLog += sprawlerMessages[i];

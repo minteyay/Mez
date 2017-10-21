@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -7,44 +6,35 @@ using System.Collections.Generic;
 /// </summary>
 public class Player : MonoBehaviour
 {
-    /// Base movement speed of the player.
-	public float movementSpeed = 0.0f;
-	public float turnDistance = 1.0f;
+	[SerializeField] private float _movementSpeed = 0.0f;
+	[SerializeField] private float _turnRadius = 1.0f;
 
-	[SerializeField]
-    private Vector3 target;
-	[SerializeField]
-	private Vector3 nextTarget;
+	[SerializeField] private Vector3 _target;
+	[SerializeField] private Vector3 _nextTarget;
 
-	[SerializeField]
-	private Dir _facing;
-	public Dir facing { get { return _facing; } set { _facing = nextFacing = value; } }
-	[SerializeField]
-	private Dir nextFacing;
+	[SerializeField] private Dir _facing;
+	public Dir facing { get { return _facing; } set { _facing = _nextFacing = value; } }
+	[SerializeField] private Dir _nextFacing;
 
-	private const float RIGHT_ANGLE_TURN_ANGLE = Mathf.PI / 2.0f;
-	private const float U_TURN_ANGLE = Mathf.PI;
+	private const float RightAngleTurnAngle = Mathf.PI / 2.0f;
+	private const float UTurnAngle = Mathf.PI;
 
-	[SerializeField]
-	private float remainingDist = 0.0f;
-	[SerializeField]
-	private float remainingTurnDist = 0.0f;
+	[SerializeField] private float _remainingDist = 0.0f;
+	[SerializeField] private float _remainingTurnDist = 0.0f;
 
-	[HideInInspector]
-	public Maze maze = null;
+	[HideInInspector] public Maze maze = null;
 
 	public delegate void OutOfBoundsCallback();
-	[HideInInspector]
-	public OutOfBoundsCallback outOfBoundsCallback = null;
+	[HideInInspector] public OutOfBoundsCallback outOfBoundsCallback = null;
 
-	void Update()
+	private void Update()
 	{
 		// Move the player.
-		float toMove = movementSpeed * Time.deltaTime;
+		float toMove = _movementSpeed * Time.deltaTime;
 		Move(ref toMove);
 
 		// Get a new target once all the forwards moving and turning have been done.
-		if (remainingDist <= 0.0f && remainingTurnDist <= 0.0f)
+		if (_remainingDist <= 0.0f && _remainingTurnDist <= 0.0f)
 			NewTarget();
 
 		// Move again if there's still distance left to go.
@@ -55,69 +45,90 @@ public class Player : MonoBehaviour
 			Debug.LogWarning("There's still " + toMove + " to move this frame, you're going too fast!");
 	}
 
+	public void SetTargets(Vector3 target, Dir facing, Vector3 nextTarget, Dir nextFacing)
+	{
+		_target = target;
+		this.facing = facing;
+		_nextTarget = nextTarget;
+		_nextFacing = nextFacing;
+		
+		CalculateMoveDistance();
+	}
+
+	public void Reset()
+	{
+        // Reset the player.
+		_target = new Vector3();
+		_nextTarget = new Vector3();
+		_remainingDist = 0.0f;
+		_remainingTurnDist = 0.0f;
+		transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing), 0.0f);
+	}
+
+	/// <param name="movementAmount">Amount to try to move. If this isn't zero after the function call, the current target was reached.</param>
 	private void Move(ref float movementAmount)
 	{
-		if (remainingDist > 0.0f)	// Keep moving forwards.
+		if (_remainingDist > 0.0f)	// Keep moving forwards.
 		{
-			Vector3 towardsTarget = target - transform.position;
+			Vector3 towardsTarget = _target - transform.position;
 			float actualMovement = Mathf.Min(movementAmount, towardsTarget.magnitude);
 
 			// Move forwards.
 			if (actualMovement < movementAmount)	// Snap to target if it's closer than the distance we're trying to move.
 			{
-				transform.position = target;
-				remainingDist = 0.0f;
+				transform.position = _target;
+				_remainingDist = 0.0f;
 			}
 			else
 			{
 				transform.Translate(towardsTarget.normalized * movementAmount, Space.World);
-				remainingDist -= actualMovement;
+				_remainingDist -= actualMovement;
 			}
 			movementAmount -= actualMovement;
 		}
 
-		if (movementAmount > 0.0f && remainingTurnDist > 0.0f)	// Keep turning.
+		if (movementAmount > 0.0f && _remainingTurnDist > 0.0f)	// Keep turning.
 		{
-			float actualMovement = Mathf.Min(movementAmount, remainingTurnDist);
-			remainingTurnDist -= actualMovement;
+			float actualMovement = Mathf.Min(movementAmount, _remainingTurnDist);
+			_remainingTurnDist -= actualMovement;
 			
-			if (nextFacing == Nav.opposite[facing])		// U-turn.
+			if (_nextFacing == Nav.opposite[facing])		// U-turn.
 			{
-				float turnLength = U_TURN_ANGLE * turnDistance;
+				float turnLength = UTurnAngle * _turnRadius;
 
 				// Calculate position in the 180 degree turn.
-				float turnPhase = (turnLength - remainingTurnDist) / turnLength;
-				float angle = turnPhase * U_TURN_ANGLE;
+				float turnPhase = (turnLength - _remainingTurnDist) / turnLength;
+				float angle = turnPhase * UTurnAngle;
 
 				// Update rotation.
 				transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) - (angle * Mathf.Rad2Deg), 0.0f);
 			}
 			else	// Right angle turn.
 			{
-				float turnLength = RIGHT_ANGLE_TURN_ANGLE * turnDistance;
+				float turnLength = RightAngleTurnAngle * _turnRadius;
 
 				// Calculate position in the 90 degree turn.
-				float turnPhase = (turnLength - remainingTurnDist) / turnLength;
-				float angle = turnPhase * RIGHT_ANGLE_TURN_ANGLE;
+				float turnPhase = (turnLength - _remainingTurnDist) / turnLength;
+				float angle = turnPhase * RightAngleTurnAngle;
 
 				// Calculate movement along the turn.
-				float forwards = Mathf.Sin(angle) * turnDistance;
-				float sidewards = 1.0f - Mathf.Cos(angle) * turnDistance;
-				float xMovement = Utils.NonZero(Nav.DX[facing] * forwards, Nav.DX[nextFacing] * sidewards);
-				float yMovement = Utils.NonZero(Nav.DY[facing] * forwards, Nav.DY[nextFacing] * sidewards);
+				float forwards = Mathf.Sin(angle) * _turnRadius;
+				float sidewards = 1.0f - Mathf.Cos(angle) * _turnRadius;
+				float xMovement = Utils.NonZero(Nav.DX[facing] * forwards, Nav.DX[_nextFacing] * sidewards);
+				float yMovement = Utils.NonZero(Nav.DY[facing] * forwards, Nav.DY[_nextFacing] * sidewards);
 				Vector3 turnDelta = new Vector3(yMovement, 0.0f, xMovement);
 
 				// Adjust the position for the turn.
-				Vector3 turnAdjust = new Vector3(Nav.DY[facing] * turnDistance, 0.0f, Nav.DX[facing] * turnDistance);
+				Vector3 turnAdjust = new Vector3(Nav.DY[facing] * _turnRadius, 0.0f, Nav.DX[facing] * _turnRadius);
 
 				// Update position on the turn.
-				transform.position = target + turnDelta - turnAdjust;
+				transform.position = _target + turnDelta - turnAdjust;
 
 				// Update rotation.
 				int turnDir = 0;
-				if (nextFacing == Nav.left[facing])
+				if (_nextFacing == Nav.left[facing])
 					turnDir = -1;
-				else if (nextFacing == Nav.right[facing])
+				else if (_nextFacing == Nav.right[facing])
 					turnDir = 1;
 				transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing) + (angle * Mathf.Rad2Deg) * turnDir, 0.0f);
 			}
@@ -126,66 +137,49 @@ public class Player : MonoBehaviour
 		}
 	}
 
-	public void SetTargets(Vector3 target, Dir facing, Vector3 nextTarget, Dir nextFacing)
-	{
-		this.target = target;
-		this.facing = facing;
-		this.nextTarget = nextTarget;
-		this.nextFacing = nextFacing;
-		
-		CalculateMoveDistance();
-	}
-
     /// <summary>
-    /// Set a new target world position to move towards.
+    /// Calculate a new target position to move towards.
     /// </summary>
 	private void NewTarget()
 	{
 		// If the current target falls outside the maze, we're out of bounds.
-		if (maze.GetTile(maze.WorldToTilePosition(target)) == null)
+		if (maze.GetTile(maze.WorldToTilePosition(_target)) == null)
 		{
 			if (outOfBoundsCallback != null)
 				outOfBoundsCallback.Invoke();
 			return;
 		}
 
-		target = (Vector3)nextTarget;
-		facing = nextFacing;
+		_target = _nextTarget;
+		facing = _nextFacing;
 
-		nextTarget = maze.TileToWorldPosition(maze.MoveLeftmost(maze.WorldToTilePosition(target), facing, out nextFacing));
+		_nextTarget = maze.TileToWorldPosition(maze.MoveLeftmost(maze.WorldToTilePosition(_target), facing, out _nextFacing));
 
 		CalculateMoveDistance();
 	}
 
+	/// <summary>
+	/// Calculate how much to move and how much to turn to reach the current target.
+	/// </summary>
 	private void CalculateMoveDistance()
 	{
-		Vector3 targetDelta = transform.position - target;
-		if (facing != nextFacing)
+		Vector3 targetDelta = transform.position - _target;
+		if (facing != _nextFacing)
 		{
-			if (nextFacing == Nav.opposite[facing])		// U-turn.
+			if (_nextFacing == Nav.opposite[facing]) // U-turn.
 			{
-				remainingDist += targetDelta.magnitude;
-				remainingTurnDist = U_TURN_ANGLE * turnDistance;
+				_remainingDist += targetDelta.magnitude;
+				_remainingTurnDist = UTurnAngle * _turnRadius;
 			}
-			else	// Right angle turn.
+			else // Right angle turn.
 			{
-				remainingDist += targetDelta.magnitude - turnDistance;
-				remainingTurnDist = RIGHT_ANGLE_TURN_ANGLE * turnDistance;
+				_remainingDist += targetDelta.magnitude - _turnRadius;
+				_remainingTurnDist = RightAngleTurnAngle * _turnRadius;
 			}
 		}
 		else
 		{
-			remainingDist += targetDelta.magnitude;
+			_remainingDist += targetDelta.magnitude;
 		}
-	}
-
-	public void Reset()
-	{
-        // Reset the player.
-		target = new Vector3();
-		nextTarget = new Vector3();
-		remainingDist = 0.0f;
-		remainingTurnDist = 0.0f;
-		transform.rotation = Quaternion.Euler(0.0f, Nav.FacingToAngle(facing), 0.0f);
 	}
 }

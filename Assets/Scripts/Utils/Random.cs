@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Static class for using a single System.Random instance for RNG stuff.
-/// If not explicitly seeded, the static instance will be created when it's first accessed.
+/// A singleton class for a System.Random instance.
 /// </summary>
 public class Random : MonoBehaviour
 {
@@ -19,9 +18,8 @@ public class Random : MonoBehaviour
     }
 
     /// <summary>
-    /// Initialise the static instance of System.Random with a specific seed value.
+    /// (Re)initialise the System.Random instance with a specific seed value.
     /// </summary>
-    /// <param name="seed"></param>
     public static void Seed(int seed)
     {
         _instance = new System.Random(seed);
