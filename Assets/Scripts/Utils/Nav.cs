@@ -76,6 +76,15 @@ class Nav
 		return 0.0f;
 	}
 
+	/// <summary>
+	/// Converts a delta to a cardinal direction.
+	/// </summary>
+	public static Dir DeltaToFacing(Point delta)
+	{
+		float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
+		return AngleToFacing(angle);
+	}
+
     /// <summary>
     /// Converts a world position into a tile position in the maze, depending on tile size.
     /// </summary>

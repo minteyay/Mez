@@ -153,7 +153,8 @@ public class Player : MonoBehaviour
 		_target = _nextTarget;
 		facing = _nextFacing;
 
-		_nextTarget = maze.TileToWorldPosition(maze.MoveLeftmost(maze.WorldToTilePosition(_target), facing, out _nextFacing));
+		_nextTarget = maze.TileToWorldPosition(maze.MoveForwards(maze.WorldToTilePosition(_target), facing, Maze.MovementPreference.Leftmost, true));
+		_nextFacing = Nav.DeltaToFacing(maze.WorldToTilePosition(_nextTarget) - maze.WorldToTilePosition(_target));
 
 		CalculateMoveDistance();
 	}
