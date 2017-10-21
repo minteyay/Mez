@@ -92,92 +92,42 @@ public class Maze : MonoBehaviour
 			item.transform.SetParent(tile.instance.transform, false);
 	}
 
-    /// <summary>
-    /// Get the world position of the leftmost tile that you can move to from the given world position.
-    /// </summary>
-    /// <param name="position">World position to move from.</param>
-    /// <param name="facing">Facing to find the leftmost tile from.</param>
-    /// <param name="newFacing">New facing towards the leftmost tile.</param>
-    /// <returns>Position of the leftmost tile to move to.</returns>
-	public Point MoveLeftmost(Point position, Dir facing, out Dir newFacing)
-	{
-		// TODO: Combine this with MoveStraight.
-		Point newPos = new Point(position);
-		Dir chosenDir = facing;
-
-		if (GetTile(position) == null)
-		{
-			newFacing = facing;
-			return newPos;
-		}
-		uint currentTileValue = GetTile(position).value;
-
-        // Check if there's a connected tile to the left.
-		if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
-		{
-			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
-			chosenDir = Nav.left[facing];
-		}
-        // Check if there's a connected tile straight ahead.
-		else if (Nav.IsConnected(currentTileValue, facing))
-		{
-			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
-			chosenDir = facing;
-		}
-        // Check if there's a connected tile to the right.
-		else if (Nav.IsConnected(currentTileValue, Nav.right[facing]))
-		{
-			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
-			chosenDir = Nav.right[facing];
-		}
-        // Hit a dead end, move back in the opposite direction.
-		else
-		{
-			newPos.Set(position.x + Nav.DX[Nav.opposite[facing]], position.y + Nav.DY[Nav.opposite[facing]]);
-			chosenDir = Nav.opposite[facing];
-		}
-
-		newFacing = chosenDir;
-		return newPos;
-	}
+	public enum MovementPreference { Leftmost, Straight	}
 
     /// <summary>
-    /// Get the world position of the tile straight ahead from the given world position.
+    /// Move forwards by one tile in the maze from a position towards a direction.
     /// </summary>
-    /// <param name="position">World position to move from.</param>
-    /// <param name="facing">Facing to find the tile straight ahead from.</param>
-    /// <param name="allowUTurns">If U turns are allowed.</param>
-    /// <returns>World position of the tile straight ahead to move to. Same as the input world position if U turns weren't allowed and one was hit.</returns>
-	public Point MoveStraight(Point position, Dir facing, bool allowUTurns = true)
+    /// <param name="preference">The direction to prioritise.</param>
+    /// <returns>Position of the next tile to move to. Same as the input if we couldn't move.</returns>
+	public Point MoveForwards(Point position, Dir facing, MovementPreference preference, bool allowUTurns = false)
 	{
-		Point newPos = new Point(position);
-
 		if (GetTile(position) == null)
-			return newPos;
+			return position;
 		uint currentTileValue = GetTile(position).value;
 
-        // Check if there's a connected tile straight ahead.
-		if (Nav.IsConnected(currentTileValue, facing))
+		switch (preference)
 		{
-			newPos.Set(position.x + Nav.DX[facing], position.y + Nav.DY[facing]);
-		}
-        // Check if there's a connected tile to the left.
-		else if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
-		{
-			newPos.Set(position.x + Nav.DX[Nav.left[facing]], position.y + Nav.DY[Nav.left[facing]]);
-		}
-        // Check if there's a connected tile to the right.
-		else if (Nav.IsConnected(currentTileValue, Nav.right[facing]))
-		{
-			newPos.Set(position.x + Nav.DX[Nav.right[facing]], position.y + Nav.DY[Nav.right[facing]]);
-		}
-        // If U turns are allowed and one was hit, move back in the opposite direction.
-		else if (allowUTurns)
-		{
-			newPos.Set(position.x + Nav.DX[Nav.opposite[facing]], position.y + Nav.DY[Nav.opposite[facing]]);
+			case MovementPreference.Leftmost:
+				if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
+					return position + new Point(Nav.DX[Nav.left[facing]], Nav.DY[Nav.left[facing]]);
+				else if (Nav.IsConnected(currentTileValue, facing))
+					return position + new Point(Nav.DX[facing], Nav.DY[facing]);
+				break;
+			case MovementPreference.Straight:
+				if (Nav.IsConnected(currentTileValue, facing))
+					return position + new Point(Nav.DX[facing], Nav.DY[facing]);
+				else if (Nav.IsConnected(currentTileValue, Nav.left[facing]))
+					return position + new Point(Nav.DX[Nav.left[facing]], Nav.DY[Nav.left[facing]]);
+				break;
 		}
 
-		return newPos;
+		if (Nav.IsConnected(currentTileValue, Nav.right[facing]))
+			return position + new Point(Nav.DX[Nav.right[facing]], Nav.DY[Nav.right[facing]]);
+		
+		// Hit a dead end.
+		if (!allowUTurns)
+			return position;
+		return position + new Point(Nav.DX[Nav.opposite[facing]], Nav.DY[Nav.opposite[facing]]);
 	}
 
 	/// <summary>

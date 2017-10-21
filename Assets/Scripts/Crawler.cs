@@ -105,7 +105,7 @@ public class Crawler
 				_onTileEntered.Invoke(_maze.GetTile(position));
 			
 			// Calculate the next position to move to.
-			_nextPosition = _maze.MoveStraight(position, _facing, false);
+			_nextPosition = _maze.MoveForwards(position, _facing, Maze.MovementPreference.Straight);
 
 			// Check the validity of the next position.
 			if (_nextPosition == position || _maze.GetTile(_nextPosition) == null || (_onlyStepOnDefault && _maze.GetTile(_nextPosition).theme != _maze.defaultTheme))

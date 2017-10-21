@@ -126,8 +126,8 @@ public class GameManager : MonoBehaviour
 		_player.facing = Dir.S;
 		_player.Reset();
 
-		Dir nextFacing;
-		Vector3 nextTarget = Nav.TileToWorldPos(maze.MoveLeftmost(maze.startPosition, Dir.S, out nextFacing), maze.tileSize);
-		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, nextTarget, nextFacing);
+		Point nextTarget = maze.MoveForwards(maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
+		Dir nextFacing = Nav.DeltaToFacing(nextTarget - maze.startPosition);
+		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, maze.TileToWorldPosition(nextTarget), nextFacing);
 	}
 }
