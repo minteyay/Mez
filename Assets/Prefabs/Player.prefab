@@ -145,12 +145,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b59f11dc6d0881c42a1871a8f3d9d9fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 2
-  turnDistance: 1
-  target: {x: 0, y: 0, z: 0}
-  nextTarget: {x: 0, y: 0, z: 0}
+  _movementSpeed: 2
+  _turnRadius: 1
+  _target: {x: 0, y: 0, z: 0}
+  _nextTarget: {x: 0, y: 0, z: 0}
   _facing: 0
-  nextFacing: 0
-  remainingDist: 0
-  remainingTurnDist: 0
+  _nextFacing: 0
+  _remainingDist: 0
+  _remainingTurnDist: 0
   maze: {fileID: 0}
