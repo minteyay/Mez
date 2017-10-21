@@ -48,25 +48,28 @@ public class Maze : MonoBehaviour
 		return GetTile(position.x, position.y);
 	}
 
+	/// <summary>
+	/// Lists the neighbouring tiles for a specified tile.
+	/// </summary>
 	public List<Tile> GetNeighbours(Tile tile)
 	{
-		// TODO: Use the functions in Utils.
 		List<Tile> neighbours = new List<Tile>();
-		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
+		List<Dir> connections = Nav.GetConnections(tile.value);
+		foreach (Dir dir in connections)
 		{
-			if (Nav.IsConnected(tile.value, dir))
-			{
-				Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
-				if (neighbour != null)
-					neighbours.Add(neighbour);
-			}
+			Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+			if (neighbour != null)
+				neighbours.Add(neighbour);
 		}
 		return neighbours;
 	}
 
+	/// <summary>
+	/// Lists the cardinal directions a tile is connected to other tiles in.
+	/// Directions where there aren't neighbouring tiles aren't included, use GetConnections in Nav if they should be.
+	/// </summary>
 	public List<Dir> GetConnections(Tile tile)
 	{
-		// TODO: Use the functions in Utils.
 		List<Dir> connections = new List<Dir>();
 		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 		{
@@ -84,8 +87,9 @@ public class Maze : MonoBehaviour
     /// </summary>
 	public void AddItem(Point position, GameObject item)
 	{
-		// TODO: Out of bounds checking.
-		item.transform.SetParent(_tiles[position.y, position.x].instance.transform, false);
+		Tile tile = GetTile(position);
+		if (tile != null)
+			item.transform.SetParent(tile.instance.transform, false);
 	}
 
     /// <summary>
