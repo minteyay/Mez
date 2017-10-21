@@ -2,45 +2,49 @@
 using System.IO;
 using System.Collections.Generic;
 
+/// <summary>
+/// An object for loading in and holding assets (ruleset and textures) for themes.
+/// </summary>
 public class ThemeManager : MonoBehaviour
 {
+	private const string ThemePath = "/Themes/";
+
+	public List<string> themeNames { get; private set; }
+	public Dictionary<string, MazeRuleset> rulesets { get; private set; }
+	public Dictionary<string, Texture2D> textures { get; private set; }
+
 	public delegate void LoadingComplete();
+	private LoadingComplete _callback = null;
+	private bool _rulesetLoaded = false;
+	private int _texturesLoaded = 0;
+	private int _texturesToLoad = 0;
 
-	private const string themePath = "/Themes/";
-
-	public List<string> ThemeNames { get; private set; }
-	public Dictionary<string, MazeRuleset> Rulesets { get; private set; }
-	public Dictionary<string, Texture2D> Textures { get; private set; }
-
-	private LoadingComplete callback = null;
-	private bool rulesetLoaded = false;
-	private int texturesLoaded = 0;
-	private int texturesToLoad = 0;
-
-	[SerializeField] private Texture2D defaultTexture = null;
+	[SerializeField] private Texture2D _defaultTexture = null;
 
 	public void Awake()
 	{
-		ThemeNames = new List<string>();
-		Rulesets = new Dictionary<string, MazeRuleset>();
-		Textures = new Dictionary<string, Texture2D>();
+		themeNames = new List<string>();
+		rulesets = new Dictionary<string, MazeRuleset>();
+		textures = new Dictionary<string, Texture2D>();
 
-		// Add the default texture to the dictionary.
-		Textures.Add("default", defaultTexture);
+		textures.Add("default", _defaultTexture);
 
 		// Enumerate themes.
-		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + themePath);
+		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + ThemePath);
 		foreach (string s in themes)
 		{
 			// Only store the theme's name.
 			string themeName = s.Substring(s.LastIndexOf('/') + 1);
-			ThemeNames.Add(themeName);
+			themeNames.Add(themeName);
 		}
 	}
 
+	/// <summary>
+	/// Loads the assets for a theme asynchronously.
+	/// </summary>
 	public void LoadTheme(string themeName, LoadingComplete callback)
 	{
-		this.callback = callback;
+		_callback = callback;
 
 		LoadThemeRuleset(themeName);
 		LoadThemeTextures(themeName);
@@ -48,22 +52,22 @@ public class ThemeManager : MonoBehaviour
 
 	private void UpdateLoadingState()
 	{
-		if (!rulesetLoaded) return;
-		if (texturesLoaded < texturesToLoad) return;
+		if (!_rulesetLoaded) return;
+		if (_texturesLoaded < _texturesToLoad) return;
 
-		if (callback != null)
-			callback.Invoke();
+		if (_callback != null)
+			_callback.Invoke();
 	}
 
 	private void LoadThemeRuleset(string themeName)
 	{
-		rulesetLoaded = false;
+		_rulesetLoaded = false;
 		
 		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".json";
 		if (!System.IO.File.Exists(rulesetPath))
 		{
 			Debug.LogWarning("Trying to load ruleset \"" + rulesetPath + "\" which doesn't exist!");
-			callback();
+			_callback();
 			return;
 		}
 
@@ -77,20 +81,20 @@ public class ThemeManager : MonoBehaviour
 
 		MazeRuleset ruleset = MazeRuleset.FromJSON(www.text);
 		string rulesetName = Utils.ParseFileName(rulesetPath);
-		Rulesets.Add(rulesetName, ruleset);
+		rulesets.Add(rulesetName, ruleset);
 
-		rulesetLoaded = true;
+		_rulesetLoaded = true;
 		UpdateLoadingState();
 	}
 
 	private void LoadThemeTextures(string themeName)
 	{
 		string[] texturePaths = System.IO.Directory.GetFiles(Application.dataPath + "/Themes/" + themeName, "*.png");
-		texturesToLoad = texturePaths.Length;
-		texturesLoaded = 0;
+		_texturesToLoad = texturePaths.Length;
+		_texturesLoaded = 0;
 
 		foreach (string path in texturePaths)
-			LoadTexture(path, () => { texturesLoaded++; UpdateLoadingState(); } );
+			LoadTexture(path, () => { _texturesLoaded++; UpdateLoadingState(); } );
 	}
 
 	public void LoadTexture(string path, LoadingComplete callback)
@@ -121,7 +125,7 @@ public class ThemeManager : MonoBehaviour
 	#endif
 		string textureName = Utils.ParseFileName(path);
 
-		Textures.Add(textureName, texture);
+		textures.Add(textureName, texture);
 
 		if (callback != null)
 			callback();

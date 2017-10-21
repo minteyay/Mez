@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
 			Resources.UnloadUnusedAssets();
 		}
 
-		MazeRuleset ruleset = _themeManager.Rulesets["dark"];
+		MazeRuleset ruleset = _themeManager.rulesets["dark"];
 
         // Generate a new maze.
 		_mazeGen.GenerateMaze(ruleset, _themeManager, LevelGenerated);

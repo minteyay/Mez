@@ -59,9 +59,9 @@ public class MazeGeneratorEditor : Editor
 			EditorGUILayout.PropertyField(_state, new GUIContent("Maze generation state"));
 			GUI.enabled = true;
 
-			MazeGenerator.GenerationState mazeGenState = (MazeGenerator.GenerationState)_state.intValue;
+			MazeGenerator.State mazeGenState = (MazeGenerator.State)_state.intValue;
 
-			if (mazeGenState == MazeGenerator.GenerationState.Idle)
+			if (mazeGenState == MazeGenerator.State.Idle)
 				GUI.enabled = false;
 			if (GUILayout.Button("Step"))
 				((MazeGenerator)target).Step();
