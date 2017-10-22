@@ -22,6 +22,18 @@ public class RoomStyle
 {
     public string name = "";
     public string tileset = "";
+
+    public DecorationRuleset[] decorations;
+}
+
+[System.Serializable]
+public class DecorationRuleset
+{
+    public enum Location { Floor, Wall, Ceiling }
+
+    public Location location = Location.Floor;
+    public string texture = "";
+    public float occurrence = 1.0f;
 }
 
 [System.Serializable]
