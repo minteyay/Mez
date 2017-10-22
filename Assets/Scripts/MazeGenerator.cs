@@ -42,9 +42,10 @@ public class MazeGenerator : MonoBehaviour
 	private MazeRuleset _ruleset = null;
 	private Dictionary<string, RoomStyle> _roomStyles = null;
 	
-	private uint _currentSprawlerRulesetIndex = 0;
+	private int _currentSprawlerRulesetIndex = -1;
 	public RoomRuleset currentSprawlerRuleset { get; private set; }
 	private uint _numSprawlersRun = 0;
+	private uint _numSprawlersToRun = 0;
 	private uint _numSprawlersFailed = 0;
 	private Sprawler _currentSprawler = null;
 	private List<Tile> _currentSprawlerTiles = null;
@@ -117,7 +118,10 @@ public class MazeGenerator : MonoBehaviour
 		UpdateMazeUVs();
 
 		if (ruleset.rooms.Length > 0)
+		{
+			NextSprawlerRuleset();
 			state = State.RunningSprawlers;
+		}
 		else
 			state = State.Finished;
 		
@@ -184,7 +188,16 @@ public class MazeGenerator : MonoBehaviour
 						Debug.LogError("Sprawler starting room went out of bounds!");
 
 					_currentSprawlerTiles = new List<Tile>();
-					_currentSprawler = new Sprawler(_maze, startTile.position, currentSprawlerRuleset.size,
+
+					uint sprawlerSize = 0;
+					Point sprawlerSizeRange;
+					currentSprawlerRuleset.TryParseSize(out sprawlerSizeRange);
+					if (sprawlerSizeRange.x == sprawlerSizeRange.y)
+						sprawlerSize = (uint)sprawlerSizeRange.x;
+					else
+						sprawlerSize = (uint)Random.instance.Next(sprawlerSizeRange.x, sprawlerSizeRange.y + 1);
+
+					_currentSprawler = new Sprawler(_maze, startTile.position, sprawlerSize,
 						(Tile tile) => { _newSprawlerTiles.Add(tile); } );
 					messageLog.Add("Added sprawler at " + startTile.position.ToString());
 				}
@@ -226,7 +239,7 @@ public class MazeGenerator : MonoBehaviour
 
 						// Move to the next Sprawler.
 						_numSprawlersRun++;
-						if (_numSprawlersRun >= currentSprawlerRuleset.count)
+						if (_numSprawlersRun >= _numSprawlersToRun)
 						{
 							// If we've run all the Sprawlers in the current SprawlerRuleset, move to the next one.
 							NextSprawlerRuleset();
@@ -255,8 +268,17 @@ public class MazeGenerator : MonoBehaviour
 		if (_currentSprawlerRulesetIndex >= _ruleset.rooms.GetLength(0))
 		{
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
-			_currentSprawlerRulesetIndex = 0;
+			_currentSprawlerRulesetIndex = -1;
 			state = State.Finished;
+		}
+		else
+		{
+			Point sprawlerCountRange;
+			_ruleset.rooms[_currentSprawlerRulesetIndex].TryParseCount(out sprawlerCountRange);
+			if (sprawlerCountRange.x == sprawlerCountRange.y)
+				_numSprawlersToRun = (uint)sprawlerCountRange.x;
+			else
+				_numSprawlersToRun = (uint)Random.instance.Next(sprawlerCountRange.x, sprawlerCountRange.y + 1);
 		}
 	}
 

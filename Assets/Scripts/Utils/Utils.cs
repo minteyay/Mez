@@ -93,4 +93,37 @@ public class Utils
             end = path.Length;
         return path.Substring(begin, end - begin);
     }
+
+    /// <summary>
+    /// Tries to parse an integer range (from-to, separated with a dash) from a string.
+    /// If no separator is present, tries to parse a single integer from the string.
+    /// </summary>
+    public static bool TryParseRange(string input, out Point range)
+    {
+        int separatorIndex = input.IndexOf('-');
+        if (separatorIndex >= 0)
+        {
+            string left = input.Substring(0, separatorIndex);
+            string right = input.Substring(separatorIndex + 1);
+
+            int from, to;
+            if (!int.TryParse(left, out from) || !int.TryParse(right, out to))
+            {
+                range = new Point();
+                return false;
+            }
+
+            range = new Point(from, to);
+            return true;
+        }
+
+        int countNum;
+        if (!int.TryParse(input, out countNum))
+        {
+            range = new Point();
+            return false;
+        }
+        range = new Point(countNum, countNum);
+        return true;
+    }
 }

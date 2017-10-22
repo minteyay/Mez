@@ -31,13 +31,11 @@ public class RoomRuleset
 
     public string style = "";
     public Start start = Start.Random;
-    public uint count = 1;
-    public uint size = 1;
+    public string count = "";
+    public string size = "";
 
-    public static RoomRuleset FromJSON(string data)
-    {
-        return JsonUtility.FromJson<RoomRuleset>(data);
-    }
+    public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(count, out countRange); }
+    public bool TryParseSize(out Point sizeRange) { return Utils.TryParseRange(size, out sizeRange); }
 
     public override string ToString()
     {
