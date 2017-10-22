@@ -82,16 +82,6 @@ public class Maze : MonoBehaviour
 		return connections;
 	}
 
-    /// <summary>
-    /// Add an item to the tile in the given position.
-    /// </summary>
-	public void AddItem(Point position, GameObject item)
-	{
-		Tile tile = GetTile(position);
-		if (tile != null)
-			item.transform.SetParent(tile.instance.transform, false);
-	}
-
 	public enum MovementPreference { Leftmost, Straight	}
 
     /// <summary>

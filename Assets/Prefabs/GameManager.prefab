@@ -56,10 +56,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _tileSize: {x: 2, y: 2}
   _entranceLength: 6
+  _plane: {fileID: 1000012317700932, guid: 8361a7cd8661767458689e99301030ad, type: 2}
   _uvPlane: {fileID: 1453051596399776, guid: 4acfcf4d24de84e2f88636817b7480bf, type: 2}
   _corridor: {fileID: 1403645412382046, guid: a1c8a50d9fe474307a860e8334fe9d59, type: 2}
   _regularShader: {fileID: 10752, guid: 0000000000000000f000000000000000, type: 0}
   _seamlessShader: {fileID: 4800000, guid: adc9f2ed451704029961842d9a1498c1, type: 3}
+  _transparentShader: {fileID: 10750, guid: 0000000000000000f000000000000000, type: 0}
   _stepThrough: 0
   _state: 0
 --- !u!114 &114000013432157448

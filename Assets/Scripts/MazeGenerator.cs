@@ -12,11 +12,13 @@ public class MazeGenerator : MonoBehaviour
 	/// Length of the entrance corridor before a maze (in tiles).
 	[SerializeField] private uint _entranceLength = 0;
 
+	[SerializeField] private GameObject _plane = null;
 	[SerializeField] private GameObject _uvPlane = null;
 	[SerializeField] private GameObject _corridor = null;
 
 	[SerializeField] private Shader _regularShader = null;
 	[SerializeField] private Shader _seamlessShader = null;
+	[SerializeField] private Shader _transparentShader = null;
 
 	/// Should maze generation be stepped through manually?
 	[SerializeField] private bool _stepThrough = false;
@@ -29,10 +31,13 @@ public class MazeGenerator : MonoBehaviour
 	{
 		Idle,
 		RunningSprawlers,
+		AddingDecorations,
 		Finished
 	}
 	[SerializeField] private State _state;
 	public State state { get { return _state; } private set { _state = value; } }
+
+	public List<string> messageLog { get; private set; }
 
 	private uint[,] _grid = null;
 	private Maze _maze = null;
@@ -45,18 +50,17 @@ public class MazeGenerator : MonoBehaviour
 	private uint _numSprawlersRun = 0;
 	private uint _numSprawlersToRun = 0;
 	private uint _numSprawlersFailed = 0;
+	private static uint MaxSprawlerFailures = 8;
 	private Sprawler _currentSprawler = null;
 	private List<Tile> _currentSprawlerTiles = null;
 	private List<Tile> _newSprawlerTiles = null;
 
-	private static uint MaxSprawlerFailures = 8;
-
-	public List<string> messageLog { get; private set; }
+	private const float Epsilon = 0.001f;
 
 	private ThemeManager _themeManager = null;
 	private const string TilesetFloorSuffix = "_floor";
 	private const string TilesetCeilingSuffix = "_ceiling";
-	private Dictionary<string, Material> _tilesetMaterials = null;
+	private Dictionary<string, Material> _materials = null;
 
 	public delegate void OnComplete(Maze maze);
 	private OnComplete _onComplete = null;
@@ -82,7 +86,7 @@ public class MazeGenerator : MonoBehaviour
 
 		messageLog = new List<string>();
 		_newSprawlerTiles = new List<Tile>();
-		_tilesetMaterials = new Dictionary<string, Material>();
+		_materials = new Dictionary<string, Material>();
 
 		_endPointDist = 0;
 		_endPointCoord = new Point(-1, -1);
@@ -121,7 +125,7 @@ public class MazeGenerator : MonoBehaviour
 			state = State.RunningSprawlers;
 		}
 		else
-			state = State.Finished;
+			state = State.AddingDecorations;
 		
 		if (!_stepThrough)
 			while (Step()) {}
@@ -148,7 +152,7 @@ public class MazeGenerator : MonoBehaviour
 		_currentSprawlerTiles = null;
 		_newSprawlerTiles = null;
 		messageLog = null;
-		_tilesetMaterials = null;
+		_materials = null;
 	}
 
 	/// <summary>
@@ -246,6 +250,41 @@ public class MazeGenerator : MonoBehaviour
 					_currentSprawler = null;
 				}
 				break;
+			
+			case State.AddingDecorations:
+				foreach (RoomStyle roomStyle in _ruleset.roomStyles)
+				{
+					List<Tile> tiles = new List<Tile>();
+					for (int y = 0; y < _maze.size.y; y++)
+					{
+						for (int x = 0; x < _maze.size.x; x++)
+						{
+							Tile tile = _maze.GetTile(x, y);
+							if (tile.theme == roomStyle.tileset)
+								tiles.Add(tile);
+						}
+					}
+
+					if (roomStyle.decorations != null && roomStyle.decorations.Length > 0)
+					foreach (DecorationRuleset decorationRuleset in roomStyle.decorations)
+					{
+						if (!_materials.ContainsKey(decorationRuleset.texture))
+						{
+							Material decorationMaterial = new Material(_transparentShader);
+							decorationMaterial.mainTexture = _themeManager.textures[decorationRuleset.texture];
+							_materials.Add(decorationRuleset.texture, decorationMaterial);
+						}
+
+						foreach (Tile tile in tiles)
+						{
+							GameObject decoration = Instantiate(_plane, new Vector3(0.0f, Epsilon, 0.0f), Quaternion.identity);
+							decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
+							tile.AddDecoration(decoration);
+						}
+					}
+				}
+				_state = State.Finished;
+				break;
 
 			case State.Finished:
 				FinishMaze();
@@ -267,7 +306,7 @@ public class MazeGenerator : MonoBehaviour
 		{
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
 			_currentSprawlerRulesetIndex = -1;
-			state = State.Finished;
+			state = State.AddingDecorations;
 		}
 		else
 		{
@@ -432,7 +471,7 @@ public class MazeGenerator : MonoBehaviour
 	private void TextureTile(Tile tile)
 	{
 		// Create the material(s) for the tile if they haven't been created yet.
-		if (!_tilesetMaterials.ContainsKey(tile.theme))
+		if (!_materials.ContainsKey(tile.theme))
 		{
 			Material regularMaterial = new Material(_regularShader);
 			Material floorMaterial = regularMaterial;
@@ -474,14 +513,14 @@ public class MazeGenerator : MonoBehaviour
 				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + tile.theme + "\" isn't loaded, but the default one isn't loaded either.", tile.instance);
 			}
 
-			_tilesetMaterials.Add(tile.theme, regularMaterial);
-			_tilesetMaterials.Add(tile.theme + TilesetFloorSuffix, floorMaterial);
-			_tilesetMaterials.Add(tile.theme + TilesetCeilingSuffix, ceilingMaterial);
+			_materials.Add(tile.theme, regularMaterial);
+			_materials.Add(tile.theme + TilesetFloorSuffix, floorMaterial);
+			_materials.Add(tile.theme + TilesetCeilingSuffix, ceilingMaterial);
 		}
 
-		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme]);
-		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _tilesetMaterials[tile.theme + TilesetFloorSuffix];
-		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _tilesetMaterials[tile.theme + TilesetCeilingSuffix];
+		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_materials[tile.theme]);
+		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[tile.theme + TilesetFloorSuffix];
+		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[tile.theme + TilesetCeilingSuffix];
 	}
 
 	/// <summary>
