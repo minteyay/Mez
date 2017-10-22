@@ -7,9 +7,7 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty _tileSize = null;
 	private SerializedProperty _entranceLength = null;
 
-	private SerializedProperty _floor = null;
-	private SerializedProperty _wall = null;
-	private SerializedProperty _ceiling = null;
+	private SerializedProperty _uvPlane = null;
 	private SerializedProperty _corridor = null;
 
 	private SerializedProperty _regularShader = null;
@@ -24,9 +22,7 @@ public class MazeGeneratorEditor : Editor
 		_tileSize = serializedObject.FindProperty("_tileSize");
 		_entranceLength = serializedObject.FindProperty("_entranceLength");
 
-		_floor = serializedObject.FindProperty("_floor");
-		_wall = serializedObject.FindProperty("_wall");
-		_ceiling = serializedObject.FindProperty("_ceiling");
+		_uvPlane = serializedObject.FindProperty("_uvPlane");
 		_corridor = serializedObject.FindProperty("_corridor");
 
 		_regularShader = serializedObject.FindProperty("_regularShader");
@@ -43,9 +39,7 @@ public class MazeGeneratorEditor : Editor
 
 		EditorGUILayout.PropertyField(_tileSize);
 		EditorGUILayout.PropertyField(_entranceLength);
-		EditorGUILayout.PropertyField(_floor);
-		EditorGUILayout.PropertyField(_wall);
-		EditorGUILayout.PropertyField(_ceiling);
+		EditorGUILayout.PropertyField(_uvPlane);
 		EditorGUILayout.PropertyField(_corridor);
 		EditorGUILayout.PropertyField(_regularShader);
 		EditorGUILayout.PropertyField(_seamlessShader);

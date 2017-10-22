@@ -12,9 +12,7 @@ public class MazeGenerator : MonoBehaviour
 	/// Length of the entrance corridor before a maze (in tiles).
 	[SerializeField] private uint _entranceLength = 0;
 
-	[SerializeField] private GameObject _floor = null;
-	[SerializeField] private GameObject _wall = null;
-	[SerializeField] private GameObject _ceiling = null;
+	[SerializeField] private GameObject _uvPlane = null;
 	[SerializeField] private GameObject _corridor = null;
 
 	[SerializeField] private Shader _regularShader = null;
@@ -363,16 +361,17 @@ public class MazeGenerator : MonoBehaviour
 				tile.instance.transform.position = new Vector3(y * _tileSize.y, 0.0f, x * _tileSize.x);
 
 				// Create the floor.
-				GameObject floorInstance = (GameObject)Instantiate(_floor,
+				GameObject floorInstance = (GameObject)Instantiate(_uvPlane,
 					new Vector3(),
 					Quaternion.Euler(0.0f, Autotile.tileRotations[tile.value], 0.0f));
 				floorInstance.name = "Floor";
 				floorInstance.transform.SetParent(tile.instance.transform, false);
 
 				// Create the ceiling.
-				GameObject ceilingInstance = (GameObject)Instantiate(_ceiling,
-					new Vector3(),
+				GameObject ceilingInstance = (GameObject)Instantiate(_uvPlane,
+					new Vector3(0.0f, 2.0f, 0.0f),
 					Quaternion.Euler(0.0f, Autotile.tileRotations[tile.value], 0.0f));
+				ceilingInstance.transform.localScale = new Vector3(1.0f, -1.0f, 1.0f);
 				ceilingInstance.name = "Ceiling";
 				ceilingInstance.transform.SetParent(tile.instance.transform, false);
 
@@ -386,10 +385,10 @@ public class MazeGenerator : MonoBehaviour
 				{
 					if (!Nav.IsConnected(tile.value, dir))
 					{
-						GameObject wallInstance = (GameObject)Instantiate(_wall, new Vector3(),
-								Quaternion.Euler(0.0f, Nav.FacingToAngle(dir), 0.0f));
+						GameObject wallInstance = (GameObject)Instantiate(_uvPlane, new Vector3(0.0f, 1.0f, 0.0f),
+								Quaternion.Euler(0.0f, Nav.FacingToAngle(dir), -90.0f));
 						wallInstance.transform.SetParent(wallsInstance.transform, false);
-						wallInstance.transform.position += wallInstance.transform.rotation * new Vector3(-_tileSize.y / 2.0f, 0.0f, 0.0f);
+						wallInstance.transform.position += new Vector3(Nav.DY[dir] * (maze.tileSize.y / 2.0f), 0.0f, Nav.DX[dir] * (maze.tileSize.x / 2.0f));
 						wallInstance.name = Nav.bits[dir].ToString();
 					}
 				}
@@ -481,8 +480,8 @@ public class MazeGenerator : MonoBehaviour
 		}
 
 		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme]);
-		tile.instance.transform.Find("Floor").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme + TilesetFloorSuffix]);
-		tile.instance.transform.Find("Ceiling").GetComponent<MaterialSetter>().SetMaterial(_tilesetMaterials[tile.theme + TilesetCeilingSuffix]);
+		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _tilesetMaterials[tile.theme + TilesetFloorSuffix];
+		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _tilesetMaterials[tile.theme + TilesetCeilingSuffix];
 	}
 
 	/// <summary>
@@ -518,12 +517,12 @@ public class MazeGenerator : MonoBehaviour
 
 		// Update the floor's UVs.
 		Transform floorTransform = tile.instance.transform.Find("Floor");
-		floorTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
+		floorTransform.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
 		floorTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
 
 		// Update the ceiling's UVs.
 		Transform ceilingTransform = tile.instance.transform.Find("Ceiling");
-		ceilingTransform.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
+		ceilingTransform.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
 		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
 
 		// Update the walls' UVs.
@@ -554,7 +553,7 @@ public class MazeGenerator : MonoBehaviour
 				}
 
 				Transform wallInstance = wallsTransform.Find(Nav.bits[dir].ToString());
-				wallInstance.Find("Mesh").GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
+				wallInstance.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
 		}
 	}
