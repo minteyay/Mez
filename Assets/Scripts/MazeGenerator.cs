@@ -83,6 +83,9 @@ public class MazeGenerator : MonoBehaviour
 		_roomStyles = new Dictionary<string, RoomStyle>();
 		foreach (RoomStyle tileset in ruleset.roomStyles)
 			_roomStyles.Add(tileset.name, tileset);
+		// If the ruleset doesn't specify a default theme, create one.
+		if (!_roomStyles.ContainsKey("default"))
+			_roomStyles.Add("default", new RoomStyle());
 
 		messageLog = new List<string>();
 		_newSprawlerTiles = new List<Tile>();
@@ -109,7 +112,6 @@ public class MazeGenerator : MonoBehaviour
 			return;
 		}
 		_maze.Initialise((uint)ruleset.size.x, (uint)ruleset.size.y, _tileSize);
-		_maze.defaultTheme = ruleset.defaultTileset;
 		_maze.startPosition = new Point(startX, 0);
 		_maze.entranceLength = _entranceLength;
 
@@ -231,7 +233,7 @@ public class MazeGenerator : MonoBehaviour
 
 						// Apply the new theme to the Sprawler's Tiles.
 						foreach (Tile tile in _currentSprawlerTiles)
-							tile.theme = _roomStyles[_ruleset.rooms[_currentSprawlerRulesetIndex].style].tileset;
+							tile.theme = _roomStyles[_ruleset.rooms[_currentSprawlerRulesetIndex].style].name;
 						
 						if (_stepThrough)
 						{
@@ -260,7 +262,7 @@ public class MazeGenerator : MonoBehaviour
 						for (int x = 0; x < _maze.size.x; x++)
 						{
 							Tile tile = _maze.GetTile(x, y);
-							if (tile.theme == roomStyle.tileset)
+							if (tile.theme == roomStyle.name)
 								tiles.Add(tile);
 						}
 					}
@@ -382,7 +384,7 @@ public class MazeGenerator : MonoBehaviour
 			{
                 // Create the tile and add it to the Maze.
 				Tile tile = new Tile(grid[y, x], new Point((int)x, (int)y));
-				tile.theme = _ruleset.defaultTileset;
+				tile.theme = "default";
 				maze.AddTile(tile);
 			}
 		}
@@ -473,34 +475,36 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void TextureTile(Tile tile)
 	{
+		string tilesetName = _roomStyles[tile.theme].tileset;
+
 		// Create the material(s) for the tile if they haven't been created yet.
-		if (!_materials.ContainsKey(tile.theme))
+		if (!_materials.ContainsKey(tilesetName))
 		{
 			Material regularMaterial = new Material(_regularShader);
 			Material floorMaterial = regularMaterial;
 			Material ceilingMaterial = regularMaterial;
 
 			// Use the tile's tileset if it's loaded.
-			if (_themeManager.textures.ContainsKey(tile.theme))
+			if (_themeManager.textures.ContainsKey(tilesetName))
 			{
-				Texture2D tileset = _themeManager.textures[tile.theme];
+				Texture2D tileset = _themeManager.textures[tilesetName];
 				regularMaterial.mainTexture = tileset;
 
 				// Create a seamless material for the floor if one exists.
-				if (_themeManager.textures.ContainsKey(tile.theme + TilesetFloorSuffix))
+				if (_themeManager.textures.ContainsKey(tilesetName + TilesetFloorSuffix))
 				{
 					floorMaterial = new Material(_seamlessShader);
 					floorMaterial.mainTexture = tileset;
-					floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[tile.theme + TilesetFloorSuffix]);
+					floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[tilesetName + TilesetFloorSuffix]);
 					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
 				}
 
 				// Create a seamless material for the ceiling if one exists.
-				if (_themeManager.textures.ContainsKey(tile.theme + TilesetCeilingSuffix))
+				if (_themeManager.textures.ContainsKey(tilesetName + TilesetCeilingSuffix))
 				{
 					ceilingMaterial = new Material(_seamlessShader);
 					ceilingMaterial.mainTexture = tileset;
-					ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[tile.theme + TilesetCeilingSuffix]);
+					ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[tilesetName + TilesetCeilingSuffix]);
 					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
 				}
 			}
@@ -508,22 +512,22 @@ public class MazeGenerator : MonoBehaviour
 			else if (_themeManager.textures.ContainsKey("default"))
 			{
 				regularMaterial.mainTexture = _themeManager.textures["default"];
-				Debug.LogWarning("Tried using tileset called \"" + tile.theme + "\" but it isn't loaded, using the default tileset.", tile.instance);
+				Debug.LogWarning("Tried using tileset called \"" + tilesetName + "\" but it isn't loaded, using the default tileset.", tile.instance);
 			}
 			// The default tileset wasn't loaded either.
 			else
 			{
-				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + tile.theme + "\" isn't loaded, but the default one isn't loaded either.", tile.instance);
+				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + tilesetName + "\" isn't loaded, but the default one isn't loaded either.", tile.instance);
 			}
 
-			_materials.Add(tile.theme, regularMaterial);
-			_materials.Add(tile.theme + TilesetFloorSuffix, floorMaterial);
-			_materials.Add(tile.theme + TilesetCeilingSuffix, ceilingMaterial);
+			_materials.Add(tilesetName, regularMaterial);
+			_materials.Add(tilesetName + TilesetFloorSuffix, floorMaterial);
+			_materials.Add(tilesetName + TilesetCeilingSuffix, ceilingMaterial);
 		}
 
-		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_materials[tile.theme]);
-		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[tile.theme + TilesetFloorSuffix];
-		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[tile.theme + TilesetCeilingSuffix];
+		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_materials[tilesetName]);
+		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetFloorSuffix];
+		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetCeilingSuffix];
 	}
 
 	/// <summary>

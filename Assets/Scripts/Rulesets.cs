@@ -6,7 +6,6 @@ public class MazeRuleset
 {
     public string name = "";
     public Point size = new Point(2, 2);
-    public string defaultTileset = "default";
 
     public RoomStyle[] roomStyles;
     public RoomRuleset[] rooms;
@@ -20,8 +19,8 @@ public class MazeRuleset
 [System.Serializable]
 public class RoomStyle
 {
-    public string name = "";
-    public string tileset = "";
+    public string name = "default";
+    public string tileset = "default";
 
     public DecorationRuleset[] decorations;
 }

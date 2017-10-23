@@ -14,7 +14,6 @@ public class Maze : MonoBehaviour
 
 	[HideInInspector] public Point startPosition;
 	[HideInInspector] public uint entranceLength = 0;
-	[HideInInspector] public string defaultTheme = "";
 
 	private Tile[,] _tiles;
 
