@@ -24,4 +24,15 @@ public class Random : MonoBehaviour
     {
         _instance = new System.Random(seed);
     }
+
+    /// <summary>
+    /// Calculates a random binary choice.
+    /// </summary>
+    /// <param name="chance">Chance of success [0-1].</param>
+    public static bool YesOrNo(double chance)
+    {
+        if (instance.NextDouble() < chance)
+            return true;
+        return false;
+    }
 }

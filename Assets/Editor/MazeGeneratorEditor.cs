@@ -7,13 +7,13 @@ public class MazeGeneratorEditor : Editor
 	private SerializedProperty _tileSize = null;
 	private SerializedProperty _entranceLength = null;
 
-	private SerializedProperty _floor = null;
-	private SerializedProperty _wall = null;
-	private SerializedProperty _ceiling = null;
+	private SerializedProperty _plane = null;
+	private SerializedProperty _uvPlane = null;
 	private SerializedProperty _corridor = null;
 
 	private SerializedProperty _regularShader = null;
 	private SerializedProperty _seamlessShader = null;
+	private SerializedProperty _transparentShader = null;
 
 	private SerializedProperty _stepThrough = null;
 	private SerializedProperty _state = null;
@@ -24,13 +24,13 @@ public class MazeGeneratorEditor : Editor
 		_tileSize = serializedObject.FindProperty("_tileSize");
 		_entranceLength = serializedObject.FindProperty("_entranceLength");
 
-		_floor = serializedObject.FindProperty("_floor");
-		_wall = serializedObject.FindProperty("_wall");
-		_ceiling = serializedObject.FindProperty("_ceiling");
+		_plane = serializedObject.FindProperty("_plane");
+		_uvPlane = serializedObject.FindProperty("_uvPlane");
 		_corridor = serializedObject.FindProperty("_corridor");
 
 		_regularShader = serializedObject.FindProperty("_regularShader");
 		_seamlessShader = serializedObject.FindProperty("_seamlessShader");
+		_transparentShader = serializedObject.FindProperty("_transparentShader");
 
 		_stepThrough = serializedObject.FindProperty("_stepThrough");
 		_state = serializedObject.FindProperty("_state");
@@ -43,12 +43,14 @@ public class MazeGeneratorEditor : Editor
 
 		EditorGUILayout.PropertyField(_tileSize);
 		EditorGUILayout.PropertyField(_entranceLength);
-		EditorGUILayout.PropertyField(_floor);
-		EditorGUILayout.PropertyField(_wall);
-		EditorGUILayout.PropertyField(_ceiling);
+		
+		EditorGUILayout.PropertyField(_plane);
+		EditorGUILayout.PropertyField(_uvPlane);
 		EditorGUILayout.PropertyField(_corridor);
+
 		EditorGUILayout.PropertyField(_regularShader);
 		EditorGUILayout.PropertyField(_seamlessShader);
+		EditorGUILayout.PropertyField(_transparentShader);
 
 		GUILayout.Space(10.0f);
 

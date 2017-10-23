@@ -14,7 +14,6 @@ public class Maze : MonoBehaviour
 
 	[HideInInspector] public Point startPosition;
 	[HideInInspector] public uint entranceLength = 0;
-	[HideInInspector] public string defaultTheme = "";
 
 	private Tile[,] _tiles;
 
@@ -80,16 +79,6 @@ public class Maze : MonoBehaviour
 			}
 		}
 		return connections;
-	}
-
-    /// <summary>
-    /// Add an item to the tile in the given position.
-    /// </summary>
-	public void AddItem(Point position, GameObject item)
-	{
-		Tile tile = GetTile(position);
-		if (tile != null)
-			item.transform.SetParent(tile.instance.transform, false);
 	}
 
 	public enum MovementPreference { Leftmost, Straight	}

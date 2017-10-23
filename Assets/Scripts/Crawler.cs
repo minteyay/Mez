@@ -73,7 +73,7 @@ public class Crawler
 	public bool Start()
 	{
 		// Check the starting tile's theme if it's relevant.
-		if (_onlyStepOnDefault && _maze.GetTile(position).theme != _maze.defaultTheme)
+		if (_onlyStepOnDefault && _maze.GetTile(position).theme != "default")
 			return false;
 		
 		_started = true;
@@ -108,7 +108,7 @@ public class Crawler
 			_nextPosition = _maze.MoveForwards(position, _facing, Maze.MovementPreference.Straight);
 
 			// Check the validity of the next position.
-			if (_nextPosition == position || _maze.GetTile(_nextPosition) == null || (_onlyStepOnDefault && _maze.GetTile(_nextPosition).theme != _maze.defaultTheme))
+			if (_nextPosition == position || _maze.GetTile(_nextPosition) == null || (_onlyStepOnDefault && _maze.GetTile(_nextPosition).theme != "default"))
 			{
 				// The next position isn't valid, stop crawling.
 				if (_onComplete != null)
