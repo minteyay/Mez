@@ -278,11 +278,38 @@ public class MazeGenerator : MonoBehaviour
 
 						foreach (Tile tile in tiles)
 						{
-							if (Random.YesOrNo(decorationRuleset.occurrence / 100.0f))
+							if (decorationRuleset.location == DecorationRuleset.Location.Wall)
 							{
-								GameObject decoration = Instantiate(_plane, new Vector3(0.0f, Epsilon, 0.0f), Quaternion.identity);
-								decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
-								tile.AddDecoration(decoration);
+								foreach (GameObject wall in tile.walls)
+								{
+									if (Random.YesOrNo(decorationRuleset.occurrence / 100.0f))
+									{
+										Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), wall.name);
+										GameObject decoration = Instantiate(_plane, new Vector3(0.0f, 1.0f, 0.0f),
+											Quaternion.Euler(90.0f, Nav.FacingToAngle(wallDir), -90.0f));
+										decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
+										tile.AddDecoration(decoration);
+										decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon), 0.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon));
+									}
+								}
+							}
+							else
+							{
+								if (Random.YesOrNo(decorationRuleset.occurrence / 100.0f))
+								{
+									GameObject decoration = Instantiate(_plane, new Vector3(), Quaternion.identity);
+									decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
+									tile.AddDecoration(decoration);
+									if (decorationRuleset.location == DecorationRuleset.Location.Floor)
+									{
+										decoration.transform.position += new Vector3(0.0f, Epsilon, 0.0f);
+									}
+									else if (decorationRuleset.location == DecorationRuleset.Location.Ceiling)
+									{
+										decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
+										decoration.transform.localScale = new Vector3(-1.0f, -1.0f, 1.0f);
+									}
+								}
 							}
 						}
 					}
