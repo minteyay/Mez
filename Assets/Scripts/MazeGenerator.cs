@@ -277,9 +277,12 @@ public class MazeGenerator : MonoBehaviour
 
 						foreach (Tile tile in tiles)
 						{
-							GameObject decoration = Instantiate(_plane, new Vector3(0.0f, Epsilon, 0.0f), Quaternion.identity);
-							decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
-							tile.AddDecoration(decoration);
+							if (Random.YesOrNo(decorationRuleset.occurrence / 100.0f))
+							{
+								GameObject decoration = Instantiate(_plane, new Vector3(0.0f, Epsilon, 0.0f), Quaternion.identity);
+								decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
+								tile.AddDecoration(decoration);
+							}
 						}
 					}
 				}
