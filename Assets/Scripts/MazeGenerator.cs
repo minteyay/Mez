@@ -307,7 +307,7 @@ public class MazeGenerator : MonoBehaviour
 									else if (decorationRuleset.location == DecorationRuleset.Location.Ceiling)
 									{
 										decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
-										decoration.transform.localScale = new Vector3(-1.0f, -1.0f, 1.0f);
+										decoration.transform.localScale = new Vector3(1.0f, -1.0f, -1.0f);
 									}
 								}
 							}
