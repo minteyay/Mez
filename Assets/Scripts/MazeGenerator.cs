@@ -167,7 +167,6 @@ public class MazeGenerator : MonoBehaviour
 
 		switch (state)
 		{
-			// Running the Sprawlers in the current ruleset.
 			case State.RunningSprawlers:
 				currentSprawlerRuleset = _ruleset.rooms[_currentSprawlerRulesetIndex];
 				
@@ -401,7 +400,6 @@ public class MazeGenerator : MonoBehaviour
 			{
 				Tile tile = maze.GetTile(x, y);
 
-				tile.instance.AddComponent<MaterialSetter>();
 				tile.instance.transform.position = new Vector3(y * _tileSize.y, 0.0f, x * _tileSize.x);
 
 				// Create the floor.
@@ -410,6 +408,7 @@ public class MazeGenerator : MonoBehaviour
 					Quaternion.Euler(0.0f, Autotile.tileRotations[tile.value], 0.0f));
 				floorInstance.name = "Floor";
 				floorInstance.transform.SetParent(tile.instance.transform, false);
+				tile.floor = floorInstance;
 
 				// Create the ceiling.
 				GameObject ceilingInstance = (GameObject)Instantiate(_uvPlane,
@@ -418,13 +417,14 @@ public class MazeGenerator : MonoBehaviour
 				ceilingInstance.transform.localScale = new Vector3(1.0f, -1.0f, 1.0f);
 				ceilingInstance.name = "Ceiling";
 				ceilingInstance.transform.SetParent(tile.instance.transform, false);
+				tile.ceiling = ceilingInstance;
 
 				// Create the walls.
 				GameObject wallsInstance = new GameObject("Walls");
-				wallsInstance.AddComponent<MaterialSetter>();
 				wallsInstance.transform.SetParent(tile.instance.transform, false);
 
 				// Create a wall in every direction the tile isn't connected in.
+				List<GameObject> walls = new List<GameObject>();
 				foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
 				{
 					if (!Nav.IsConnected(tile.value, dir))
@@ -433,9 +433,11 @@ public class MazeGenerator : MonoBehaviour
 								Quaternion.Euler(0.0f, Nav.FacingToAngle(dir), -90.0f));
 						wallInstance.transform.SetParent(wallsInstance.transform, false);
 						wallInstance.transform.position += new Vector3(Nav.DY[dir] * (maze.tileSize.y / 2.0f), 0.0f, Nav.DX[dir] * (maze.tileSize.x / 2.0f));
-						wallInstance.name = Nav.bits[dir].ToString();
+						wallInstance.name = dir.ToString();
+						walls.Add(wallInstance);
 					}
 				}
+				tile.walls = walls.ToArray();
 			}
 		}
 	}
@@ -525,9 +527,10 @@ public class MazeGenerator : MonoBehaviour
 			_materials.Add(tilesetName + TilesetCeilingSuffix, ceilingMaterial);
 		}
 
-		tile.instance.transform.Find("Walls").GetComponent<MaterialSetter>().SetMaterial(_materials[tilesetName]);
-		tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetFloorSuffix];
-		tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetCeilingSuffix];
+		foreach (GameObject wall in tile.walls)
+			wall.GetComponent<MeshRenderer>().material = _materials[tilesetName];
+		tile.floor.GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetFloorSuffix];
+		tile.ceiling.GetComponent<MeshRenderer>().material = _materials[tilesetName + TilesetCeilingSuffix];
 	}
 
 	/// <summary>
@@ -562,45 +565,37 @@ public class MazeGenerator : MonoBehaviour
 		}
 
 		// Update the floor's UVs.
-		Transform floorTransform = tile.instance.transform.Find("Floor");
-		floorTransform.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
-		floorTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
+		tile.floor.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
+		tile.floor.transform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
 
 		// Update the ceiling's UVs.
-		Transform ceilingTransform = tile.instance.transform.Find("Ceiling");
-		ceilingTransform.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
-		ceilingTransform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
+		tile.ceiling.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.ceilingTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);
+		tile.ceiling.transform.rotation = Quaternion.Euler(0.0f, Autotile.tileRotations[fixedValue], 0.0f);
 
 		// Update the walls' UVs.
-		Transform wallsTransform = tile.instance.transform.Find("Walls");
-		uint wallValue = 0;
-		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
+		foreach (GameObject wall in tile.walls)
 		{
-			wallValue = 0;
-			if (!Nav.IsConnected(tile.value, dir))
+			Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), wall.name);
+			uint wallValue = 0;
+			if (Nav.IsConnected(fixedValue, Nav.left[wallDir]))
 			{
-				if (Nav.IsConnected(fixedValue, Nav.left[dir]))
+				Tile leftTile = _maze.GetTile(tile.position + new Point(Nav.DX[Nav.left[wallDir]], Nav.DY[Nav.left[wallDir]]));
+				if (leftTile != null)
 				{
-					Tile leftTile = _maze.GetTile(tile.position + new Point(Nav.DX[Nav.left[dir]], Nav.DY[Nav.left[dir]]));
-					if (leftTile != null)
-					{
-						if (Autotile.IsWallConnected(tile.value, leftTile.value, dir))
-							wallValue |= 1;
-					}
+					if (Autotile.IsWallConnected(fixedValue, leftTile.value, wallDir))
+						wallValue |= 1;
 				}
-				if (Nav.IsConnected(fixedValue, Nav.right[dir]))
-				{
-					Tile rightTile = _maze.GetTile(tile.position + new Point(Nav.DX[Nav.right[dir]], Nav.DY[Nav.right[dir]]));
-					if (rightTile != null)
-					{
-						if (Autotile.IsWallConnected(tile.value, rightTile.value, dir))
-							wallValue |= 2;
-					}
-				}
-
-				Transform wallInstance = wallsTransform.Find(Nav.bits[dir].ToString());
-				wallInstance.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 			}
+			if (Nav.IsConnected(fixedValue, Nav.right[wallDir]))
+			{
+				Tile rightTile = _maze.GetTile(tile.position + new Point(Nav.DX[Nav.right[wallDir]], Nav.DY[Nav.right[wallDir]]));
+				if (rightTile != null)
+				{
+					if (Autotile.IsWallConnected(fixedValue, rightTile.value, wallDir))
+						wallValue |= 2;
+				}
+			}
+			wall.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.wallTileStartIndex + Autotile.twoBitTileIndices[wallValue]);
 		}
 	}
 
