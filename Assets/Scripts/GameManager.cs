@@ -50,14 +50,6 @@ public class GameManager : MonoBehaviour
 
 	void Update()
 	{
-#if !SCREENSAVER
-        // Generate a new maze.
-		if (Input.GetKeyDown(KeyCode.N))
-		{
-			GenerateLevel();
-		}
-#endif
-
 #if UNITY_WEBGL
         // Toggle fullscreen.
 		if (Input.GetKeyDown(KeyCode.F))
@@ -84,7 +76,7 @@ public class GameManager : MonoBehaviour
 #endif
 	}
 
-	public void GenerateLevel()
+	public void GenerateMaze(MazeRuleset ruleset)
 	{
         // Destroy the maze if one exists.
 		if (_maze)
@@ -93,16 +85,14 @@ public class GameManager : MonoBehaviour
 			Resources.UnloadUnusedAssets();
 		}
 
-		MazeRuleset ruleset = themeManager.rulesets["dark"];
-
         // Generate a new maze.
-		_mazeGen.GenerateMaze(ruleset, themeManager, LevelGenerated);
+		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; } );
 	}
 
-	private void LevelGenerated(Maze maze)
+	private void MazeGenerated(Maze maze)
 	{
 		// Store the generated maze.
-		this._maze = maze;
+		_maze = maze;
 
 		// Create a new player if one doesn't already exist.
 		if (_playerInstance == null)
@@ -110,7 +100,7 @@ public class GameManager : MonoBehaviour
 			_playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
 			_playerInstance.name = "Player";
 			_player = _playerInstance.GetComponent<Player>();
-			_player.outOfBoundsCallback = GenerateLevel;
+			// _player.outOfBoundsCallback = GenerateMaze;
 		}
 
 		_player.maze = maze;

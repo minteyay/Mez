@@ -10,7 +10,7 @@ public class ThemeManager : MonoBehaviour
 	private const string ThemePath = "/Themes/";
 
 	public List<string> themeNames { get; private set; }
-	public Dictionary<string, MazeRuleset> rulesets { get; private set; }
+	public MazeRuleset ruleset { get; private set; }
 	public Dictionary<string, Texture2D> textures { get; private set; }
 
 	public delegate void LoadingComplete();
@@ -20,14 +20,15 @@ public class ThemeManager : MonoBehaviour
 	private int _texturesToLoad = 0;
 
 	[SerializeField] private Texture2D _defaultTexture = null;
+	public Texture2D defaultTexture { get; private set; }
 
 	public void Awake()
 	{
 		themeNames = new List<string>();
-		rulesets = new Dictionary<string, MazeRuleset>();
+		ruleset = null;
 		textures = new Dictionary<string, Texture2D>();
 
-		textures.Add("default", _defaultTexture);
+		defaultTexture = _defaultTexture;
 
 		// Enumerate themes.
 		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + ThemePath);
@@ -45,6 +46,9 @@ public class ThemeManager : MonoBehaviour
 	public void LoadTheme(string themeName, LoadingComplete callback)
 	{
 		_callback = callback;
+
+		ruleset = null;
+		textures.Clear();
 
 		LoadThemeRuleset(themeName);
 		LoadThemeTextures(themeName);
@@ -79,9 +83,7 @@ public class ThemeManager : MonoBehaviour
 		WWW www = new WWW("file://" + rulesetPath);
 		yield return www;
 
-		MazeRuleset ruleset = MazeRuleset.FromJSON(www.text);
-		string rulesetName = Utils.ParseFileName(rulesetPath);
-		rulesets.Add(rulesetName, ruleset);
+		ruleset = MazeRuleset.FromJSON(www.text);
 
 		_rulesetLoaded = true;
 		UpdateLoadingState();

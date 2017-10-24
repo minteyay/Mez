@@ -579,16 +579,12 @@ public class MazeGenerator : MonoBehaviour
 					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
 				}
 			}
-			// If the tile's tileset isn't loaded, try using the default one.
-			else if (_themeManager.textures.ContainsKey("default"))
-			{
-				regularMaterial.mainTexture = _themeManager.textures["default"];
-				Debug.LogWarning("Tried using tileset called \"" + tilesetName + "\" but it isn't loaded, using the default tileset.", tile.instance);
-			}
-			// The default tileset wasn't loaded either.
+			// If the tile's tileset isn't loaded, use the default one.
 			else
 			{
-				Debug.LogWarning("Tried using the default tileset since a tileset named \"" + tilesetName + "\" isn't loaded, but the default one isn't loaded either.", tile.instance);
+				regularMaterial.mainTexture = _themeManager.defaultTexture;
+				if (tilesetName != "default")
+					Debug.LogWarning("Tried using tileset called \"" + tilesetName + "\" but it isn't loaded, using the default tileset.", tile.instance);
 			}
 
 			_materials.Add(tilesetName, regularMaterial);
