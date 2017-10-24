@@ -2,13 +2,11 @@
 
 public class GameManager : MonoBehaviour
 {
-	public GameObject playerPrefab = null;
+	[SerializeField] private GameObject playerPrefab = null;
 	private GameObject _playerInstance = null;
 	private Player _player = null;
 
-	public GameObject uiPrefab = null;
-
-	private ThemeManager _themeManager = null;
+	public ThemeManager themeManager { get; private set; }
 
 	private MazeGenerator _mazeGen = null;
 	private Maze _maze = null;
@@ -36,7 +34,7 @@ public class GameManager : MonoBehaviour
 
 	void Awake()
 	{
-		_themeManager = GetComponent<ThemeManager>();
+		themeManager = GetComponent<ThemeManager>();
 		_mazeGen = GetComponent<MazeGenerator>();
 
 #if UNITY_STANDALONE && SCREENSAVER
@@ -48,12 +46,6 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
-		// Load the theme.
-		_themeManager.LoadTheme("dark", GenerateLevel);
-
-        // Create the UI.
-		GameObject uiInstance = Instantiate(uiPrefab);
-		uiInstance.name = "UI";
 	}
 
 	void Update()
@@ -101,10 +93,10 @@ public class GameManager : MonoBehaviour
 			Resources.UnloadUnusedAssets();
 		}
 
-		MazeRuleset ruleset = _themeManager.rulesets["dark"];
+		MazeRuleset ruleset = themeManager.rulesets["dark"];
 
         // Generate a new maze.
-		_mazeGen.GenerateMaze(ruleset, _themeManager, LevelGenerated);
+		_mazeGen.GenerateMaze(ruleset, themeManager, LevelGenerated);
 	}
 
 	private void LevelGenerated(Maze maze)
