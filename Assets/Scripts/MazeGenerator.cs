@@ -300,18 +300,20 @@ public class MazeGenerator : MonoBehaviour
 										{
 											case DecorationRuleset.Location.Floor:
 												decoration.transform.position += new Vector3(0.0f, Epsilon, 0.0f);
+												decoration.transform.SetParent(decorationSpot.transform.parent, false);
 												break;
 											case DecorationRuleset.Location.Ceiling:
 												decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
 												decoration.transform.localScale = new Vector3(1.0f, -1.0f, -1.0f);
+												decoration.transform.SetParent(decorationSpot.transform.parent, false);
 												break;
 											case DecorationRuleset.Location.Wall:
 												Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), decorationSpot.name);
 												decoration.transform.rotation = Quaternion.Euler(90.0f, Nav.FacingToAngle(wallDir), -90.0f);
 												decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon), 1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon));
+												decoration.transform.SetParent(decorationSpot.transform.parent.parent, false);
 												break;
 										}
-										decoration.transform.SetParent(decorationSpot.transform, false);
 									}
 								}
 								break;
@@ -334,18 +336,20 @@ public class MazeGenerator : MonoBehaviour
 									{
 										case DecorationRuleset.Location.Floor:
 											decoration.transform.position += new Vector3(0.0f, Epsilon, 0.0f);
+											decoration.transform.SetParent(decorationSpots[i].transform.parent, false);
 											break;
 										case DecorationRuleset.Location.Ceiling:
 											decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
 											decoration.transform.localScale = new Vector3(1.0f, -1.0f, -1.0f);
+											decoration.transform.SetParent(decorationSpots[i].transform.parent, false);
 											break;
 										case DecorationRuleset.Location.Wall:
 											Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), decorationSpots[i].name);
 											decoration.transform.rotation = Quaternion.Euler(90.0f, Nav.FacingToAngle(wallDir), -90.0f);
 											decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon), 1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon));
+											decoration.transform.SetParent(decorationSpots[i].transform.parent.parent, false);
 											break;
 									}
-									decoration.transform.SetParent(decorationSpots[i].transform, false);
 								}
 
 								break;
