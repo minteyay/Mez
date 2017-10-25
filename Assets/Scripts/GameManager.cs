@@ -2,16 +2,7 @@
 
 public class GameManager : MonoBehaviour
 {
-	[SerializeField] private GameObject playerPrefab = null;
-	private GameObject _playerInstance = null;
-	private Player _player = null;
-
-	public ThemeManager themeManager { get; private set; }
-
-	private MazeGenerator _mazeGen = null;
-	private Maze _maze = null;
-
-    // Manager singleton instance and getter.
+	// Manager singleton instance and getter.
 	private static GameManager _instance;
 	public static GameManager instance
 	{
@@ -31,6 +22,17 @@ public class GameManager : MonoBehaviour
 			return _instance;
 		}
 	}
+
+	public ThemeManager themeManager { get; private set; }
+
+	[SerializeField] private Camera _editorCamera = null;
+	[SerializeField] private UI _gui = null;
+
+	[SerializeField] private GameObject _playerPrefab = null;
+	private Player _player = null;
+
+	private MazeGenerator _mazeGen = null;
+	private Maze _maze = null;
 
 	void Awake()
 	{
@@ -89,27 +91,37 @@ public class GameManager : MonoBehaviour
 		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; } );
 	}
 
-	private void MazeGenerated(Maze maze)
+	public void RunMaze()
 	{
-		// Store the generated maze.
-		_maze = maze;
+		_editorCamera.enabled = false;
 
-		// Create a new player if one doesn't already exist.
-		if (_playerInstance == null)
+		if (_player == null)
 		{
-			_playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
-			_playerInstance.name = "Player";
-			_player = _playerInstance.GetComponent<Player>();
-			// _player.outOfBoundsCallback = GenerateMaze;
+			GameObject playerInstance = (GameObject)Instantiate(_playerPrefab, new Vector3(), Quaternion.identity);
+			playerInstance.name = "Player";
+			_player = playerInstance.GetComponent<Player>();
+			_player.outOfBoundsCallback = StopRunningMaze;
 		}
 
-		_player.maze = maze;
-		_playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileSize.y, 0.0f, 0.0f);
+		_player.maze = _maze;
+		_player.transform.position = _maze.TileToWorldPosition(_maze.startPosition) - new Vector3(_maze.entranceLength * _maze.tileSize.y, 0.0f, 0.0f);
 		_player.facing = Dir.S;
 		_player.Reset();
 
-		Point nextTarget = maze.MoveForwards(maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
-		Dir nextFacing = Nav.DeltaToFacing(nextTarget - maze.startPosition);
-		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, maze.TileToWorldPosition(nextTarget), nextFacing);
+		Point nextTarget = _maze.MoveForwards(_maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
+		Dir nextFacing = Nav.DeltaToFacing(nextTarget - _maze.startPosition);
+		_player.SetTargets(_maze.TileToWorldPosition(_maze.startPosition), Dir.S, _maze.TileToWorldPosition(nextTarget), nextFacing);
+	}
+
+	public void StopRunningMaze()
+	{
+		if (_player != null)
+		{
+			Destroy(_player.gameObject);
+			_player = null;
+		}
+
+		_editorCamera.enabled = true;
+		_gui.SetEditorGUIEnabled(true);
 	}
 }

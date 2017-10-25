@@ -5,6 +5,7 @@ public class UI : MonoBehaviour
 {
     private GameManager _gameManager = null;
 
+    [SerializeField] private GameObject _editorGUI = null;
     [SerializeField] private Dropdown _themeDropdown = null;
     [SerializeField] private GameObject _busyScreen = null;
 
@@ -21,6 +22,11 @@ public class UI : MonoBehaviour
         ThemeChanged(0);
     }
 
+    public void SetEditorGUIEnabled(bool enabled)
+    {
+        _editorGUI.SetActive(enabled);
+    }
+
     public void ThemeChanged(System.Int32 index)
     {
         string themeName = _themeDropdown.options[index].text;
@@ -31,5 +37,11 @@ public class UI : MonoBehaviour
     public void GenerateMaze()
     {
         _gameManager.GenerateMaze(_gameManager.themeManager.ruleset);
+    }
+
+    public void RunMaze()
+    {
+        SetEditorGUIEnabled(false);
+        _gameManager.RunMaze();
     }
 }
