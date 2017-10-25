@@ -43,6 +43,7 @@ public class UI : MonoBehaviour
 
     public void GenerateMaze()
     {
-        _gameManager.GenerateMaze(_gameManager.themeManager.ruleset);
+        _busyScreen.SetActive(true);
+        _gameManager.GenerateMaze(_gameManager.themeManager.ruleset, () => { _busyScreen.SetActive(false); });
     }
 }

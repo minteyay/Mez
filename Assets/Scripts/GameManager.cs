@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private GameObject _playerPrefab = null;
 	private Player _player = null;
 
+	public delegate void OnMazeGenerated();
 	private MazeGenerator _mazeGen = null;
 	private Maze _maze = null;
 
@@ -121,17 +122,14 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public void GenerateMaze(MazeRuleset ruleset)
+	public void GenerateMaze(MazeRuleset ruleset, OnMazeGenerated callback = null)
 	{
-        // Destroy the maze if one exists.
 		if (_maze)
 		{
 			Destroy(_maze.gameObject);
 			Resources.UnloadUnusedAssets();
 		}
-
-        // Generate a new maze.
-		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; } );
+		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; if (callback != null) callback.Invoke(); } );
 	}
 
 	public void SetupPlayer()
@@ -141,7 +139,7 @@ public class GameManager : MonoBehaviour
 			GameObject playerInstance = (GameObject)Instantiate(_playerPrefab, new Vector3(), Quaternion.identity);
 			playerInstance.name = "Player";
 			_player = playerInstance.GetComponent<Player>();
-			_player.outOfBoundsCallback = null;
+			_player.outOfBoundsCallback = PlayerFinishedMaze;
 		}
 
 		_player.maze = _maze;
@@ -152,5 +150,10 @@ public class GameManager : MonoBehaviour
 		Point nextTarget = _maze.MoveForwards(_maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
 		Dir nextFacing = Nav.DeltaToFacing(nextTarget - _maze.startPosition);
 		_player.SetTargets(_maze.TileToWorldPosition(_maze.startPosition), Dir.S, _maze.TileToWorldPosition(nextTarget), nextFacing);
+	}
+
+	private void PlayerFinishedMaze()
+	{
+		GenerateMaze(themeManager.ruleset, () => SetupPlayer() );
 	}
 }
