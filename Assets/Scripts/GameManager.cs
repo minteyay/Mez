@@ -34,6 +34,19 @@ public class GameManager : MonoBehaviour
 	private MazeGenerator _mazeGen = null;
 	private Maze _maze = null;
 
+	public enum State { Editor, RunningMaze };
+	private State _state = State.Editor;
+	public State state
+	{
+		get { return _state; }
+		set
+		{
+			ExitState(_state);
+			_state = value;
+			EnterState(_state);
+		}
+	}
+
 	private bool _paused = false;
 
 	void Awake()
@@ -60,12 +73,52 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	public void LoadEditorState() { state = State.Editor; }
+	public void LoadRunningMazeState() { state = State.RunningMaze; }
+
+	private void EnterState(State newState)
+	{
+		switch (newState)
+		{
+			case State.Editor:
+				_editorCamera.enabled = true;
+				_gui.SetEditorGUIEnabled(true);
+				break;
+			case State.RunningMaze:
+				SetupPlayer();
+				_paused = false;
+				break;
+		}
+	}
+
+	private void ExitState(State oldState)
+	{
+		switch (oldState)
+		{
+			case State.Editor:
+				_editorCamera.enabled = false;
+				_gui.SetEditorGUIEnabled(false);
+				break;
+			case State.RunningMaze:
+				if (_player != null)
+				{
+					Destroy(_player.gameObject);
+					_player = null;
+				}
+				SetPause(false);
+				break;
+		}
+	}
+
 	public void SetPause(bool pause)
 	{
-		_paused = pause;
-		if (_player != null)
-			_player.enabled = !_paused;
-		_gui.SetPauseMenuEnabled(_paused);
+		if (_state == State.RunningMaze)
+		{
+			_paused = pause;
+			if (_player != null)
+				_player.enabled = !_paused;
+			_gui.SetPauseMenuEnabled(_paused);
+		}
 	}
 
 	public void GenerateMaze(MazeRuleset ruleset)
@@ -81,16 +134,14 @@ public class GameManager : MonoBehaviour
 		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; } );
 	}
 
-	public void RunMaze()
+	public void SetupPlayer()
 	{
-		_editorCamera.enabled = false;
-
 		if (_player == null)
 		{
 			GameObject playerInstance = (GameObject)Instantiate(_playerPrefab, new Vector3(), Quaternion.identity);
 			playerInstance.name = "Player";
 			_player = playerInstance.GetComponent<Player>();
-			_player.outOfBoundsCallback = StopRunningMaze;
+			_player.outOfBoundsCallback = null;
 		}
 
 		_player.maze = _maze;
@@ -101,17 +152,5 @@ public class GameManager : MonoBehaviour
 		Point nextTarget = _maze.MoveForwards(_maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
 		Dir nextFacing = Nav.DeltaToFacing(nextTarget - _maze.startPosition);
 		_player.SetTargets(_maze.TileToWorldPosition(_maze.startPosition), Dir.S, _maze.TileToWorldPosition(nextTarget), nextFacing);
-	}
-
-	public void StopRunningMaze()
-	{
-		if (_player != null)
-		{
-			Destroy(_player.gameObject);
-			_player = null;
-		}
-
-		_editorCamera.enabled = true;
-		_gui.SetEditorGUIEnabled(true);
 	}
 }

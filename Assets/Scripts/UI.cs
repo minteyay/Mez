@@ -45,10 +45,4 @@ public class UI : MonoBehaviour
     {
         _gameManager.GenerateMaze(_gameManager.themeManager.ruleset);
     }
-
-    public void RunMaze()
-    {
-        SetEditorGUIEnabled(false);
-        _gameManager.RunMaze();
-    }
 }

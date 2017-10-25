@@ -214,12 +214,12 @@ Prefab:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1450092921}
-    - target: {fileID: 114815619796439588, guid: 1508260b8fc390649a43c33c8f535090,
+    - target: {fileID: 114602568598868670, guid: 1508260b8fc390649a43c33c8f535090,
         type: 2}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1450092921}
-    - target: {fileID: 114602568598868670, guid: 1508260b8fc390649a43c33c8f535090,
+    - target: {fileID: 114519632828613400, guid: 1508260b8fc390649a43c33c8f535090,
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
