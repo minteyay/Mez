@@ -5,6 +5,8 @@ public class UI : MonoBehaviour
 {
     private GameManager _gameManager = null;
 
+    [SerializeField] private GameObject _pauseMenu = null;
+
     [SerializeField] private GameObject _editorGUI = null;
     [SerializeField] private Dropdown _themeDropdown = null;
     [SerializeField] private GameObject _busyScreen = null;
@@ -20,6 +22,11 @@ public class UI : MonoBehaviour
     {
         _themeDropdown.AddOptions(_gameManager.themeManager.themeNames);
         ThemeChanged(0);
+    }
+
+    public void SetPauseMenuEnabled(bool enabled)
+    {
+        _pauseMenu.SetActive(enabled);
     }
 
     public void SetEditorGUIEnabled(bool enabled)

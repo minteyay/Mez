@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
 	private MazeGenerator _mazeGen = null;
 	private Maze _maze = null;
 
+	private bool _paused = false;
+
 	void Awake()
 	{
 		themeManager = GetComponent<ThemeManager>();
@@ -52,30 +54,18 @@ public class GameManager : MonoBehaviour
 
 	void Update()
 	{
-#if UNITY_WEBGL
-        // Toggle fullscreen.
-		if (Input.GetKeyDown(KeyCode.F))
-		{
-			Screen.fullScreen = !Screen.fullScreen;
-		}
-        // Toggle cursor visibility.
 		if (Input.GetKeyDown(KeyCode.Escape))
 		{
-			Cursor.visible = !Cursor.visible;
+			SetPause(!_paused);
 		}
-#elif !SCREENSAVER
-        // Quit the executable.
-		if (Input.GetKeyDown(KeyCode.Escape))
-		{
-			Application.Quit();
-		}
-#else
-        // Quit the screensaver.
-		if (Input.anyKeyDown)
-		{
-			Application.Quit();
-		}
-#endif
+	}
+
+	public void SetPause(bool pause)
+	{
+		_paused = pause;
+		if (_player != null)
+			_player.enabled = !_paused;
+		_gui.SetPauseMenuEnabled(_paused);
 	}
 
 	public void GenerateMaze(MazeRuleset ruleset)
