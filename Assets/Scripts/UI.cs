@@ -36,7 +36,7 @@ public class UI : MonoBehaviour
 
     public void ThemeChanged(System.Int32 index)
     {
-        string themeName = _themeDropdown.options[index].text;
+        string themeName = _themeDropdown.options[_themeDropdown.value].text;
         _busyScreen.SetActive(true);
         _gameManager.themeManager.LoadTheme(themeName, () => { _busyScreen.SetActive(false); GenerateMaze(); } );
     }

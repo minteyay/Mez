@@ -112,6 +112,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &427970246 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114671150448661206, guid: 1508260b8fc390649a43c33c8f535090,
+    type: 2}
+  m_PrefabInternal: {fileID: 972787759}
+  m_Script: {fileID: 11500000, guid: aab9c64aabb0d4e449f7809ab69313b3, type: 3}
 --- !u!1001 &972787759
 Prefab:
   m_ObjectHideFlags: 0
@@ -209,7 +215,7 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
-    - target: {fileID: 114815619796439588, guid: 1508260b8fc390649a43c33c8f535090,
+    - target: {fileID: 114519632828613400, guid: 1508260b8fc390649a43c33c8f535090,
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -219,7 +225,7 @@ Prefab:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1450092921}
-    - target: {fileID: 114519632828613400, guid: 1508260b8fc390649a43c33c8f535090,
+    - target: {fileID: 114815619796439588, guid: 1508260b8fc390649a43c33c8f535090,
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -275,7 +281,7 @@ Prefab:
         type: 2}
       propertyPath: _gui
       value: 
-      objectReference: {fileID: 2144534670}
+      objectReference: {fileID: 427970246}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 11b879a4caad40042ac4fe6c1e4a54ac, type: 2}
   m_IsPrefabParent: 0
@@ -332,9 +338,3 @@ Camera:
   m_PrefabParentObject: {fileID: 20665498656181316, guid: e9474e5ca7501453b90d7985b5f79a7b,
     type: 2}
   m_PrefabInternal: {fileID: 2015798088}
---- !u!114 &2144534670 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114931579156422638, guid: 1508260b8fc390649a43c33c8f535090,
-    type: 2}
-  m_PrefabInternal: {fileID: 972787759}
-  m_Script: {fileID: 11500000, guid: a80ecd3c8f5df0c4ab5d53156d97c04e, type: 3}
