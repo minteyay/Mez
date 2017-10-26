@@ -4,8 +4,12 @@ using System.Collections.Generic;
 
 public class RoomStyleUI : MonoBehaviour
 {
+    [HideInInspector] public int index = 0;
     [HideInInspector] public RoomStyle roomStyle = null;
     [HideInInspector] public ThemeManager themeManager = null;
+
+    public delegate void RemoveCallback(int index);
+    public RemoveCallback removeCallback = null;
 
     [SerializeField] private InputField _nameField = null;
     [SerializeField] private Dropdown _tilesetDropdown = null;
@@ -36,5 +40,11 @@ public class RoomStyleUI : MonoBehaviour
     public void TilesetChanged(System.Int32 index)
     {
         roomStyle.tileset = _tilesetDropdown.options[index].text;
+    }
+
+    public void Remove()
+    {
+        if (removeCallback != null)
+            removeCallback.Invoke(index);
     }
 }

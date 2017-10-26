@@ -56,14 +56,17 @@ public class EditorUI : MonoBehaviour
 			Destroy(roomStyleEntry.gameObject);
 		_roomStyleEntries.Clear();
 		
-		foreach (RoomStyle roomStyle in ruleset.roomStyles)
+		if (ruleset.roomStyles != null)
+		for (int i = 0; i < ruleset.roomStyles.Length; i++)
 		{
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
 			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
 
 			RoomStyleUI roomStyleUI = roomStyleEntry.GetComponent<RoomStyleUI>();
-			roomStyleUI.roomStyle = roomStyle;
+			roomStyleUI.index = i;
+			roomStyleUI.roomStyle = ruleset.roomStyles[i];
 			roomStyleUI.themeManager = _themeManager;
+			roomStyleUI.removeCallback = RemoveRoomStyle;
 			roomStyleUI.UpdateValues();
 			_roomStyleEntries.Add(roomStyleUI);
 		}
@@ -90,8 +93,30 @@ public class EditorUI : MonoBehaviour
 		_themeManager.ruleset.size.y = height;
 	}
 
-	public void RoomStyleNameChanged(int index, string newName)
+	public void RemoveRoomStyle(int index)
 	{
-		_themeManager.ruleset.roomStyles[index].name = newName;
+		MazeRuleset ruleset = _themeManager.ruleset;
+		
+		if (ruleset.roomStyles == null)
+			return;
+		
+		if ((ruleset.roomStyles.Length - 1) <= 0)
+		{
+			ruleset.roomStyles = null;
+		}
+		else
+		{
+			RoomStyle[] roomStyles = new RoomStyle[ruleset.roomStyles.Length - 1];
+			for (int i = 0; i < ruleset.roomStyles.Length; i++)
+			{
+				if (i < index)
+					roomStyles[i] = ruleset.roomStyles[i];
+				else if (i > index)
+					roomStyles[i - 1] = ruleset.roomStyles[i];
+			}
+			ruleset.roomStyles = roomStyles;
+		}
+
+		UpdateValues();
 	}
 }
