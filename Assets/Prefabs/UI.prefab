@@ -188,7 +188,6 @@ GameObject:
   - component: {fileID: 114423009480016850}
   - component: {fileID: 114656735651824334}
   - component: {fileID: 114466753466213444}
-  - component: {fileID: 114123775619355562}
   m_Layer: 5
   m_Name: RulesetPanel
   m_TagString: Untagged
@@ -497,6 +496,7 @@ GameObject:
   m_Component:
   - component: {fileID: 224782835740559426}
   - component: {fileID: 225869192291287496}
+  - component: {fileID: 114794534790733380}
   m_Layer: 5
   m_Name: Editor
   m_TagString: Untagged
@@ -1058,20 +1058,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114123775619355562
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1128072648661894}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96280920ced344c458eebc14eb7aa1b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _mazeNameField: {fileID: 114747495452883466}
-  _mazeWidthField: {fileID: 114588952896478006}
-  _mazeHeightField: {fileID: 114426324298457840}
 --- !u!114 &114178668753225440
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1197,7 +1183,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114671150448661206}
+      - m_Target: {fileID: 114794534790733380}
         m_MethodName: GenerateMaze
         m_Mode: 1
         m_Arguments:
@@ -1338,9 +1324,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114671150448661206}
+      - m_Target: {fileID: 114794534790733380}
         m_MethodName: ThemeChanged
-        m_Mode: 3
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1623,7 +1609,7 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114123775619355562}
+      - m_Target: {fileID: 114794534790733380}
         m_MethodName: MazeHeightChanged
         m_Mode: 0
         m_Arguments:
@@ -1970,7 +1956,7 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114123775619355562}
+      - m_Target: {fileID: 114794534790733380}
         m_MethodName: MazeWidthChanged
         m_Mode: 0
         m_Arguments:
@@ -2349,9 +2335,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pauseMenu: {fileID: 1436471409878486}
   _editorUI: {fileID: 1451925139619812}
-  _themeDropdown: {fileID: 114299424060634018}
-  _busyScreen: {fileID: 1490284520823012}
-  _rulesetUI: {fileID: 114123775619355562}
 --- !u!114 &114671380479689408
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2583,7 +2566,7 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114123775619355562}
+      - m_Target: {fileID: 114794534790733380}
         m_MethodName: MazeNameChanged
         m_Mode: 0
         m_Arguments:
@@ -2699,6 +2682,22 @@ MonoBehaviour:
   m_Text: 'Size
 
 '
+--- !u!114 &114794534790733380
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1451925139619812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96280920ced344c458eebc14eb7aa1b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _busyScreen: {fileID: 1490284520823012}
+  _themeDropdown: {fileID: 114299424060634018}
+  _mazeNameField: {fileID: 114747495452883466}
+  _mazeWidthField: {fileID: 114588952896478006}
+  _mazeHeightField: {fileID: 114426324298457840}
 --- !u!114 &114807873972425976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3649,7 +3648,7 @@ RectTransform:
   m_Children:
   - {fileID: 224103372650570812}
   m_Father: {fileID: 224782835740559426}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3987,8 +3986,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 224488274575599420}
-  - {fileID: 224494579208643314}
   - {fileID: 224821743744727448}
+  - {fileID: 224494579208643314}
   m_Father: {fileID: 224643676287324390}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4032,7 +4031,7 @@ RectTransform:
   - {fileID: 224137685800763756}
   - {fileID: 224429131126220040}
   m_Father: {fileID: 224782835740559426}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}

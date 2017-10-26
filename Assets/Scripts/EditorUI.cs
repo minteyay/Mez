@@ -1,9 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class RulesetUI : MonoBehaviour
+public class EditorUI : MonoBehaviour
 {
+	private GameManager _gameManager = null;
 	private ThemeManager _themeManager = null;
+
+	[SerializeField] private GameObject _busyScreen = null;
+
+	[SerializeField] private Dropdown _themeDropdown = null;
 
 	[SerializeField] private InputField _mazeNameField = null;
 	[SerializeField] private InputField _mazeWidthField = null;
@@ -11,17 +16,39 @@ public class RulesetUI : MonoBehaviour
 
 	private void Start()
 	{
-		_themeManager = GameManager.instance.themeManager;
+		_gameManager = GameManager.instance;
+		_themeManager = _gameManager.themeManager;
+
+		_busyScreen.SetActive(false);
+
+		_themeDropdown.AddOptions(_themeManager.themeNames);
+        ThemeChanged(0);
 	}
 
-	public void LoadThemeRuleset()
-	{
+	public void ThemeChanged(System.Int32 index)
+    {
+        string themeName = _themeDropdown.options[index].text;
+        _busyScreen.SetActive(true);
+        _themeManager.LoadTheme(themeName, ThemeLoaded);
+    }
+
+    private void ThemeLoaded()
+    {
+        _busyScreen.SetActive(false);
+        GenerateMaze();
+
 		MazeRuleset ruleset = _themeManager.ruleset;
 
 		_mazeNameField.text = ruleset.name;
 		_mazeWidthField.text = ruleset.size.x.ToString();
 		_mazeHeightField.text = ruleset.size.y.ToString();
-	}
+    }
+
+    public void GenerateMaze()
+    {
+        _busyScreen.SetActive(true);
+        _gameManager.GenerateMaze(_themeManager.ruleset, () => { _busyScreen.SetActive(false); });
+    }
 
 	public void MazeNameChanged(string newName) { _themeManager.ruleset.name = newName; }
 
