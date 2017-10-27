@@ -93,6 +93,24 @@ public class EditorUI : MonoBehaviour
 		_themeManager.ruleset.size.y = height;
 	}
 
+	public void AddRoomStyle()
+	{
+		MazeRuleset ruleset = _themeManager.ruleset;
+
+		int roomStyleCount = 0;
+		if (ruleset.roomStyles != null)
+			roomStyleCount = ruleset.roomStyles.Length;
+		
+		RoomStyle[] roomStyles = new RoomStyle[roomStyleCount + 1];
+		for (int i = 0; i < roomStyleCount; i++)
+			roomStyles[i] = ruleset.roomStyles[i];
+		roomStyles[roomStyleCount] = new RoomStyle();
+
+		ruleset.roomStyles = roomStyles;
+
+		UpdateValues();
+	}
+
 	public void RemoveRoomStyle(int index)
 	{
 		MazeRuleset ruleset = _themeManager.ruleset;
