@@ -121,91 +121,25 @@ public class EditorUI : MonoBehaviour
 
 	public void AddRoomStyle()
 	{
-		MazeRuleset ruleset = _themeManager.ruleset;
-
-		int roomStyleCount = 0;
-		if (ruleset.roomStyles != null)
-			roomStyleCount = ruleset.roomStyles.Length;
-		
-		RoomStyle[] roomStyles = new RoomStyle[roomStyleCount + 1];
-		for (int i = 0; i < roomStyleCount; i++)
-			roomStyles[i] = ruleset.roomStyles[i];
-		roomStyles[roomStyleCount] = new RoomStyle();
-
-		ruleset.roomStyles = roomStyles;
-
+		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, new RoomStyle());
 		UpdateValues();
 	}
 
 	public void RemoveRoomStyle(int index)
 	{
-		MazeRuleset ruleset = _themeManager.ruleset;
-		
-		if (ruleset.roomStyles == null)
-			return;
-		
-		if ((ruleset.roomStyles.Length - 1) <= 0)
-		{
-			ruleset.roomStyles = null;
-		}
-		else
-		{
-			RoomStyle[] roomStyles = new RoomStyle[ruleset.roomStyles.Length - 1];
-			for (int i = 0; i < ruleset.roomStyles.Length; i++)
-			{
-				if (i < index)
-					roomStyles[i] = ruleset.roomStyles[i];
-				else if (i > index)
-					roomStyles[i - 1] = ruleset.roomStyles[i];
-			}
-			ruleset.roomStyles = roomStyles;
-		}
-
+		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, index);
 		UpdateValues();
 	}
 
 	public void AddRoom()
 	{
-		MazeRuleset ruleset = _themeManager.ruleset;
-
-		int roomCount = 0;
-		if (ruleset.rooms != null)
-			roomCount = ruleset.rooms.Length;
-		
-		RoomRuleset[] rooms = new RoomRuleset[roomCount + 1];
-		for (int i = 0; i < roomCount; i++)
-			rooms[i] = ruleset.rooms[i];
-		rooms[roomCount] = new RoomRuleset();
-
-		ruleset.rooms = rooms;
-
+		Utils.PushToArray(ref _themeManager.ruleset.rooms, new RoomRuleset());
 		UpdateValues();
 	}
 
 	public void RemoveRoom(int index)
 	{
-		MazeRuleset ruleset = _themeManager.ruleset;
-		
-		if (ruleset.rooms == null)
-			return;
-		
-		if ((ruleset.rooms.Length - 1) <= 0)
-		{
-			ruleset.rooms = null;
-		}
-		else
-		{
-			RoomRuleset[] rooms = new RoomRuleset[ruleset.rooms.Length - 1];
-			for (int i = 0; i < ruleset.rooms.Length; i++)
-			{
-				if (i < index)
-					rooms[i] = ruleset.rooms[i];
-				else if (i > index)
-					rooms[i - 1] = ruleset.rooms[i];
-			}
-			ruleset.rooms = rooms;
-		}
-
+		Utils.RemoveAtIndex(ref _themeManager.ruleset.rooms, index);
 		UpdateValues();
 	}
 }
