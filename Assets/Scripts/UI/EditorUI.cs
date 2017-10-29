@@ -80,14 +80,16 @@ public class EditorUI : MonoBehaviour
 		_roomEntries.Clear();
 
 		if (ruleset.rooms != null)
-		foreach (RoomRuleset room in ruleset.rooms)
+		for (int i = 0; i < ruleset.rooms.Length; i++)
 		{
 			GameObject roomEntry = Instantiate(_roomEntryPrefab);
 			roomEntry.transform.SetParent(_roomList.transform);
 
 			RoomUI roomUI = roomEntry.GetComponent<RoomUI>();
+			roomUI.index = i;
 			roomUI.mazeRuleset = ruleset;
-			roomUI.roomRuleset = room;
+			roomUI.roomRuleset = ruleset.rooms[i];
+			roomUI.removeCallback = RemoveRoom;
 			roomUI.UpdateValues();
 			_roomEntries.Add(roomUI);
 		}
@@ -99,7 +101,10 @@ public class EditorUI : MonoBehaviour
         _gameManager.GenerateMaze(_themeManager.ruleset, () => { _busyScreen.SetActive(false); });
     }
 
-	public void MazeNameChanged(string newName) { _themeManager.ruleset.name = newName; }
+	public void MazeNameChanged(string newName)
+	{
+		_themeManager.ruleset.name = newName;
+	}
 
 	public void MazeWidthChanged(string newWidth)
 	{
@@ -154,6 +159,51 @@ public class EditorUI : MonoBehaviour
 					roomStyles[i - 1] = ruleset.roomStyles[i];
 			}
 			ruleset.roomStyles = roomStyles;
+		}
+
+		UpdateValues();
+	}
+
+	public void AddRoom()
+	{
+		MazeRuleset ruleset = _themeManager.ruleset;
+
+		int roomCount = 0;
+		if (ruleset.rooms != null)
+			roomCount = ruleset.rooms.Length;
+		
+		RoomRuleset[] rooms = new RoomRuleset[roomCount + 1];
+		for (int i = 0; i < roomCount; i++)
+			rooms[i] = ruleset.rooms[i];
+		rooms[roomCount] = new RoomRuleset();
+
+		ruleset.rooms = rooms;
+
+		UpdateValues();
+	}
+
+	public void RemoveRoom(int index)
+	{
+		MazeRuleset ruleset = _themeManager.ruleset;
+		
+		if (ruleset.rooms == null)
+			return;
+		
+		if ((ruleset.rooms.Length - 1) <= 0)
+		{
+			ruleset.rooms = null;
+		}
+		else
+		{
+			RoomRuleset[] rooms = new RoomRuleset[ruleset.rooms.Length - 1];
+			for (int i = 0; i < ruleset.rooms.Length; i++)
+			{
+				if (i < index)
+					rooms[i] = ruleset.rooms[i];
+				else if (i > index)
+					rooms[i - 1] = ruleset.rooms[i];
+			}
+			ruleset.rooms = rooms;
 		}
 
 		UpdateValues();

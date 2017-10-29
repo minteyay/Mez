@@ -121,7 +121,7 @@ public class MazeGenerator : MonoBehaviour
 		TextureMaze();
 		UpdateMazeUVs();
 
-		if (ruleset.rooms.Length > 0)
+		if (ruleset.rooms != null && ruleset.rooms.Length > 0)
 		{
 			NextSprawlerRuleset();
 			state = State.RunningSprawlers;

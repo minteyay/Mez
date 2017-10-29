@@ -1166,7 +1166,18 @@ MonoBehaviour:
   m_CharacterLimit: 0
   m_OnEndEdit:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 114930226095281526}
+        m_MethodName: SizeChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.InputField+SubmitEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_OnValueChanged:
@@ -1369,8 +1380,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: TilesetChanged
+      - m_Target: {fileID: 114930226095281526}
+        m_MethodName: StyleChanged
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1429,8 +1440,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: TilesetChanged
+      - m_Target: {fileID: 114930226095281526}
+        m_MethodName: StartChanged
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1678,7 +1689,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 114930226095281526}
         m_MethodName: Remove
         m_Mode: 1
         m_Arguments:
@@ -1857,7 +1868,18 @@ MonoBehaviour:
   m_CharacterLimit: 0
   m_OnEndEdit:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 114930226095281526}
+        m_MethodName: CountChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.InputField+SubmitEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_OnValueChanged:
@@ -2532,6 +2554,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8431256336c31490b96fdc89b9e7176f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  index: 0
   mazeRuleset:
     name: 
     size:
@@ -2545,6 +2568,9 @@ MonoBehaviour:
     count: 
     size: 
   _styleDropdown: {fileID: 114269540763768018}
+  _startDropdown: {fileID: 114271652083579230}
+  _sizeField: {fileID: 114191480923525882}
+  _countField: {fileID: 114479891843736070}
 --- !u!114 &114936433897967030
 MonoBehaviour:
   m_ObjectHideFlags: 1
