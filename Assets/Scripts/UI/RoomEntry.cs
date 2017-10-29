@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class RoomUI : MonoBehaviour
+public class RoomEntry : MonoBehaviour
 {
     [HideInInspector] public int index = 0;
     [HideInInspector] public MazeRuleset mazeRuleset = null;

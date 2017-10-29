@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class RoomStyleUI : MonoBehaviour
+public class RoomStyleEntry : MonoBehaviour
 {
     [HideInInspector] public int index = 0;
     [HideInInspector] public RoomStyle roomStyle = null;

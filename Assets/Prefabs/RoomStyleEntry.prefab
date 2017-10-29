@@ -226,7 +226,7 @@ GameObject:
   - component: {fileID: 222049984575189568}
   - component: {fileID: 114531652336009124}
   - component: {fileID: 114609844415319368}
-  - component: {fileID: 114135510836094390}
+  - component: {fileID: 114194904921054638}
   m_Layer: 5
   m_Name: RoomStyleEntry
   m_TagString: Untagged
@@ -632,7 +632,7 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114135510836094390}
+      - m_Target: {fileID: 0}
         m_MethodName: NameChanged
         m_Mode: 0
         m_Arguments:
@@ -676,7 +676,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
+  m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
   m_ChildControlHeight: 0
 --- !u!114 &114072713887543594
@@ -772,7 +772,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114135510836094390}
+      - m_Target: {fileID: 0}
         m_MethodName: TilesetChanged
         m_Mode: 0
         m_Arguments:
@@ -785,25 +785,6 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: UnityEngine.UI.Dropdown+DropdownEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
---- !u!114 &114135510836094390
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1515526692697626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13edde32fc12e49a482cd9e56f183405, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  index: 0
-  roomStyle:
-    name: default
-    tileset: default
-    decorations: []
-  themeManager: {fileID: 0}
-  _nameField: {fileID: 114043111387466640}
-  _tilesetDropdown: {fileID: 114130910025203848}
 --- !u!114 &114150519073222456
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -837,6 +818,25 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: default
+--- !u!114 &114194904921054638
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1515526692697626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e2ae59b0519f4163b7f440b9eedf1d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  index: 0
+  roomStyle:
+    name: default
+    tileset: default
+    decorations: []
+  themeManager: {fileID: 0}
+  _nameField: {fileID: 114043111387466640}
+  _tilesetDropdown: {fileID: 114130910025203848}
 --- !u!114 &114219460440294712
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -876,7 +876,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114135510836094390}
+      - m_Target: {fileID: 114194904921054638}
         m_MethodName: Remove
         m_Mode: 1
         m_Arguments:
@@ -1184,7 +1184,7 @@ MonoBehaviour:
   m_ChildAlignment: 2
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 0
+  m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
   m_ChildControlHeight: 0
 --- !u!114 &114734969859522786
@@ -1252,7 +1252,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
+  m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
   m_ChildControlHeight: 0
 --- !u!114 &114849474020982958
@@ -1899,7 +1899,7 @@ RectTransform:
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -1620, y: -767}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224576031057520056
 RectTransform:
   m_ObjectHideFlags: 1

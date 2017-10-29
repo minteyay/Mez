@@ -17,11 +17,11 @@ public class EditorUI : MonoBehaviour
 
 	[SerializeField] private GameObject _roomStyleList = null;
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
-	private List<RoomStyleUI> _roomStyleEntries = new List<RoomStyleUI>();
+	private List<RoomStyleEntry> _roomStyleEntries = new List<RoomStyleEntry>();
 
 	[SerializeField] private GameObject _roomList = null;
 	[SerializeField] private GameObject _roomEntryPrefab = null;
-	private List<RoomUI> _roomEntries = new List<RoomUI>();
+	private List<RoomEntry> _roomEntries = new List<RoomEntry>();
 
 	private void Start()
 	{
@@ -56,7 +56,7 @@ public class EditorUI : MonoBehaviour
 		_mazeWidthField.text = ruleset.size.x.ToString();
 		_mazeHeightField.text = ruleset.size.y.ToString();
 
-		foreach (RoomStyleUI roomStyleEntry in _roomStyleEntries)
+		foreach (RoomStyleEntry roomStyleEntry in _roomStyleEntries)
 			Destroy(roomStyleEntry.gameObject);
 		_roomStyleEntries.Clear();
 		
@@ -66,7 +66,7 @@ public class EditorUI : MonoBehaviour
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
 			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
 
-			RoomStyleUI roomStyleUI = roomStyleEntry.GetComponent<RoomStyleUI>();
+			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
 			roomStyleUI.roomStyle = ruleset.roomStyles[i];
 			roomStyleUI.themeManager = _themeManager;
@@ -75,7 +75,7 @@ public class EditorUI : MonoBehaviour
 			_roomStyleEntries.Add(roomStyleUI);
 		}
 
-		foreach (RoomUI roomEntry in _roomEntries)
+		foreach (RoomEntry roomEntry in _roomEntries)
 			Destroy(roomEntry.gameObject);
 		_roomEntries.Clear();
 
@@ -85,7 +85,7 @@ public class EditorUI : MonoBehaviour
 			GameObject roomEntry = Instantiate(_roomEntryPrefab);
 			roomEntry.transform.SetParent(_roomList.transform);
 
-			RoomUI roomUI = roomEntry.GetComponent<RoomUI>();
+			RoomEntry roomUI = roomEntry.GetComponent<RoomEntry>();
 			roomUI.index = i;
 			roomUI.mazeRuleset = ruleset;
 			roomUI.roomRuleset = ruleset.rooms[i];
