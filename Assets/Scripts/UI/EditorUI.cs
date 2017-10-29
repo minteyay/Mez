@@ -16,6 +16,8 @@ public class EditorUI : MonoBehaviour
 	[SerializeField] private InputField _mazeHeightField = null;
 
 	[SerializeField] private GameObject _roomStyleList = null;
+	[SerializeField] private Button _removeRoomStyleButton = null;
+	[SerializeField] private ToggleGroup _roomStyleGroup = null;
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
 	private List<RoomStyleEntry> _roomStyleEntries = new List<RoomStyleEntry>();
 
@@ -66,11 +68,14 @@ public class EditorUI : MonoBehaviour
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
 			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
 
+			Toggle roomStyleToggle = roomStyleEntry.GetComponent<Toggle>();
+			roomStyleToggle.group = _roomStyleGroup;
+			roomStyleToggle.onValueChanged.AddListener(RoomStyleToggled);
+
 			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
 			roomStyleUI.roomStyle = ruleset.roomStyles[i];
 			roomStyleUI.themeManager = _themeManager;
-			roomStyleUI.removeCallback = RemoveRoomStyle;
 			roomStyleUI.UpdateValues();
 			_roomStyleEntries.Add(roomStyleUI);
 		}
@@ -125,10 +130,16 @@ public class EditorUI : MonoBehaviour
 		UpdateValues();
 	}
 
-	public void RemoveRoomStyle(int index)
+	public void RemoveRoomStyle()
 	{
-		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, index);
+		List<Toggle> activeToggles = new List<Toggle>(_roomStyleGroup.ActiveToggles());
+		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, activeToggles[0].GetComponent<RoomStyleEntry>().index);
 		UpdateValues();
+	}
+
+	public void RoomStyleToggled(bool value)
+	{
+		_removeRoomStyleButton.interactable = value;
 	}
 
 	public void AddRoom()
