@@ -19,6 +19,10 @@ public class EditorUI : MonoBehaviour
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
 	private List<RoomStyleUI> _roomStyleEntries = new List<RoomStyleUI>();
 
+	[SerializeField] private GameObject _roomList = null;
+	[SerializeField] private GameObject _roomEntryPrefab = null;
+	private List<RoomUI> _roomEntries = new List<RoomUI>();
+
 	private void Start()
 	{
 		_gameManager = GameManager.instance;
@@ -69,6 +73,23 @@ public class EditorUI : MonoBehaviour
 			roomStyleUI.removeCallback = RemoveRoomStyle;
 			roomStyleUI.UpdateValues();
 			_roomStyleEntries.Add(roomStyleUI);
+		}
+
+		foreach (RoomUI roomEntry in _roomEntries)
+			Destroy(roomEntry.gameObject);
+		_roomEntries.Clear();
+
+		if (ruleset.rooms != null)
+		foreach (RoomRuleset room in ruleset.rooms)
+		{
+			GameObject roomEntry = Instantiate(_roomEntryPrefab);
+			roomEntry.transform.SetParent(_roomList.transform);
+
+			RoomUI roomUI = roomEntry.GetComponent<RoomUI>();
+			roomUI.mazeRuleset = ruleset;
+			roomUI.roomRuleset = room;
+			roomUI.UpdateValues();
+			_roomEntries.Add(roomUI);
 		}
 	}
 
