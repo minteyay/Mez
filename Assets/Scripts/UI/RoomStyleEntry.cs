@@ -13,6 +13,12 @@ public class RoomStyleEntry : MonoBehaviour
     [SerializeField] private InputField _nameField = null;
     [SerializeField] private Dropdown _tilesetDropdown = null;
 
+    [SerializeField] private GameObject _decorationList = null;
+	[SerializeField] private Button _removeDecorationButton = null;
+	[SerializeField] private GameObject _decorationEntryPrefab = null;
+	private List<DecorationEntry> _decorationEntries = new List<DecorationEntry>();
+	private GameObject _selectedDecoration = null;
+
     public void UpdateValues()
     {
         _nameField.text = roomStyle.name;
@@ -29,6 +35,24 @@ public class RoomStyleEntry : MonoBehaviour
                 break;
             }
         }
+
+        foreach (DecorationEntry decorationEntry in _decorationEntries)
+			Destroy(decorationEntry.gameObject);
+		_decorationEntries.Clear();
+		
+		if (roomStyle.decorations != null)
+		for (int i = 0; i < roomStyle.decorations.Length; i++)
+		{
+			GameObject decorationEntry = Instantiate(_decorationEntryPrefab);
+			decorationEntry.transform.SetParent(_decorationList.transform);
+
+            SelectableEntry decorationSelectable = decorationEntry.GetComponent<SelectableEntry>();
+			decorationSelectable.selectEvent.AddListener((data) => { DecorationSelected(data.selectedObject); } );
+
+			DecorationEntry decorationUI = decorationEntry.GetComponent<DecorationEntry>();
+            decorationUI.index = i;
+			_decorationEntries.Add(decorationUI);
+		}
     }
 
     public void NameChanged(string newName)
@@ -40,4 +64,30 @@ public class RoomStyleEntry : MonoBehaviour
     {
         roomStyle.tileset = _tilesetDropdown.options[index].text;
     }
+
+    public void AddDecoration()
+	{
+		Utils.PushToArray(ref roomStyle.decorations, new DecorationRuleset());
+		EntryDeselected();
+		UpdateValues();
+	}
+
+	public void RemoveDecoration()
+	{
+		Utils.RemoveAtIndex(ref roomStyle.decorations, _selectedDecoration.GetComponent<DecorationEntry>().index);
+		EntryDeselected();
+		UpdateValues();
+	}
+
+    public void DecorationSelected(GameObject selected)
+	{
+		_selectedDecoration = selected;
+		_removeDecorationButton.interactable = true;
+	}
+
+	public void EntryDeselected()
+	{
+		_selectedDecoration = null;
+        _removeDecorationButton.interactable = false;
+	}
 }

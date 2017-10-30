@@ -173,5 +173,7 @@ public class EditorUI : MonoBehaviour
 		_removeRoomStyleButton.interactable = false;
 		_selectedRoom = null;
 		_removeRoomButton.interactable = false;
+		foreach (RoomStyleEntry roomStyle in _roomStyleEntries)
+			roomStyle.EntryDeselected();
 	}
 }
