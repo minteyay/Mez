@@ -51,6 +51,9 @@ public class RoomStyleEntry : MonoBehaviour
 
 			DecorationEntry decorationUI = decorationEntry.GetComponent<DecorationEntry>();
             decorationUI.index = i;
+            decorationUI.decorationRuleset = roomStyle.decorations[i];
+            decorationUI.themeManager = themeManager;
+            decorationUI.UpdateValues();
 			_decorationEntries.Add(decorationUI);
 		}
     }
