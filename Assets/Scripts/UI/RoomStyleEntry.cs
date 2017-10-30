@@ -68,21 +68,23 @@ public class RoomStyleEntry : MonoBehaviour
     public void AddDecoration()
 	{
 		Utils.PushToArray(ref roomStyle.decorations, new DecorationRuleset());
-		EntryDeselected();
+		editorUI.UnselectEntries();
 		UpdateValues();
 	}
 
 	public void RemoveDecoration()
 	{
 		Utils.RemoveAtIndex(ref roomStyle.decorations, _selectedDecoration.GetComponent<DecorationEntry>().index);
-		EntryDeselected();
+		editorUI.UnselectEntries();
 		UpdateValues();
 	}
 
     public void DecorationSelected(GameObject selected)
 	{
+        editorUI.UnselectEntries();
 		_selectedDecoration = selected;
 		_removeDecorationButton.interactable = true;
+        editorUI.EntrySelected();
 	}
 
 	public void EntryDeselected()

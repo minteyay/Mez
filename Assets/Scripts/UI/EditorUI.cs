@@ -28,6 +28,8 @@ public class EditorUI : MonoBehaviour
 	private List<RoomEntry> _roomEntries = new List<RoomEntry>();
 	private GameObject _selectedRoom = null;
 
+	private bool _selectedEntry = false;
+
 	private void Start()
 	{
 		_gameManager = GameManager.instance;
@@ -37,6 +39,16 @@ public class EditorUI : MonoBehaviour
 
 		_themeDropdown.AddOptions(_themeManager.themeNames);
         ThemeChanged(0);
+	}
+
+	private void Update()
+	{
+		if (Input.GetMouseButtonUp(0))
+		{
+			if (!_selectedEntry)
+				UnselectEntries();
+			_selectedEntry = false;
+		}
 	}
 
 	public void ThemeChanged(System.Int32 index)
@@ -77,6 +89,7 @@ public class EditorUI : MonoBehaviour
 			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
 			roomStyleUI.roomStyle = ruleset.roomStyles[i];
+			roomStyleUI.editorUI = this;
 			roomStyleUI.themeManager = _themeManager;
 			roomStyleUI.UpdateValues();
 			_roomStyleEntries.Add(roomStyleUI);
@@ -131,21 +144,23 @@ public class EditorUI : MonoBehaviour
 	public void AddRoomStyle()
 	{
 		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, new RoomStyle());
-		EntryDeselected();
+		UnselectEntries();
 		UpdateValues();
 	}
 
 	public void RemoveRoomStyle()
 	{
 		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, _selectedRoomStyle.GetComponent<RoomStyleEntry>().index);
-		EntryDeselected();
+		UnselectEntries();
 		UpdateValues();
 	}
 
 	public void RoomStyleSelected(GameObject selected)
 	{
+		UnselectEntries();
 		_selectedRoomStyle = selected;
 		_removeRoomStyleButton.interactable = true;
+		EntrySelected();
 	}
 
 	public void AddRoom()
@@ -157,18 +172,26 @@ public class EditorUI : MonoBehaviour
 	public void RemoveRoom()
 	{
 		Utils.RemoveAtIndex(ref _themeManager.ruleset.rooms, _selectedRoom.GetComponent<RoomEntry>().index);
-		EntryDeselected();
+		UnselectEntries();
 		UpdateValues();
 	}
 
 	public void RoomSelected(GameObject selected)
 	{
+		UnselectEntries();
 		_selectedRoom = selected;
 		_removeRoomButton.interactable = true;
+		EntrySelected();
 	}
 
-	public void EntryDeselected()
+	public void EntrySelected()
 	{
+		_selectedEntry = true;
+	}
+
+	public void UnselectEntries()
+	{
+		_selectedEntry = false;
 		_selectedRoomStyle = null;
 		_removeRoomStyleButton.interactable = false;
 		_selectedRoom = null;

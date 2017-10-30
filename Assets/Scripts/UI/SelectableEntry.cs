@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class SelectableEntry : MonoBehaviour, ISelectHandler
+public class SelectableEntry : MonoBehaviour, IPointerClickHandler
 {
 	public EventTrigger.TriggerEvent selectEvent { get; private set; }
 
@@ -10,7 +10,7 @@ public class SelectableEntry : MonoBehaviour, ISelectHandler
 		selectEvent = new EventTrigger.TriggerEvent();
 	}
 
-	public void OnSelect(BaseEventData eventData)
+	public void OnPointerClick(PointerEventData eventData)
     {
         selectEvent.Invoke(eventData);
     }
