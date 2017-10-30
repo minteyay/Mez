@@ -2,18 +2,7 @@
 
 public class GameManager : MonoBehaviour
 {
-	public GameObject playerPrefab = null;
-	private GameObject _playerInstance = null;
-	private Player _player = null;
-
-	public GameObject uiPrefab = null;
-
-	private ThemeManager _themeManager = null;
-
-	private MazeGenerator _mazeGen = null;
-	private Maze _maze = null;
-
-    // Manager singleton instance and getter.
+	// Manager singleton instance and getter.
 	private static GameManager _instance;
 	public static GameManager instance
 	{
@@ -34,9 +23,36 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	public ThemeManager themeManager { get; private set; }
+
+	[SerializeField] private Camera _editorCamera = null;
+	[SerializeField] private UI _gui = null;
+
+	[SerializeField] private GameObject _playerPrefab = null;
+	private Player _player = null;
+
+	public delegate void OnMazeGenerated();
+	private MazeGenerator _mazeGen = null;
+	private Maze _maze = null;
+
+	public enum State { Editor, RunningMaze };
+	private State _state = State.Editor;
+	public State state
+	{
+		get { return _state; }
+		set
+		{
+			ExitState(_state);
+			_state = value;
+			EnterState(_state);
+		}
+	}
+
+	private bool _paused = false;
+
 	void Awake()
 	{
-		_themeManager = GetComponent<ThemeManager>();
+		themeManager = GetComponent<ThemeManager>();
 		_mazeGen = GetComponent<MazeGenerator>();
 
 #if UNITY_STANDALONE && SCREENSAVER
@@ -48,86 +64,96 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
-		// Load the theme.
-		_themeManager.LoadTheme("dark", GenerateLevel);
-
-        // Create the UI.
-		GameObject uiInstance = Instantiate(uiPrefab);
-		uiInstance.name = "UI";
 	}
 
 	void Update()
 	{
-#if !SCREENSAVER
-        // Generate a new maze.
-		if (Input.GetKeyDown(KeyCode.N))
-		{
-			GenerateLevel();
-		}
-#endif
-
-#if UNITY_WEBGL
-        // Toggle fullscreen.
-		if (Input.GetKeyDown(KeyCode.F))
-		{
-			Screen.fullScreen = !Screen.fullScreen;
-		}
-        // Toggle cursor visibility.
 		if (Input.GetKeyDown(KeyCode.Escape))
 		{
-			Cursor.visible = !Cursor.visible;
+			SetPause(!_paused);
 		}
-#elif !SCREENSAVER
-        // Quit the executable.
-		if (Input.GetKeyDown(KeyCode.Escape))
-		{
-			Application.Quit();
-		}
-#else
-        // Quit the screensaver.
-		if (Input.anyKeyDown)
-		{
-			Application.Quit();
-		}
-#endif
 	}
 
-	public void GenerateLevel()
+	public void LoadEditorState() { state = State.Editor; }
+	public void LoadRunningMazeState() { state = State.RunningMaze; }
+
+	private void EnterState(State newState)
 	{
-        // Destroy the maze if one exists.
+		switch (newState)
+		{
+			case State.Editor:
+				_editorCamera.enabled = true;
+				_gui.SetEditorGUIEnabled(true);
+				break;
+			case State.RunningMaze:
+				SetupPlayer();
+				_paused = false;
+				break;
+		}
+	}
+
+	private void ExitState(State oldState)
+	{
+		switch (oldState)
+		{
+			case State.Editor:
+				_editorCamera.enabled = false;
+				_gui.SetEditorGUIEnabled(false);
+				break;
+			case State.RunningMaze:
+				if (_player != null)
+				{
+					Destroy(_player.gameObject);
+					_player = null;
+				}
+				SetPause(false);
+				break;
+		}
+	}
+
+	public void SetPause(bool pause)
+	{
+		if (_state == State.RunningMaze)
+		{
+			_paused = pause;
+			if (_player != null)
+				_player.enabled = !_paused;
+			_gui.SetPauseMenuEnabled(_paused);
+		}
+	}
+
+	public void GenerateMaze(MazeRuleset ruleset, OnMazeGenerated callback = null)
+	{
 		if (_maze)
 		{
 			Destroy(_maze.gameObject);
 			Resources.UnloadUnusedAssets();
 		}
-
-		MazeRuleset ruleset = _themeManager.rulesets["dark"];
-
-        // Generate a new maze.
-		_mazeGen.GenerateMaze(ruleset, _themeManager, LevelGenerated);
+		_mazeGen.GenerateMaze(ruleset, themeManager, (Maze maze) => { _maze = maze; if (callback != null) callback.Invoke(); } );
 	}
 
-	private void LevelGenerated(Maze maze)
+	public void SetupPlayer()
 	{
-		// Store the generated maze.
-		this._maze = maze;
-
-		// Create a new player if one doesn't already exist.
-		if (_playerInstance == null)
+		if (_player == null)
 		{
-			_playerInstance = (GameObject)Instantiate(playerPrefab, new Vector3(), Quaternion.identity);
-			_playerInstance.name = "Player";
-			_player = _playerInstance.GetComponent<Player>();
-			_player.outOfBoundsCallback = GenerateLevel;
+			GameObject playerInstance = (GameObject)Instantiate(_playerPrefab, new Vector3(), Quaternion.identity);
+			playerInstance.name = "Player";
+			_player = playerInstance.GetComponent<Player>();
+			_player.outOfBoundsCallback = PlayerFinishedMaze;
 		}
 
-		_player.maze = maze;
-		_playerInstance.transform.position = maze.TileToWorldPosition(maze.startPosition) - new Vector3(maze.entranceLength * maze.tileSize.y, 0.0f, 0.0f);
+		_player.maze = _maze;
+		_player.transform.position = _maze.TileToWorldPosition(_maze.startPosition) - new Vector3(_maze.entranceLength * _maze.tileSize.y, 0.0f, 0.0f);
 		_player.facing = Dir.S;
 		_player.Reset();
 
-		Point nextTarget = maze.MoveForwards(maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
-		Dir nextFacing = Nav.DeltaToFacing(nextTarget - maze.startPosition);
-		_player.SetTargets(maze.TileToWorldPosition(maze.startPosition), Dir.S, maze.TileToWorldPosition(nextTarget), nextFacing);
+		Point nextTarget = _maze.MoveForwards(_maze.startPosition, Dir.S, Maze.MovementPreference.Leftmost, true);
+		Dir nextFacing = Nav.DeltaToFacing(nextTarget - _maze.startPosition);
+		_player.SetTargets(_maze.TileToWorldPosition(_maze.startPosition), Dir.S, _maze.TileToWorldPosition(nextTarget), nextFacing);
+	}
+
+	private void PlayerFinishedMaze()
+	{
+		GenerateMaze(themeManager.ruleset, () => SetupPlayer() );
 	}
 }

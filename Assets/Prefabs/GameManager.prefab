@@ -75,9 +75,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ebef08c5a5118b4d98fc4277beb2d5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 1000010283996220, guid: f69be4e633f39b7408dd8b1c82223da4,
+  _editorCamera: {fileID: 0}
+  _gui: {fileID: 0}
+  _playerPrefab: {fileID: 1000010283996220, guid: f69be4e633f39b7408dd8b1c82223da4,
     type: 2}
-  uiPrefab: {fileID: 1120142567645020, guid: 1508260b8fc390649a43c33c8f535090, type: 2}
 --- !u!114 &114870257832778122
 MonoBehaviour:
   m_ObjectHideFlags: 1

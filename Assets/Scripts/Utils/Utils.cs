@@ -38,6 +38,49 @@ public class Utils
     }
 
     /// <summary>
+    /// Pushes a value to the end of an array.
+    /// Lengthens the array by one element.
+    /// </summary>
+    public static void PushToArray<T>(ref T[] array, T value)
+    {
+        int count = 0;
+		if (array != null)
+			count = array.Length;
+		
+		T[] newArray = new T[count + 1];
+		for (int i = 0; i < count; i++)
+			newArray[i] = array[i];
+        newArray[count] = value;
+		array = newArray;
+    }
+
+    /// <summary>
+    /// Removes a value from an array at the given index.
+    /// Shortens the array by one element.
+    /// </summary>
+    public static void RemoveAtIndex<T>(ref T[] array, int index)
+    {
+		if (array == null)
+			return;
+		
+		if ((array.Length - 1) <= 0)
+		{
+			array = null;
+            return;
+		}
+
+        T[] newArray = new T[array.Length - 1];
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (i < index)
+                newArray[i] = array[i];
+            else if (i > index)
+                newArray[i - 1] = array[i];
+        }
+        array = newArray;
+    }
+
+    /// <summary>
     /// Formats a 2D integer grid neatly.
     /// </summary>
 	public static string Format2DGrid(int[,] grid)

@@ -33,7 +33,7 @@ public class DecorationRuleset
 
     public Location location = Location.Floor;
     public string texture = "";
-    public float occurrence = 1.0f;
+    public float occurrence = 0.0f;
     public string count = "";
 
     public AmountType GetAmountType()
