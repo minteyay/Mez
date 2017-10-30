@@ -18,14 +18,15 @@ public class EditorUI : MonoBehaviour
 
 	[SerializeField] private GameObject _roomStyleList = null;
 	[SerializeField] private Button _removeRoomStyleButton = null;
-	[SerializeField] private ToggleGroup _roomStyleGroup = null;
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
 	private List<RoomStyleEntry> _roomStyleEntries = new List<RoomStyleEntry>();
 	private GameObject _selectedRoomStyle = null;
 
 	[SerializeField] private GameObject _roomList = null;
+	[SerializeField] private Button _removeRoomButton = null;
 	[SerializeField] private GameObject _roomEntryPrefab = null;
 	private List<RoomEntry> _roomEntries = new List<RoomEntry>();
+	private GameObject _selectedRoom = null;
 
 	private void Start()
 	{
@@ -70,11 +71,8 @@ public class EditorUI : MonoBehaviour
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
 			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
 
-			EventTrigger roomStyleEventTrigger = roomStyleEntry.GetComponent<EventTrigger>();
-			EventTrigger.Entry selectEntry = new EventTrigger.Entry();
-			selectEntry.eventID = EventTriggerType.Select;
-			selectEntry.callback.AddListener((data) => { RoomStyleSelected(data.selectedObject); } );
-			roomStyleEventTrigger.triggers.Add(selectEntry);
+			SelectableEntry roomStyleSelectable = roomStyleEntry.GetComponent<SelectableEntry>();
+			roomStyleSelectable.selectEvent.AddListener((data) => { RoomStyleSelected(data.selectedObject); } );
 
 			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
@@ -94,11 +92,13 @@ public class EditorUI : MonoBehaviour
 			GameObject roomEntry = Instantiate(_roomEntryPrefab);
 			roomEntry.transform.SetParent(_roomList.transform);
 
+			SelectableEntry roomSelectable = roomEntry.GetComponent<SelectableEntry>();
+			roomSelectable.selectEvent.AddListener((data) => { RoomSelected(data.selectedObject); } );
+
 			RoomEntry roomUI = roomEntry.GetComponent<RoomEntry>();
 			roomUI.index = i;
 			roomUI.mazeRuleset = ruleset;
 			roomUI.roomRuleset = ruleset.rooms[i];
-			roomUI.removeCallback = RemoveRoom;
 			roomUI.UpdateValues();
 			_roomEntries.Add(roomUI);
 		}
@@ -131,14 +131,14 @@ public class EditorUI : MonoBehaviour
 	public void AddRoomStyle()
 	{
 		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, new RoomStyle());
-		RoomStyleDeselected();
+		EntryDeselected();
 		UpdateValues();
 	}
 
 	public void RemoveRoomStyle()
 	{
 		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, _selectedRoomStyle.GetComponent<RoomStyleEntry>().index);
-		RoomStyleDeselected();
+		EntryDeselected();
 		UpdateValues();
 	}
 
@@ -147,11 +147,6 @@ public class EditorUI : MonoBehaviour
 		_selectedRoomStyle = selected;
 		_removeRoomStyleButton.interactable = true;
 	}
-	public void RoomStyleDeselected()
-	{
-		_selectedRoomStyle = null;
-		_removeRoomStyleButton.interactable = false;
-	}
 
 	public void AddRoom()
 	{
@@ -159,9 +154,24 @@ public class EditorUI : MonoBehaviour
 		UpdateValues();
 	}
 
-	public void RemoveRoom(int index)
+	public void RemoveRoom()
 	{
-		Utils.RemoveAtIndex(ref _themeManager.ruleset.rooms, index);
+		Utils.RemoveAtIndex(ref _themeManager.ruleset.rooms, _selectedRoom.GetComponent<RoomEntry>().index);
+		EntryDeselected();
 		UpdateValues();
+	}
+
+	public void RoomSelected(GameObject selected)
+	{
+		_selectedRoom = selected;
+		_removeRoomButton.interactable = true;
+	}
+
+	public void EntryDeselected()
+	{
+		_selectedRoomStyle = null;
+		_removeRoomStyleButton.interactable = false;
+		_selectedRoom = null;
+		_removeRoomButton.interactable = false;
 	}
 }

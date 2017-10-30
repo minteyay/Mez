@@ -8,9 +8,6 @@ public class RoomEntry : MonoBehaviour
     [HideInInspector] public MazeRuleset mazeRuleset = null;
     [HideInInspector] public RoomRuleset roomRuleset = null;
 
-    public delegate void RemoveCallback(int index);
-    public RemoveCallback removeCallback = null;
-
     [SerializeField] private Dropdown _styleDropdown = null;
     [SerializeField] private Dropdown _startDropdown = null;
     [SerializeField] private InputField _sizeField = null;
@@ -66,11 +63,5 @@ public class RoomEntry : MonoBehaviour
             roomRuleset.count = _countField.text = 1.ToString();
         else
             roomRuleset.count = _countField.text = newCount;
-    }
-
-    public void Remove()
-    {
-        if (removeCallback != null)
-            removeCallback.Invoke(index);
     }
 }
