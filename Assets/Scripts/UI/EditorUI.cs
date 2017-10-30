@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 public class EditorUI : MonoBehaviour
@@ -20,6 +21,7 @@ public class EditorUI : MonoBehaviour
 	[SerializeField] private ToggleGroup _roomStyleGroup = null;
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
 	private List<RoomStyleEntry> _roomStyleEntries = new List<RoomStyleEntry>();
+	private GameObject _selectedRoomStyle = null;
 
 	[SerializeField] private GameObject _roomList = null;
 	[SerializeField] private GameObject _roomEntryPrefab = null;
@@ -68,9 +70,11 @@ public class EditorUI : MonoBehaviour
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
 			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
 
-			Toggle roomStyleToggle = roomStyleEntry.GetComponent<Toggle>();
-			roomStyleToggle.group = _roomStyleGroup;
-			roomStyleToggle.onValueChanged.AddListener(RoomStyleToggled);
+			EventTrigger roomStyleEventTrigger = roomStyleEntry.GetComponent<EventTrigger>();
+			EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+			selectEntry.eventID = EventTriggerType.Select;
+			selectEntry.callback.AddListener((data) => { RoomStyleSelected(data.selectedObject); } );
+			roomStyleEventTrigger.triggers.Add(selectEntry);
 
 			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
@@ -127,19 +131,26 @@ public class EditorUI : MonoBehaviour
 	public void AddRoomStyle()
 	{
 		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, new RoomStyle());
+		RoomStyleDeselected();
 		UpdateValues();
 	}
 
 	public void RemoveRoomStyle()
 	{
-		List<Toggle> activeToggles = new List<Toggle>(_roomStyleGroup.ActiveToggles());
-		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, activeToggles[0].GetComponent<RoomStyleEntry>().index);
+		Utils.RemoveAtIndex(ref _themeManager.ruleset.roomStyles, _selectedRoomStyle.GetComponent<RoomStyleEntry>().index);
+		RoomStyleDeselected();
 		UpdateValues();
 	}
 
-	public void RoomStyleToggled(bool value)
+	public void RoomStyleSelected(GameObject selected)
 	{
-		_removeRoomStyleButton.interactable = value;
+		_selectedRoomStyle = selected;
+		_removeRoomStyleButton.interactable = true;
+	}
+	public void RoomStyleDeselected()
+	{
+		_selectedRoomStyle = null;
+		_removeRoomStyleButton.interactable = false;
 	}
 
 	public void AddRoom()
