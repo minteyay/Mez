@@ -10,6 +10,7 @@ public class DecorationEntry : MonoBehaviour
 
 	[SerializeField] private Dropdown _locationDropdown = null;
 	[SerializeField] private Dropdown _textureDropdown = null;
+	[SerializeField] private ToggleGroup _amountTypeGroup = null;
 	[SerializeField] private InputField _chanceField = null;
 	[SerializeField] private InputField _countField = null;
 
@@ -32,6 +33,17 @@ public class DecorationEntry : MonoBehaviour
             }
         }
 
+		string amountType = decorationRuleset.GetAmountType().ToString();
+		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
+		{
+			Toggle toggle = _amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>();
+			if (toggle.gameObject.name == amountType)
+			{
+				toggle.isOn = true;
+				break;
+			}
+		}
+
 		_chanceField.text = decorationRuleset.occurrence.ToString();
 		_countField.text = decorationRuleset.count;
 	}
@@ -44,6 +56,25 @@ public class DecorationEntry : MonoBehaviour
 	public void TextureChanged(System.Int32 index)
 	{
 		decorationRuleset.texture = _textureDropdown.options[index].text;
+	}
+
+	public void AmountTypeChanged()
+	{
+		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
+		DecorationRuleset.AmountType amountType = (DecorationRuleset.AmountType)System.Enum.Parse(typeof(DecorationRuleset.AmountType), toggles[0].name);
+		if (amountType == DecorationRuleset.AmountType.Occurrence)
+		{
+			_chanceField.transform.parent.parent.gameObject.SetActive(true);
+			_countField.transform.parent.parent.gameObject.SetActive(false);
+			decorationRuleset.count = "";
+			ChanceChanged(decorationRuleset.occurrence.ToString());
+		}
+		else
+		{
+			_countField.transform.parent.parent.gameObject.SetActive(true);
+			_chanceField.transform.parent.parent.gameObject.SetActive(false);
+			CountChanged(decorationRuleset.count);
+		}
 	}
 
 	public void ChanceChanged(string newChance)
