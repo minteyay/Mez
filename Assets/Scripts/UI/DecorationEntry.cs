@@ -33,7 +33,7 @@ public class DecorationEntry : MonoBehaviour
             }
         }
 
-		string amountType = decorationRuleset.GetAmountType().ToString();
+		string amountType = decorationRuleset.amountType.ToString();
 		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
 		{
 			Toggle toggle = _amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>();
@@ -44,8 +44,7 @@ public class DecorationEntry : MonoBehaviour
 			}
 		}
 
-		_chanceField.text = decorationRuleset.occurrence.ToString();
-		_countField.text = decorationRuleset.count;
+		_chanceField.text = _countField.text = decorationRuleset.amount;
 	}
 
 	public void LocationChanged(System.Int32 index)
@@ -62,34 +61,40 @@ public class DecorationEntry : MonoBehaviour
 	{
 		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
 		DecorationRuleset.AmountType amountType = (DecorationRuleset.AmountType)System.Enum.Parse(typeof(DecorationRuleset.AmountType), toggles[0].name);
-		if (amountType == DecorationRuleset.AmountType.Occurrence)
+		if (amountType != decorationRuleset.amountType)
+		{
+			decorationRuleset.amountType = amountType;
+			decorationRuleset.amount = "";
+		}
+		
+		if (amountType == DecorationRuleset.AmountType.Chance)
 		{
 			_chanceField.transform.parent.parent.gameObject.SetActive(true);
 			_countField.transform.parent.parent.gameObject.SetActive(false);
-			decorationRuleset.count = "";
-			ChanceChanged(decorationRuleset.occurrence.ToString());
+			ChanceChanged(decorationRuleset.amount);
 		}
 		else
 		{
 			_countField.transform.parent.parent.gameObject.SetActive(true);
 			_chanceField.transform.parent.parent.gameObject.SetActive(false);
-			CountChanged(decorationRuleset.count);
+			CountChanged(decorationRuleset.amount);
 		}
 	}
 
 	public void ChanceChanged(string newChance)
 	{
-		float chance = Mathf.Max(0.0f, Mathf.Min(100.0f, float.Parse(newChance)));
-		decorationRuleset.occurrence = chance;
-		_chanceField.text = chance.ToString();
+		float chance = 0.0f;
+		float.TryParse(newChance, out chance);
+		chance = Mathf.Max(0.0f, Mathf.Min(100.0f, chance));
+		decorationRuleset.amount = _chanceField.text = chance.ToString();
 	}
 
 	public void CountChanged(string newCount)
 	{
 		Point newCountRange;
         if (!Utils.TryParseRange(newCount, out newCountRange))
-            decorationRuleset.count = _countField.text = 1.ToString();
+            decorationRuleset.amount = _countField.text = 1.ToString();
         else
-            decorationRuleset.count = _countField.text = newCount;
+            decorationRuleset.amount = _countField.text = newCount;
 	}
 }

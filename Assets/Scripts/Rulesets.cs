@@ -29,19 +29,15 @@ public class RoomStyle
 public class DecorationRuleset
 {
     public enum Location { Floor, Wall, Ceiling }
-    public enum AmountType { Occurrence, Range }
+    public enum AmountType { Chance, Count }
 
-    public Location location = Location.Floor;
     public string texture = "";
-    public float occurrence = 0.0f;
-    public string count = "";
+    public Location location = Location.Floor;
+    public AmountType amountType = AmountType.Chance;
+    public string amount = "";
 
-    public AmountType GetAmountType()
-    {
-        if (count == "") return AmountType.Occurrence;
-        return AmountType.Range;
-    }
-    public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(count, out countRange); }
+    public bool TryParseChance(out float chance) { return float.TryParse(amount, out chance); }
+    public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(amount, out countRange); }
 }
 
 [System.Serializable]
