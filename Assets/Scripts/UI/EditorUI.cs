@@ -117,6 +117,13 @@ public class EditorUI : MonoBehaviour
 		}
 	}
 
+	public void SaveRuleset()
+	{
+		_busyScreen.SetActive(true);
+		_themeManager.SaveThemeRuleset();
+		_busyScreen.SetActive(false);
+	}
+
     public void GenerateMaze()
     {
         _busyScreen.SetActive(true);

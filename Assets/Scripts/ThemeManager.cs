@@ -13,8 +13,8 @@ public class ThemeManager : MonoBehaviour
 	public MazeRuleset ruleset { get; private set; }
 	public Dictionary<string, Texture2D> textures { get; private set; }
 
-	public delegate void LoadingComplete();
-	private LoadingComplete _callback = null;
+	public delegate void OnComplete();
+	private OnComplete _callback = null;
 	private bool _rulesetLoaded = false;
 	private int _texturesLoaded = 0;
 	private int _texturesToLoad = 0;
@@ -43,7 +43,7 @@ public class ThemeManager : MonoBehaviour
 	/// <summary>
 	/// Loads the assets for a theme asynchronously.
 	/// </summary>
-	public void LoadTheme(string themeName, LoadingComplete callback)
+	public void LoadTheme(string themeName, OnComplete callback)
 	{
 		_callback = callback;
 
@@ -89,6 +89,13 @@ public class ThemeManager : MonoBehaviour
 		UpdateLoadingState();
 	}
 
+	public void SaveThemeRuleset()
+	{
+		string rulesetPath = Application.dataPath + "/Themes/" + ruleset.name + "/" + ruleset.name + ".json";
+		string jsonString = JsonUtility.ToJson(ruleset, true);
+		File.WriteAllText(rulesetPath, jsonString);
+	}
+
 	private void LoadThemeTextures(string themeName)
 	{
 		string[] texturePaths = System.IO.Directory.GetFiles(Application.dataPath + "/Themes/" + themeName, "*.png");
@@ -99,7 +106,7 @@ public class ThemeManager : MonoBehaviour
 			LoadTexture(path, () => { _texturesLoaded++; UpdateLoadingState(); } );
 	}
 
-	public void LoadTexture(string path, LoadingComplete callback)
+	public void LoadTexture(string path, OnComplete callback)
 	{
 		if (!System.IO.File.Exists(path))
 		{
@@ -111,7 +118,7 @@ public class ThemeManager : MonoBehaviour
 		StartCoroutine(DoLoadTexture(path, callback));
 	}
 
-	private IEnumerator<WWW> DoLoadTexture(string path, LoadingComplete callback)
+	private IEnumerator<WWW> DoLoadTexture(string path, OnComplete callback)
 	{
 		WWW www = new WWW("file://" + path);
 		yield return www;
