@@ -265,7 +265,7 @@ GameObject:
   - component: {fileID: 224009192469377820}
   - component: {fileID: 114153253575632742}
   m_Layer: 5
-  m_Name: Range
+  m_Name: Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -803,7 +803,7 @@ GameObject:
   - component: {fileID: 224567269585965128}
   - component: {fileID: 114917563763911000}
   m_Layer: 5
-  m_Name: Occurrence
+  m_Name: Chance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1474,10 +1474,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   index: 0
   decorationRuleset:
-    location: 0
     texture: 
-    occurrence: 1
-    count: 
+    location: 0
+    amountType: 0
+    amount: 
   themeManager: {fileID: 0}
   _locationDropdown: {fileID: 114162847954166484}
   _textureDropdown: {fileID: 114183537868908576}

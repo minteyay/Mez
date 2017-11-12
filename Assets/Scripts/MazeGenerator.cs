@@ -287,12 +287,13 @@ public class MazeGenerator : MonoBehaviour
 						}
 						Utils.Shuffle(Random.instance, decorationSpots);
 
-						switch (decorationRuleset.GetAmountType())
+						switch (decorationRuleset.amountType)
 						{
-							case DecorationRuleset.AmountType.Occurrence:
+							case DecorationRuleset.AmountType.Chance:
+								float chance = float.Parse(decorationRuleset.amount);
 								foreach (GameObject decorationSpot in decorationSpots)
 								{
-									if (Random.YesOrNo(decorationRuleset.occurrence / 100.0f))
+									if (Random.YesOrNo(chance / 100.0f))
 									{
 										GameObject decoration = Instantiate(_plane, new Vector3(), Quaternion.identity);
 										decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
@@ -318,7 +319,7 @@ public class MazeGenerator : MonoBehaviour
 								}
 								break;
 							
-							case DecorationRuleset.AmountType.Range:
+							case DecorationRuleset.AmountType.Count:
 								Point countRange;
 								decorationRuleset.TryParseCount(out countRange);
 								if (tiles.Count < countRange.x)
