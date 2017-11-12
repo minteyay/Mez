@@ -83,7 +83,7 @@ public class ThemeManager : MonoBehaviour
 		WWW www = new WWW("file://" + rulesetPath);
 		yield return www;
 
-		ruleset = MazeRuleset.FromJSON(www.text);
+		ruleset = JsonUtility.FromJson<MazeRuleset>(www.text);
 
 		_rulesetLoaded = true;
 		UpdateLoadingState();

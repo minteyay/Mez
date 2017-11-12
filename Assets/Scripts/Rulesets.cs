@@ -9,11 +9,6 @@ public class MazeRuleset
 
     public RoomStyle[] roomStyles;
     public RoomRuleset[] rooms;
-
-    public static MazeRuleset FromJSON(string data)
-    {
-        return JsonUtility.FromJson<MazeRuleset>(data);
-    }
 }
 
 [System.Serializable]
@@ -52,12 +47,4 @@ public class RoomRuleset
 
     public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(count, out countRange); }
     public bool TryParseSize(out Point sizeRange) { return Utils.TryParseRange(size, out sizeRange); }
-
-    public override string ToString()
-    {
-        return "Style : " + style + '\n'
-         + "Start : " + start.ToString() + '\n'
-         + "Count : " + count.ToString() + '\n'
-         + "Size : " + size.ToString();
-    }
 }
