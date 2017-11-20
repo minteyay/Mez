@@ -193,7 +193,7 @@ public class MazeGenerator : MonoBehaviour
 					_currentSprawlerTiles = new List<Tile>();
 
 					uint sprawlerSize = 0;
-					Point sprawlerSizeRange;
+					Range sprawlerSizeRange;
 					currentSprawlerRuleset.TryParseSize(out sprawlerSizeRange);
 					if (sprawlerSizeRange.x == sprawlerSizeRange.y)
 						sprawlerSize = (uint)sprawlerSizeRange.x;
@@ -320,7 +320,7 @@ public class MazeGenerator : MonoBehaviour
 								break;
 							
 							case DecorationRuleset.AmountType.Count:
-								Point countRange;
+								Range countRange;
 								decorationRuleset.TryParseCount(out countRange);
 								if (tiles.Count < countRange.x)
 								{
@@ -384,7 +384,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 		else
 		{
-			Point sprawlerCountRange;
+			Range sprawlerCountRange;
 			_ruleset.rooms[_currentSprawlerRulesetIndex].TryParseCount(out sprawlerCountRange);
 			if (sprawlerCountRange.x == sprawlerCountRange.y)
 				_numSprawlersToRun = (uint)sprawlerCountRange.x;
