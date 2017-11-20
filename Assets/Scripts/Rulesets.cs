@@ -91,7 +91,7 @@ public class DecorationRuleset
     public string amount = "";
 
     public bool TryParseChance(out float chance) { return float.TryParse(amount, out chance); }
-    public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(amount, out countRange); }
+    public bool TryParseCount(out Range countRange) { return Utils.TryParseRange(amount, out countRange); }
 
     public void SetTexture(string newTexture, ThemeManager themeManager)
     {
@@ -115,14 +115,22 @@ public class DecorationRuleset
             case AmountType.Chance:
                 float chance;
                 if (!TryParseChance(out chance))
+                {
                     amount = 0.0f.ToString();
+                    break;
+                }
                 amount = Mathf.Max(0.0f, Mathf.Min(chance, 100.0f)).ToString();
                 break;
             case AmountType.Count:
-                Point count;
-                if (!TryParseCount(out count))
+                Range countRange;
+                if (!TryParseCount(out countRange))
+                {
                     amount = 0.ToString();
-                // TODO: Proper range validation.
+                    break;
+                }
+                countRange.x = Mathf.Max(countRange.x, 0);
+                countRange.y = Mathf.Max(countRange.y, 0);
+                amount = countRange.ToString();
                 break;
         }
     }
@@ -139,8 +147,8 @@ public class DecorationRuleset
                     return false;
                 break;
             case AmountType.Count:
-                Point count;
-                if (!TryParseCount(out count))
+                Range countRange;
+                if (!TryParseCount(out countRange))
                     return false;
                 break;
         }
@@ -158,8 +166,8 @@ public class RoomRuleset
     public string count = 1.ToString();
     public string size = 1.ToString();
 
-    public bool TryParseCount(out Point countRange) { return Utils.TryParseRange(count, out countRange); }
-    public bool TryParseSize(out Point sizeRange) { return Utils.TryParseRange(size, out sizeRange); }
+    public bool TryParseCount(out Range countRange) { return Utils.TryParseRange(count, out countRange); }
+    public bool TryParseSize(out Range sizeRange) { return Utils.TryParseRange(size, out sizeRange); }
 
     public void SetStyle(string newStyle, MazeRuleset mazeRuleset)
     {
@@ -181,19 +189,28 @@ public class RoomRuleset
     public void SetCount(string newCount)
     {
         count = newCount;
-        Point countRange;
+        Range countRange;
         if (!TryParseCount(out countRange))
+        {
             count = 0.ToString();
-        // TODO: Proper range validation.
+            return;
+        }
+        countRange.x = Mathf.Max(countRange.x, 0);
+        countRange.y = Mathf.Max(countRange.y, 0);
+        count = countRange.ToString();
     }
 
     public void SetSize(string newSize)
     {
         size = newSize;
-        Point sizeRange;
+        Range sizeRange;
         if (!TryParseSize(out sizeRange))
+        {
             size = 0.ToString();
-        // TODO: Proper range validation.
+        }
+        sizeRange.x = Mathf.Max(sizeRange.x, 0);
+        sizeRange.y = Mathf.Max(sizeRange.y, 0);
+        size = sizeRange.ToString();
     }
 
     public bool Validate(MazeRuleset mazeRuleset)
@@ -204,7 +221,7 @@ public class RoomRuleset
                 validStyle = true;
         if (!validStyle)
             return false;
-        Point range;
+        Range range;
         if (!TryParseCount(out range))
             return false;
         if (!TryParseSize(out range))
