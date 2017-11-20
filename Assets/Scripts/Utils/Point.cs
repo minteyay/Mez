@@ -25,7 +25,7 @@ public class Point
 		y = p.y;
 	}
 
-	public void Set(int x, int y)
+	public virtual void Set(int x, int y)
 	{
 		this.x = x;
 		this.y = y;

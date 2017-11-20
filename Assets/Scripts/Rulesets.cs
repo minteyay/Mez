@@ -21,8 +21,7 @@ public class MazeRuleset
 
     public void SetSize(Point newSize)
     {
-        newSize.x = Mathf.Max(newSize.x, 1);
-        newSize.y = Mathf.Max(newSize.y, 1);
+        newSize.Set(Mathf.Max(newSize.x, 1), Mathf.Max(newSize.y, 1));
         size = newSize;
     }
 
@@ -128,8 +127,7 @@ public class DecorationRuleset
                     amount = 0.ToString();
                     break;
                 }
-                countRange.x = Mathf.Max(countRange.x, 0);
-                countRange.y = Mathf.Max(countRange.y, 0);
+                countRange.Set(Mathf.Max(countRange.x, 0), Mathf.Max(countRange.y, 0));
                 amount = countRange.ToString();
                 break;
         }
@@ -195,8 +193,7 @@ public class RoomRuleset
             count = 0.ToString();
             return;
         }
-        countRange.x = Mathf.Max(countRange.x, 0);
-        countRange.y = Mathf.Max(countRange.y, 0);
+        countRange.Set(Mathf.Max(countRange.x, 0), Mathf.Max(countRange.y, 0));
         count = countRange.ToString();
     }
 
@@ -208,8 +205,7 @@ public class RoomRuleset
         {
             size = 0.ToString();
         }
-        sizeRange.x = Mathf.Max(sizeRange.x, 0);
-        sizeRange.y = Mathf.Max(sizeRange.y, 0);
+        sizeRange.Set(Mathf.Max(sizeRange.x, 0), Mathf.Max(sizeRange.y, 0));
         size = sizeRange.ToString();
     }
 

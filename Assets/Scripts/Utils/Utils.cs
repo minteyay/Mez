@@ -122,6 +122,16 @@ public class Utils
     }
 
     /// <summary>
+    /// Swaps the two given variables.
+    /// </summary>
+    public static void Swap<T>(ref T a, ref T b)
+    {
+        T temp = a;
+        a = b;
+        b = temp;
+    }
+
+    /// <summary>
     /// Parses a file name from a path by stripping it of the folder structure and file extension.
     /// </summary>
     public static string ParseFileName(string path)
