@@ -115,14 +115,22 @@ public class DecorationRuleset
             case AmountType.Chance:
                 float chance;
                 if (!TryParseChance(out chance))
+                {
                     amount = 0.0f.ToString();
+                    break;
+                }
                 amount = Mathf.Max(0.0f, Mathf.Min(chance, 100.0f)).ToString();
                 break;
             case AmountType.Count:
                 Range countRange;
                 if (!TryParseCount(out countRange))
+                {
                     amount = 0.ToString();
-                // TODO: Proper range validation.
+                    break;
+                }
+                countRange.x = Mathf.Max(countRange.x, 0);
+                countRange.y = Mathf.Max(countRange.y, 0);
+                amount = countRange.ToString();
                 break;
         }
     }
@@ -183,8 +191,13 @@ public class RoomRuleset
         count = newCount;
         Range countRange;
         if (!TryParseCount(out countRange))
+        {
             count = 0.ToString();
-        // TODO: Proper range validation.
+            return;
+        }
+        countRange.x = Mathf.Max(countRange.x, 0);
+        countRange.y = Mathf.Max(countRange.y, 0);
+        count = countRange.ToString();
     }
 
     public void SetSize(string newSize)
@@ -192,8 +205,12 @@ public class RoomRuleset
         size = newSize;
         Range sizeRange;
         if (!TryParseSize(out sizeRange))
+        {
             size = 0.ToString();
-        // TODO: Proper range validation.
+        }
+        sizeRange.x = Mathf.Max(sizeRange.x, 0);
+        sizeRange.y = Mathf.Max(sizeRange.y, 0);
+        size = sizeRange.ToString();
     }
 
     public bool Validate(MazeRuleset mazeRuleset)
