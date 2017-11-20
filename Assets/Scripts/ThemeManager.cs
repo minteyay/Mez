@@ -50,8 +50,8 @@ public class ThemeManager : MonoBehaviour
 		ruleset = null;
 		textures.Clear();
 
-		LoadThemeRuleset(themeName);
 		LoadThemeTextures(themeName);
+		LoadThemeRuleset(themeName);
 	}
 
 	private void UpdateLoadingState()
@@ -84,6 +84,8 @@ public class ThemeManager : MonoBehaviour
 		yield return www;
 
 		ruleset = JsonUtility.FromJson<MazeRuleset>(www.text);
+		if (!ruleset.Validate(this))
+			Debug.LogErrorFormat("Ruleset \"{0}\" isn't valid.", ruleset.name);
 
 		_rulesetLoaded = true;
 		UpdateLoadingState();
@@ -115,6 +117,9 @@ public class ThemeManager : MonoBehaviour
 			return;
 		}
 
+		string textureName = Utils.ParseFileName(path);
+		textures.Add(textureName, null);
+
 		StartCoroutine(DoLoadTexture(path, callback));
 	}
 
@@ -133,8 +138,7 @@ public class ThemeManager : MonoBehaviour
 		path = path.Replace('\\', '/');
 	#endif
 		string textureName = Utils.ParseFileName(path);
-
-		textures.Add(textureName, texture);
+		textures[textureName] = texture;
 
 		if (callback != null)
 			callback();

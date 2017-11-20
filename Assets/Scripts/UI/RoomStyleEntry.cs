@@ -7,6 +7,7 @@ public class RoomStyleEntry : MonoBehaviour
 {
     [HideInInspector] public int index = 0;
     [HideInInspector] public RoomStyle roomStyle = null;
+    [HideInInspector] public MazeRuleset mazeRuleset = null;
     [HideInInspector] public EditorUI editorUI = null;
     [HideInInspector] public ThemeManager themeManager = null;
 
@@ -60,12 +61,15 @@ public class RoomStyleEntry : MonoBehaviour
 
     public void NameChanged(string newName)
     {
-        roomStyle.name = newName;
+        roomStyle.SetName(newName, mazeRuleset);
+        _nameField.text = roomStyle.name;
     }
 
     public void TilesetChanged(System.Int32 index)
     {
-        roomStyle.tileset = _tilesetDropdown.options[index].text;
+        roomStyle.SetTileset(_tilesetDropdown.options[index].text, themeManager);
+        if (roomStyle.tileset != _tilesetDropdown.options[index].text)
+            Debug.LogError("Couldn't set tileset to " + _tilesetDropdown.options[index].text);
     }
 
     public void AddDecoration()

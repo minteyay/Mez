@@ -130,20 +130,22 @@ public class EditorUI : MonoBehaviour
 
 	public void MazeNameChanged(string newName)
 	{
-		_themeManager.ruleset.name = newName;
+		_themeManager.ruleset.SetName(newName, _themeManager);
+		_mazeNameField.text = _themeManager.ruleset.name;
 	}
 
 	public void MazeWidthChanged(string newWidth)
 	{
-		int width = Mathf.Max(1, int.Parse(newWidth));
-		_mazeWidthField.text = width.ToString();
-		_themeManager.ruleset.size.x = width;
+		Point newSize = new Point(int.Parse(newWidth), _themeManager.ruleset.size.y);
+		_themeManager.ruleset.SetSize(newSize);
+		_mazeWidthField.text = _themeManager.ruleset.size.x.ToString();
 	}
+
 	public void MazeHeightChanged(string newHeight)
 	{
-		int height = Mathf.Max(1, int.Parse(newHeight));
-		_mazeHeightField.text = height.ToString();
-		_themeManager.ruleset.size.y = height;
+		Point newSize = new Point(_themeManager.ruleset.size.x, int.Parse(newHeight));
+		_themeManager.ruleset.SetSize(newSize);
+		_mazeHeightField.text = _themeManager.ruleset.size.y.ToString();
 	}
 
 	public void AddRoomStyle()
