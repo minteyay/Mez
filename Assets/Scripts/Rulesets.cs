@@ -12,11 +12,9 @@ public class MazeRuleset
 
     public void SetName(string newName, ThemeManager themeManager)
     {
-        // TODO: Utils function for checking duplicate names in a list and generating a unique name.
-        foreach (string themeName in themeManager.themeNames)
-            if (themeName != name && themeName == newName)
-                newName += " (Copy)";
-        name = newName;
+        if (newName.Length <= 0)
+            newName = "default";
+        name = Utils.MakeUniqueName(name, newName, themeManager.themeNames.ToArray());
     }
 
     public void SetSize(Point newSize)
@@ -49,11 +47,12 @@ public class RoomStyle
 
     public void SetName(string newName, MazeRuleset mazeRuleset)
     {
-        // TODO: Utils function for checking duplicate names in a list and generating a unique name.
-        foreach (RoomStyle roomStyle in mazeRuleset.roomStyles)
-            if (roomStyle != this && roomStyle.name == newName)
-                newName += " (Copy)";
-        name = newName;
+        if (newName.Length <= 0)
+            newName = "default";
+        string[] roomStyleNames = new string[mazeRuleset.roomStyles.Length];
+        for (int i = 0; i < roomStyleNames.Length; i++)
+            roomStyleNames[i] = mazeRuleset.roomStyles[i].name;
+        name = Utils.MakeUniqueName(name, newName, roomStyleNames);
     }
 
     public void SetTileset(string newTileset, ThemeManager themeManager)

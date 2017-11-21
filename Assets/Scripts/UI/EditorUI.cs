@@ -89,6 +89,7 @@ public class EditorUI : MonoBehaviour
 			RoomStyleEntry roomStyleUI = roomStyleEntry.GetComponent<RoomStyleEntry>();
 			roomStyleUI.index = i;
 			roomStyleUI.roomStyle = ruleset.roomStyles[i];
+			roomStyleUI.mazeRuleset = ruleset;
 			roomStyleUI.editorUI = this;
 			roomStyleUI.themeManager = _themeManager;
 			roomStyleUI.UpdateValues();
@@ -150,7 +151,8 @@ public class EditorUI : MonoBehaviour
 
 	public void AddRoomStyle()
 	{
-		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, new RoomStyle());
+		RoomStyle roomStyle = new RoomStyle();
+		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, roomStyle);
 		UnselectEntries();
 		UpdateValues();
 	}
