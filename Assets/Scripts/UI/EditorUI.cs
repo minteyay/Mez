@@ -40,7 +40,7 @@ public class EditorUI : MonoBehaviour
 
 		_busyScreen.SetActive(false);
 
-		_themeDropdown.AddOptions(_themeManager.themeNames);
+		UpdateThemeNames();
         ThemeChanged(0);
 	}
 
@@ -67,6 +67,12 @@ public class EditorUI : MonoBehaviour
 		UpdateValues();
         GenerateMaze();
     }
+
+	private void UpdateThemeNames()
+	{
+		_themeDropdown.ClearOptions();
+		_themeDropdown.AddOptions(_themeManager.themeNames);
+	}
 
 	public void UpdateValues()
 	{
@@ -146,7 +152,24 @@ public class EditorUI : MonoBehaviour
 
 	public void AddMazeRuleset()
 	{
-		// TODO: Actually add the ruleset with the provided name.
+		string newThemeName = _addRulesetNameField.text;
+		// TODO: Error message popups for these.
+		if (newThemeName.Length <= 0)
+		{
+			Debug.LogError("Theme name can't be empty.");
+			return;
+		}
+		if (_themeManager.themeNames.Contains(newThemeName))
+		{
+			Debug.LogError("A theme with the name \"" + newThemeName + "\" already exists.");
+			_addRulesetNameField.text = "";
+			return;
+		}
+		_addRulesetNameField.text = "";
+		_themeManager.CreateTheme(newThemeName);
+		UpdateThemeNames();
+		_themeDropdown.value = _themeManager.themeNames.Count - 1;
+		ThemeChanged(_themeDropdown.value);
 		HideAddMazeRulesetModal();
 	}
 

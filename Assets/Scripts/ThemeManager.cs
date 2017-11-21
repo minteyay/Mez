@@ -54,6 +54,19 @@ public class ThemeManager : MonoBehaviour
 		LoadThemeRuleset(themeName);
 	}
 
+	public bool CreateTheme(string themeName)
+	{
+		if (themeNames.Contains(themeName))
+			return false;
+		
+		Directory.CreateDirectory(Application.dataPath + "/Themes/" + themeName);
+		MazeRuleset newRuleset = new MazeRuleset();
+		newRuleset.name = themeName;
+		SaveThemeRuleset(newRuleset);
+		themeNames.Add(themeName);
+		return true;
+	}
+
 	private void UpdateLoadingState()
 	{
 		if (!_rulesetLoaded) return;
@@ -91,6 +104,11 @@ public class ThemeManager : MonoBehaviour
 	}
 
 	public void SaveThemeRuleset()
+	{
+		SaveThemeRuleset(ruleset);
+	}
+
+	private void SaveThemeRuleset(MazeRuleset ruleset)
 	{
 		string rulesetPath = Application.dataPath + "/Themes/" + ruleset.name + "/" + ruleset.name + ".json";
 		string jsonString = JsonUtility.ToJson(ruleset, true);
