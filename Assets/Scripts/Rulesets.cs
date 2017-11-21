@@ -23,24 +23,24 @@ public class MazeRuleset
         size = newSize;
     }
 
-    public bool Validate(ThemeManager themeManager)
+    public void Validate(ThemeManager themeManager)
     {
-        if (size.x <= 0 || size.y <= 0)
-            return false;
+        SetName(name, themeManager);
+        SetSize(size);
+
+        if (roomStyles != null)
         foreach (RoomStyle roomStyle in roomStyles)
-            if (!roomStyle.Validate(this, themeManager))
-                return false;
+            roomStyle.Validate(this, themeManager);
+        if (rooms != null)
         foreach (RoomRuleset room in rooms)
-            if (!room.Validate(this))
-                return false;
-        return true;
+            room.Validate(this);
     }
 }
 
 [System.Serializable]
 public class RoomStyle
 {
-    public string name = "default";
+    public string name = "";
     public string tileset = "default";
 
     public DecorationRuleset[] decorations;
@@ -63,17 +63,14 @@ public class RoomStyle
             tileset = newTileset;
     }
 
-    public bool Validate(MazeRuleset mazeRuleset, ThemeManager themeManager)
+    public void Validate(MazeRuleset mazeRuleset, ThemeManager themeManager)
     {
-        foreach (RoomStyle roomStyle in mazeRuleset.roomStyles)
-            if (roomStyle != this && roomStyle.name == name)
-                return false;
-        if (!themeManager.textures.ContainsKey(tileset))
-            return false;
+        SetName(name, mazeRuleset);
+        SetTileset(tileset, themeManager);
+
+        if (decorations != null)
         foreach (DecorationRuleset decoration in decorations)
-            if (!decoration.Validate(themeManager))
-                return false;
-        return true;
+            decoration.Validate(themeManager);
     }
 }
 
@@ -132,24 +129,10 @@ public class DecorationRuleset
         }
     }
 
-    public bool Validate(ThemeManager themeManager)
+    public void Validate(ThemeManager themeManager)
     {
-        if (!themeManager.textures.ContainsKey(texture))
-            return false;
-        switch (amountType)
-        {
-            case AmountType.Chance:
-                float chance;
-                if (!TryParseChance(out chance))
-                    return false;
-                break;
-            case AmountType.Count:
-                Range countRange;
-                if (!TryParseCount(out countRange))
-                    return false;
-                break;
-        }
-        return true;
+        SetTexture(texture, themeManager);
+        SetAmount(amount);
     }
 }
 
@@ -208,19 +191,10 @@ public class RoomRuleset
         size = sizeRange.ToString();
     }
 
-    public bool Validate(MazeRuleset mazeRuleset)
+    public void Validate(MazeRuleset mazeRuleset)
     {
-        bool validStyle = false;
-        foreach (RoomStyle roomStyle in mazeRuleset.roomStyles)
-            if (roomStyle.name == style)
-                validStyle = true;
-        if (!validStyle)
-            return false;
-        Range range;
-        if (!TryParseCount(out range))
-            return false;
-        if (!TryParseSize(out range))
-            return false;
-        return true;
+        SetStyle(style, mazeRuleset);
+        SetCount(count);
+        SetSize(size);
     }
 }

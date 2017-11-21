@@ -84,8 +84,7 @@ public class ThemeManager : MonoBehaviour
 		yield return www;
 
 		ruleset = JsonUtility.FromJson<MazeRuleset>(www.text);
-		if (!ruleset.Validate(this))
-			Debug.LogErrorFormat("Ruleset \"{0}\" isn't valid.", ruleset.name);
+		ruleset.Validate(this);
 
 		_rulesetLoaded = true;
 		UpdateLoadingState();
