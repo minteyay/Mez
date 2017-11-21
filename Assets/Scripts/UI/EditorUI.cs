@@ -30,6 +30,9 @@ public class EditorUI : MonoBehaviour
 
 	private bool _selectedEntry = false;
 
+	[SerializeField] private GameObject _addRulesetModal = null;
+	[SerializeField] private InputField _addRulesetNameField = null;
+
 	private void Start()
 	{
 		_gameManager = GameManager.instance;
@@ -37,7 +40,7 @@ public class EditorUI : MonoBehaviour
 
 		_busyScreen.SetActive(false);
 
-		_themeDropdown.AddOptions(_themeManager.themeNames);
+		UpdateThemeNames();
         ThemeChanged(0);
 	}
 
@@ -64,6 +67,12 @@ public class EditorUI : MonoBehaviour
 		UpdateValues();
         GenerateMaze();
     }
+
+	private void UpdateThemeNames()
+	{
+		_themeDropdown.ClearOptions();
+		_themeDropdown.AddOptions(_themeManager.themeNames);
+	}
 
 	public void UpdateValues()
 	{
@@ -128,6 +137,41 @@ public class EditorUI : MonoBehaviour
         _busyScreen.SetActive(true);
         _gameManager.GenerateMaze(_themeManager.ruleset, () => { _busyScreen.SetActive(false); });
     }
+
+	public void ShowAddMazeRulesetModal()
+	{
+		_busyScreen.SetActive(true);
+		_addRulesetModal.SetActive(true);
+	}
+
+	public void HideAddMazeRulesetModal()
+	{
+		_busyScreen.SetActive(false);
+		_addRulesetModal.SetActive(false);
+	}
+
+	public void AddMazeRuleset()
+	{
+		string newThemeName = _addRulesetNameField.text;
+		// TODO: Error message popups for these.
+		if (newThemeName.Length <= 0)
+		{
+			Debug.LogError("Theme name can't be empty.");
+			return;
+		}
+		if (_themeManager.themeNames.Contains(newThemeName))
+		{
+			Debug.LogError("A theme with the name \"" + newThemeName + "\" already exists.");
+			_addRulesetNameField.text = "";
+			return;
+		}
+		_addRulesetNameField.text = "";
+		_themeManager.CreateTheme(newThemeName);
+		UpdateThemeNames();
+		_themeDropdown.value = _themeManager.themeNames.Count - 1;
+		ThemeChanged(_themeDropdown.value);
+		HideAddMazeRulesetModal();
+	}
 
 	public void MazeNameChanged(string newName)
 	{
