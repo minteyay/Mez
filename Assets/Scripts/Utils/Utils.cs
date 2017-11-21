@@ -179,4 +179,24 @@ public class Utils
         range = new Range(countNum, countNum);
         return true;
     }
+
+    public static string MakeUniqueName(string ignoreName, string newName, string[] allNames)
+    {
+        bool duplicateFound;
+        do
+        {
+            duplicateFound = false;
+            foreach (string name in allNames)
+            {
+                if (name != ignoreName && name == newName)
+                {
+                    duplicateFound = true;
+                    newName += "_copy";
+                    break;
+                }
+            }
+        }
+        while (duplicateFound);
+        return newName;
+    }
 }

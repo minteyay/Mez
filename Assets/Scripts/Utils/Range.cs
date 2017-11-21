@@ -5,7 +5,6 @@
 [System.Serializable]
 public class Range : Point
 {
-	// TODO: Don't allow y to be smaller than x.
 	public Range()
 	{
 		x = y = 0;
