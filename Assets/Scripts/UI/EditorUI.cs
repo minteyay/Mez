@@ -152,6 +152,7 @@ public class EditorUI : MonoBehaviour
 	public void AddRoomStyle()
 	{
 		RoomStyle roomStyle = new RoomStyle();
+		roomStyle.SetName("default", _themeManager.ruleset);
 		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, roomStyle);
 		UnselectEntries();
 		UpdateValues();
