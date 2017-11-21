@@ -428,8 +428,8 @@ public class MazeGenerator : MonoBehaviour
 			List<Dir> possibleEndPointDirs = new List<Dir>();
 			if (x == 0)							possibleEndPointDirs.Add(Dir.W);
 			if (y == 0)							possibleEndPointDirs.Add(Dir.N);
-			if (x == (grid.GetLength(0) - 1))	possibleEndPointDirs.Add(Dir.E);
-			if (y == (grid.GetLength(1) - 1))	possibleEndPointDirs.Add(Dir.S);
+			if (x == (grid.GetLength(1) - 1))	possibleEndPointDirs.Add(Dir.E);
+			if (y == (grid.GetLength(0) - 1))	possibleEndPointDirs.Add(Dir.S);
 
 			if (possibleEndPointDirs.Count > 0)
 			{
