@@ -30,6 +30,9 @@ public class EditorUI : MonoBehaviour
 
 	private bool _selectedEntry = false;
 
+	[SerializeField] private GameObject _addRulesetModal = null;
+	[SerializeField] private InputField _addRulesetNameField = null;
+
 	private void Start()
 	{
 		_gameManager = GameManager.instance;
@@ -128,6 +131,24 @@ public class EditorUI : MonoBehaviour
         _busyScreen.SetActive(true);
         _gameManager.GenerateMaze(_themeManager.ruleset, () => { _busyScreen.SetActive(false); });
     }
+
+	public void ShowAddMazeRulesetModal()
+	{
+		_busyScreen.SetActive(true);
+		_addRulesetModal.SetActive(true);
+	}
+
+	public void HideAddMazeRulesetModal()
+	{
+		_busyScreen.SetActive(false);
+		_addRulesetModal.SetActive(false);
+	}
+
+	public void AddMazeRuleset()
+	{
+		// TODO: Actually add the ruleset with the provided name.
+		HideAddMazeRulesetModal();
+	}
 
 	public void MazeNameChanged(string newName)
 	{
