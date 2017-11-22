@@ -10,11 +10,11 @@ public class MazeRuleset
     public RoomStyle[] roomStyles;
     public RoomRuleset[] rooms;
 
-    public void SetName(string newName, ThemeManager themeManager)
+    public void SetName(string newName)
     {
         if (newName.Length <= 0)
-            newName = "default";
-        name = Utils.MakeUniqueName(name, newName, themeManager.themeNames.ToArray());
+            return;
+        name = newName;
     }
 
     public void SetSize(Point newSize)
@@ -25,7 +25,7 @@ public class MazeRuleset
 
     public void Validate(ThemeManager themeManager)
     {
-        SetName(name, themeManager);
+        SetName(name);
         SetSize(size);
 
         if (roomStyles != null)
