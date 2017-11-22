@@ -72,6 +72,16 @@ public class EditorUI : MonoBehaviour
 	{
 		_themeDropdown.ClearOptions();
 		_themeDropdown.AddOptions(_themeManager.themeNames);
+
+		if (_themeManager.ruleset != null)
+		for (int i = 0; i < _themeDropdown.options.Count; i++)
+		{
+			if (_themeDropdown.options[i].text == _themeManager.ruleset.name)
+			{
+				_themeDropdown.value = i;
+				break;
+			}
+		}
 	}
 
 	public void UpdateValues()
@@ -175,8 +185,29 @@ public class EditorUI : MonoBehaviour
 
 	public void MazeNameChanged(string newName)
 	{
-		_themeManager.ruleset.SetName(newName, _themeManager);
-		_mazeNameField.text = _themeManager.ruleset.name;
+		if (newName == _themeManager.ruleset.name)
+			return;
+		
+		bool error = false;
+		// TODO: Error message popups for these.
+		if (newName.Length <= 0)
+		{
+			Debug.LogError("Theme name can't be empty.");
+			error = true;
+		}
+		if (_themeManager.themeNames.Contains(newName))
+		{
+			Debug.LogError("A theme with the name \"" + newName + "\" already exists.");
+			error = true;
+		}
+		
+		MazeRuleset ruleset = _themeManager.ruleset;
+		if (!error)
+		{
+			_themeManager.RenameTheme(newName);
+			UpdateThemeNames();
+		}
+		_mazeNameField.text = ruleset.name;
 	}
 
 	public void MazeWidthChanged(string newWidth)

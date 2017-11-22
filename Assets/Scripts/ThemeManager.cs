@@ -59,11 +59,27 @@ public class ThemeManager : MonoBehaviour
 		if (themeNames.Contains(themeName))
 			return false;
 		
-		Directory.CreateDirectory(Application.dataPath + "/Themes/" + themeName);
+		Directory.CreateDirectory(Application.dataPath + ThemePath + themeName);
 		MazeRuleset newRuleset = new MazeRuleset();
 		newRuleset.name = themeName;
 		SaveThemeRuleset(newRuleset);
 		themeNames.Add(themeName);
+		return true;
+	}
+
+	public bool RenameTheme(string toName)
+	{
+		if (themeNames.Contains(toName))
+			return false;
+		
+		string fromDir = Application.dataPath + ThemePath + ruleset.name;
+		string toDir = Application.dataPath + ThemePath + toName;
+		Directory.Move(fromDir, toDir);
+		File.Move(toDir + "/" + ruleset.name + ".json", toDir + "/" + toName + ".json");
+		themeNames.Remove(ruleset.name);
+		themeNames.Add(toName);
+		ruleset.SetName(toName);
+		SaveThemeRuleset();
 		return true;
 	}
 
@@ -80,7 +96,7 @@ public class ThemeManager : MonoBehaviour
 	{
 		_rulesetLoaded = false;
 		
-		string rulesetPath = Application.dataPath + "/Themes/" + themeName + "/" + themeName + ".json";
+		string rulesetPath = Application.dataPath + ThemePath + themeName + "/" + themeName + ".json";
 		if (!System.IO.File.Exists(rulesetPath))
 		{
 			Debug.LogWarning("Trying to load ruleset \"" + rulesetPath + "\" which doesn't exist!");
@@ -110,14 +126,14 @@ public class ThemeManager : MonoBehaviour
 
 	private void SaveThemeRuleset(MazeRuleset ruleset)
 	{
-		string rulesetPath = Application.dataPath + "/Themes/" + ruleset.name + "/" + ruleset.name + ".json";
+		string rulesetPath = Application.dataPath + ThemePath + ruleset.name + "/" + ruleset.name + ".json";
 		string jsonString = JsonUtility.ToJson(ruleset, true);
 		File.WriteAllText(rulesetPath, jsonString);
 	}
 
 	private void LoadThemeTextures(string themeName)
 	{
-		string[] texturePaths = System.IO.Directory.GetFiles(Application.dataPath + "/Themes/" + themeName, "*.png");
+		string[] texturePaths = System.IO.Directory.GetFiles(Application.dataPath + ThemePath + themeName, "*.png");
 		_texturesToLoad = texturePaths.Length;
 		_texturesLoaded = 0;
 
