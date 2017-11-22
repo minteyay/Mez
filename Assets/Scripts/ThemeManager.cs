@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// </summary>
 public class ThemeManager : MonoBehaviour
 {
-	private const string ThemePath = "/Themes/";
+	private string _themePath;
 
 	public List<string> themeNames { get; private set; }
 	public MazeRuleset ruleset { get; private set; }
@@ -24,6 +24,8 @@ public class ThemeManager : MonoBehaviour
 
 	public void Awake()
 	{
+		_themePath = Application.dataPath + "/../Themes/";
+
 		themeNames = new List<string>();
 		ruleset = null;
 		textures = new Dictionary<string, Texture2D>();
@@ -31,7 +33,7 @@ public class ThemeManager : MonoBehaviour
 		defaultTexture = _defaultTexture;
 
 		// Enumerate themes.
-		string[] themes = System.IO.Directory.GetDirectories(Application.dataPath + ThemePath);
+		string[] themes = System.IO.Directory.GetDirectories(_themePath);
 		foreach (string s in themes)
 		{
 			// Only store the theme's name.
@@ -59,7 +61,7 @@ public class ThemeManager : MonoBehaviour
 		if (themeNames.Contains(themeName))
 			return false;
 		
-		Directory.CreateDirectory(Application.dataPath + ThemePath + themeName);
+		Directory.CreateDirectory(_themePath + themeName);
 		MazeRuleset newRuleset = new MazeRuleset();
 		newRuleset.name = themeName;
 		SaveThemeRuleset(newRuleset);
@@ -72,8 +74,8 @@ public class ThemeManager : MonoBehaviour
 		if (themeNames.Contains(toName))
 			return false;
 		
-		string fromDir = Application.dataPath + ThemePath + ruleset.name;
-		string toDir = Application.dataPath + ThemePath + toName;
+		string fromDir = _themePath + ruleset.name;
+		string toDir = _themePath + toName;
 		Directory.Move(fromDir, toDir);
 		File.Move(toDir + "/" + ruleset.name + ".json", toDir + "/" + toName + ".json");
 		themeNames.Remove(ruleset.name);
@@ -96,7 +98,7 @@ public class ThemeManager : MonoBehaviour
 	{
 		_rulesetLoaded = false;
 		
-		string rulesetPath = Application.dataPath + ThemePath + themeName + "/" + themeName + ".json";
+		string rulesetPath = _themePath + themeName + "/" + themeName + ".json";
 		if (!System.IO.File.Exists(rulesetPath))
 		{
 			Debug.LogWarning("Trying to load ruleset \"" + rulesetPath + "\" which doesn't exist!");
@@ -126,14 +128,14 @@ public class ThemeManager : MonoBehaviour
 
 	private void SaveThemeRuleset(MazeRuleset ruleset)
 	{
-		string rulesetPath = Application.dataPath + ThemePath + ruleset.name + "/" + ruleset.name + ".json";
+		string rulesetPath = _themePath + ruleset.name + "/" + ruleset.name + ".json";
 		string jsonString = JsonUtility.ToJson(ruleset, true);
 		File.WriteAllText(rulesetPath, jsonString);
 	}
 
 	private void LoadThemeTextures(string themeName)
 	{
-		string[] texturePaths = System.IO.Directory.GetFiles(Application.dataPath + ThemePath + themeName, "*.png");
+		string[] texturePaths = System.IO.Directory.GetFiles(_themePath + themeName, "*.png");
 		_texturesToLoad = texturePaths.Length;
 		_texturesLoaded = 0;
 

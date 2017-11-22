@@ -1,0 +1,35 @@
+{
+    "name": "dark",
+    "size": {
+        "x": 5,
+        "y": 5
+    },
+    "roomStyles": [
+        {
+            "name": "hallway",
+            "tileset": "blinds",
+            "decorations": [
+                {
+                    "texture": "welcomeMat",
+                    "location": 0,
+                    "amountType": 1,
+                    "amount": "1 - 3"
+                }
+            ]
+        }
+    ],
+    "rooms": [
+        {
+            "style": "hallway",
+            "start": 1,
+            "count": "1",
+            "size": "3"
+        },
+        {
+            "style": "hallway",
+            "start": 2,
+            "count": "1",
+            "size": "3"
+        }
+    ]
+}

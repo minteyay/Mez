@@ -1,0 +1,22 @@
+{
+    "name": "paperhouse",
+    "size": {
+        "x": 8,
+        "y": 8
+    },
+    "roomStyles": [
+        {
+            "name": "default",
+            "tileset": "paperhouse",
+            "decorations": [
+                {
+                    "texture": "paperhouse_floor",
+                    "location": 0,
+                    "amountType": 0,
+                    "amount": "0"
+                }
+            ]
+        }
+    ],
+    "rooms": []
+}

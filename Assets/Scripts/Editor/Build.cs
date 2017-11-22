@@ -42,7 +42,7 @@ public class Build
         BuildPipeline.BuildPlayer(levels, path + exeName + exeFileExtension, target, BuildOptions.None);
 
         // Copy the Themes folder to the data path of the build.
-        CopyDirectory("Assets/Themes", path + exeName + "_Data/Themes", new string[] { ".png", ".json" });
+        CopyDirectory("Themes", path + "Themes", new string[] { ".png", ".json" });
     }
 
     // Copies a directory and all its contents, only accepting files with given filetypes.
