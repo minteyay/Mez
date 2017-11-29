@@ -667,7 +667,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
-	#if DEBUG
+#if DEBUG
 	private void OnDrawGizmos()
 	{
 		if (_newSprawlerTiles != null)

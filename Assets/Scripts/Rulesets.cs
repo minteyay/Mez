@@ -44,6 +44,7 @@ public class RoomStyle
     public string tileset = "default";
 
     public DecorationRuleset[] decorations;
+    public FlavourTileRuleset[] flavourTiles;
 
     public void SetName(string newName, MazeRuleset mazeRuleset)
     {
@@ -71,6 +72,10 @@ public class RoomStyle
         if (decorations != null)
         foreach (DecorationRuleset decoration in decorations)
             decoration.Validate(themeManager);
+        
+        if (flavourTiles != null)
+        foreach (FlavourTileRuleset flavourTile in flavourTiles)
+            flavourTile.Validate(themeManager);
     }
 }
 
@@ -218,6 +223,7 @@ public class FlavourTileRuleset
     public void Validate(ThemeManager themeManager)
     {
         SetTexture(texture, themeManager);
+        SetLocation(location);
         SetAmount(amount);
     }
 }
