@@ -32,6 +32,7 @@ public class MazeGenerator : MonoBehaviour
 		Idle,
 		RunningSprawlers,
 		AddingDecorations,
+		AddingFlavourTiles,
 		Finished
 	}
 	[SerializeField] private State _state;
@@ -124,10 +125,10 @@ public class MazeGenerator : MonoBehaviour
 		if (ruleset.rooms != null && ruleset.rooms.Length > 0)
 		{
 			NextSprawlerRuleset();
-			state = State.RunningSprawlers;
+			_state = State.RunningSprawlers;
 		}
 		else
-			state = State.AddingDecorations;
+			_state = State.AddingDecorations;
 		
 		if (!_stepThrough)
 			while (Step()) {}
@@ -138,7 +139,6 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void FinishMaze()
 	{
-		TextureMaze();
 		UpdateMazeUVs();
 
 		if (_onComplete != null)
@@ -352,7 +352,87 @@ public class MazeGenerator : MonoBehaviour
 											break;
 									}
 								}
+								break;
+						}
+					}
+				}
+				_state = State.AddingFlavourTiles;
+				break;
+			
+			case State.AddingFlavourTiles:
+				foreach (RoomStyle roomStyle in _ruleset.roomStyles)
+				{
+					List<Tile> tiles = new List<Tile>();
+					for (int y = 0; y < _maze.size.y; y++)
+					{
+						for (int x = 0; x < _maze.size.x; x++)
+						{
+							Tile tile = _maze.GetTile(x, y);
+							if (tile.theme == roomStyle.name)
+								tiles.Add(tile);
+						}
+					}
 
+					if (roomStyle.flavourTiles != null && roomStyle.flavourTiles.Length > 0)
+					foreach (FlavourTileRuleset flavourTileRuleset in roomStyle.flavourTiles)
+					{
+						if (!_materials.ContainsKey(flavourTileRuleset.texture))
+						{
+							Material flavourTileMaterial = new Material(_seamlessShader);
+							flavourTileMaterial.mainTexture = _themeManager.textures[flavourTileRuleset.texture];
+							_materials.Add(flavourTileRuleset.texture, flavourTileMaterial);
+						}
+
+						switch (flavourTileRuleset.amountType)
+						{
+							case FlavourTileRuleset.AmountType.Chance:
+								Utils.Shuffle(Random.instance, tiles);
+								float chance = float.Parse(flavourTileRuleset.amount);
+								foreach (Tile tile in tiles)
+								{
+									if (Random.YesOrNo(chance / 100.0f))
+									{
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
+											tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+											tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+										
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
+										{
+											Transform walls = tile.instance.transform.Find("Walls");
+											for (int i = 0; i < walls.childCount; i++)
+												walls.GetChild(i).GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+										}
+									}
+								}
+								break;
+							
+							case FlavourTileRuleset.AmountType.Count:
+								Range countRange;
+								flavourTileRuleset.TryParseCount(out countRange);
+								if (tiles.Count < countRange.x)
+								{
+									Debug.LogWarning("Not enough tiles of style \"" + roomStyle.name + "\" to satisfy decoration count range. (requires at least " + countRange.x + ")");
+									continue;
+								}
+
+								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, tiles.Count) + 1);
+								for (int i = 0; i < decorationCount; i++)
+								{
+									Tile tile = tiles[i];
+
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
+										tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+										tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+									
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
+									{
+										Transform walls = tile.instance.transform.Find("Walls");
+										for (int k = 0; k < walls.childCount; k++)
+											walls.GetChild(k).GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
+									}
+								}
 								break;
 						}
 					}
@@ -381,6 +461,7 @@ public class MazeGenerator : MonoBehaviour
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
 			_currentSprawlerRulesetIndex = -1;
 			state = State.AddingDecorations;
+			TextureMaze();
 		}
 		else
 		{

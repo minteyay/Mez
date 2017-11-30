@@ -15,6 +15,15 @@
                     "amountType": 1,
                     "amount": "1 - 3"
                 }
+            ],
+            "flavourTiles": [
+                {
+                    "type": 1,
+                    "texture": "paperhouse",
+                    "location": 3,
+                    "amountType": 1,
+                    "amount": "0 - 4"
+                }
             ]
         }
     ],
