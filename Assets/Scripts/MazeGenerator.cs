@@ -393,16 +393,11 @@ public class MazeGenerator : MonoBehaviour
 									if (Random.YesOrNo(chance / 100.0f))
 									{
 										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
-											tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
-											tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-										
+											TextureTileFloor(tile, flavourTileRuleset.texture);
 										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
-										{
-											Transform walls = tile.instance.transform.Find("Walls");
-											for (int i = 0; i < walls.childCount; i++)
-												walls.GetChild(i).GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-										}
+											TextureTileWalls(tile, flavourTileRuleset.texture);
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+											TextureTileCeiling(tile, flavourTileRuleset.texture);
 									}
 								}
 								break;
@@ -422,16 +417,11 @@ public class MazeGenerator : MonoBehaviour
 									Tile tile = tiles[i];
 
 									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
-										tile.instance.transform.Find("Floor").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
-										tile.instance.transform.Find("Ceiling").GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-									
+										TextureTileFloor(tile, flavourTileRuleset.texture);
 									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
-									{
-										Transform walls = tile.instance.transform.Find("Walls");
-										for (int k = 0; k < walls.childCount; k++)
-											walls.GetChild(k).GetComponent<MeshRenderer>().material = _materials[flavourTileRuleset.texture];
-									}
+										TextureTileWalls(tile, flavourTileRuleset.texture);
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+										TextureTileCeiling(tile, flavourTileRuleset.texture);
 								}
 								break;
 						}
@@ -624,44 +614,60 @@ public class MazeGenerator : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Updates the textures of a tile.
+	/// Updates a given tile's textures to those of its theme.
 	/// </summary>
 	private void TextureTile(Tile tile)
 	{
-		string tilesetName = _roomStyles[tile.theme].tileset;
-		string floorTilesetName = tilesetName + TilesetFloorSuffix;
-		string ceilingTilesetName = tilesetName + TilesetCeilingSuffix;
+		TextureTile(tile, _roomStyles[tile.theme].tileset);
+	}
+	
+	/// <summary>
+	/// Sets the textures of a tile to a given tileset.
+	/// </summary>
+	private void TextureTile(Tile tile, string tilesetName)
+	{
+		TextureTileWalls(tile, tilesetName);
+		TextureTileFloor(tile, tilesetName);
+		TextureTileCeiling(tile, tilesetName);
+	}
 
-		// Create the material(s) for the tile if they haven't been created yet.
+	/// <summary>
+	/// Sets the floor texture of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileFloor(Tile tile, string tilesetName)
+	{
+		string floorTilesetName = tilesetName + TilesetFloorSuffix;
+
+		if (!_materials.ContainsKey(floorTilesetName))
+		{
+			Material floorMaterial = _materials[tilesetName];
+			// Create a seamless material for the floor if one exists.
+			if (_themeManager.textures.ContainsKey(floorTilesetName))
+			{
+				floorMaterial = new Material(_seamlessShader);
+				floorMaterial.mainTexture = _themeManager.textures[tilesetName];
+				floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[floorTilesetName]);
+				floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
+			}
+			_materials.Add(floorTilesetName, floorMaterial);
+		}
+
+		tile.floor.GetComponent<MeshRenderer>().material = _materials[floorTilesetName];
+	}
+
+	/// <summary>
+	/// Sets the wall textures of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileWalls(Tile tile, string tilesetName)
+	{
 		if (!_materials.ContainsKey(tilesetName))
 		{
 			Material regularMaterial = new Material(_regularShader);
-			Material floorMaterial = regularMaterial;
-			Material ceilingMaterial = regularMaterial;
 
 			// Use the tile's tileset if it's loaded.
 			if (_themeManager.textures.ContainsKey(tilesetName))
 			{
-				Texture2D tileset = _themeManager.textures[tilesetName];
-				regularMaterial.mainTexture = tileset;
-
-				// Create a seamless material for the floor if one exists.
-				if (_themeManager.textures.ContainsKey(floorTilesetName))
-				{
-					floorMaterial = new Material(_seamlessShader);
-					floorMaterial.mainTexture = tileset;
-					floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[floorTilesetName]);
-					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
-				}
-
-				// Create a seamless material for the ceiling if one exists.
-				if (_themeManager.textures.ContainsKey(ceilingTilesetName))
-				{
-					ceilingMaterial = new Material(_seamlessShader);
-					ceilingMaterial.mainTexture = tileset;
-					ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[ceilingTilesetName]);
-					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
-				}
+				regularMaterial.mainTexture = _themeManager.textures[tilesetName];
 			}
 			// If the tile's tileset isn't loaded, use the default one.
 			else
@@ -670,15 +676,34 @@ public class MazeGenerator : MonoBehaviour
 				if (tilesetName != "default")
 					Debug.LogWarning("Tried using tileset called \"" + tilesetName + "\" but it isn't loaded, using the default tileset.", tile.instance);
 			}
-
 			_materials.Add(tilesetName, regularMaterial);
-			_materials.Add(floorTilesetName, floorMaterial);
-			_materials.Add(ceilingTilesetName, ceilingMaterial);
 		}
 
 		foreach (GameObject wall in tile.walls)
 			wall.GetComponent<MeshRenderer>().material = _materials[tilesetName];
-		tile.floor.GetComponent<MeshRenderer>().material = _materials[floorTilesetName];
+	}
+
+	/// <summary>
+	/// Sets the ceiling texture of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileCeiling(Tile tile, string tilesetName)
+	{
+		string ceilingTilesetName = tilesetName + TilesetCeilingSuffix;
+
+		if (!_materials.ContainsKey(ceilingTilesetName))
+		{
+			Material ceilingMaterial = _materials[tilesetName];
+			// Create a seamless material for the ceiling if one exists.
+			if (_themeManager.textures.ContainsKey(ceilingTilesetName))
+			{
+				ceilingMaterial = new Material(_seamlessShader);
+				ceilingMaterial.mainTexture = _themeManager.textures[tilesetName];
+				ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[ceilingTilesetName]);
+				ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
+			}
+			_materials.Add(ceilingTilesetName, ceilingMaterial);
+		}
+
 		tile.ceiling.GetComponent<MeshRenderer>().material = _materials[ceilingTilesetName];
 	}
 
