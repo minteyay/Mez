@@ -1,0 +1,141 @@
+﻿using UnityEngine;
+using UnityEngine.UI;
+using System.Collections.Generic;
+
+public class FlavourTileEntry : MonoBehaviour
+{
+	[HideInInspector] public int index = 0;
+	[HideInInspector] public FlavourTileRuleset flavourTileRuleset = null;
+	[HideInInspector] public ThemeManager themeManager = null;
+
+	[SerializeField] private ToggleGroup _typeGroup = null;
+	[SerializeField] private Dropdown _textureDropdown = null;
+	[SerializeField] private Dropdown _locationDropdown = null;
+	[SerializeField] private ToggleGroup _locationsGroup = null;
+	[SerializeField] private ToggleGroup _amountTypeGroup = null;
+	[SerializeField] private InputField _chanceField = null;
+	[SerializeField] private InputField _countField = null;
+
+	public void UpdateValues()
+	{
+		string type = flavourTileRuleset.type.ToString();
+		for (int i = 0; i < _typeGroup.transform.childCount; i++)
+		{
+			Toggle toggle = _typeGroup.transform.GetChild(i).GetComponent<Toggle>();
+			if (toggle.gameObject.name == type)
+			{
+				toggle.isOn = true;
+				break;
+			}
+		}
+
+		_locationDropdown.ClearOptions();
+        _locationDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(FlavourTileRuleset.Location))));
+        _locationDropdown.value = (int)flavourTileRuleset.location;
+
+		_textureDropdown.ClearOptions();
+        string[] textures = new string[themeManager.textures.Count];
+        themeManager.textures.Keys.CopyTo(textures, 0);
+        _textureDropdown.AddOptions(new List<string>(textures));
+        for (int i = 0; i < textures.Length; i++)
+        {
+            if (textures[i] == flavourTileRuleset.texture)
+            {
+                _textureDropdown.value = i;
+                break;
+            }
+        }
+
+		string amountType = flavourTileRuleset.amountType.ToString();
+		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
+		{
+			Toggle toggle = _amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>();
+			if (toggle.gameObject.name == amountType)
+			{
+				toggle.isOn = true;
+				break;
+			}
+		}
+
+		_chanceField.text = _countField.text = flavourTileRuleset.amount;
+	}
+
+	public void TypeChanged()
+	{
+		List<Toggle> toggles = new List<Toggle>(_typeGroup.ActiveToggles());
+		FlavourTileRuleset.Type type = (FlavourTileRuleset.Type)System.Enum.Parse(typeof(FlavourTileRuleset.Type), toggles[0].name);
+		if (type != flavourTileRuleset.type)
+			flavourTileRuleset.SetType(type);
+		
+		switch (type)
+		{
+			case FlavourTileRuleset.Type.Single:
+				_locationDropdown.transform.parent.parent.gameObject.SetActive(true);
+				_locationsGroup.gameObject.SetActive(false);
+				// ChanceChanged(flavourTileRuleset.amount);
+				break;
+			case FlavourTileRuleset.Type.Tile:
+				_locationsGroup.gameObject.SetActive(true);
+				_locationDropdown.transform.parent.parent.gameObject.SetActive(false);
+				// CountChanged(flavourTileRuleset.amount);
+				break;
+		}
+	}
+
+	public void TextureChanged(System.Int32 index)
+	{
+		flavourTileRuleset.SetTexture(_textureDropdown.options[index].text, themeManager);
+		if (flavourTileRuleset.texture != _textureDropdown.options[index].text)
+            Debug.LogError("Couldn't set texture to " + _textureDropdown.options[index].text);
+	}
+
+	public void LocationChanged(System.Int32 index)
+	{
+		string[] locationNames = System.Enum.GetNames(typeof(FlavourTileRuleset.Location));
+		byte location = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), locationNames[index]);
+		if (location != flavourTileRuleset.location)
+			flavourTileRuleset.SetLocation(location);
+	}
+
+	public void LocationChanged()
+	{
+		List<Toggle> toggles = new List<Toggle>(_locationsGroup.ActiveToggles());
+		byte location = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.AmountType), toggles[0].name);
+		if (location != flavourTileRuleset.location)
+			flavourTileRuleset.SetLocation(location);
+	}
+
+	public void AmountTypeChanged()
+	{
+		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
+		FlavourTileRuleset.AmountType amountType = (FlavourTileRuleset.AmountType)System.Enum.Parse(typeof(FlavourTileRuleset.AmountType), toggles[0].name);
+		if (amountType != flavourTileRuleset.amountType)
+			flavourTileRuleset.SetAmountType(amountType);
+		
+		switch (amountType)
+		{
+			case FlavourTileRuleset.AmountType.Chance:
+				_chanceField.transform.parent.parent.gameObject.SetActive(true);
+				_countField.transform.parent.parent.gameObject.SetActive(false);
+				ChanceChanged(flavourTileRuleset.amount);
+				break;
+			case FlavourTileRuleset.AmountType.Count:
+				_countField.transform.parent.parent.gameObject.SetActive(true);
+				_chanceField.transform.parent.parent.gameObject.SetActive(false);
+				CountChanged(flavourTileRuleset.amount);
+				break;
+		}
+	}
+
+	public void ChanceChanged(string newChance)
+	{
+		flavourTileRuleset.SetAmount(newChance);
+		_chanceField.text = flavourTileRuleset.amount;
+	}
+
+	public void CountChanged(string newCount)
+	{
+		flavourTileRuleset.SetAmount(newCount);
+		_countField.text = flavourTileRuleset.amount;
+	}
+}
