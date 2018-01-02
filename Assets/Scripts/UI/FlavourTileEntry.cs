@@ -8,13 +8,38 @@ public class FlavourTileEntry : MonoBehaviour
 	[HideInInspector] public FlavourTileRuleset flavourTileRuleset = null;
 	[HideInInspector] public ThemeManager themeManager = null;
 
-	[SerializeField] private ToggleGroup _typeGroup = null;
-	[SerializeField] private Dropdown _textureDropdown = null;
-	[SerializeField] private Dropdown _locationDropdown = null;
-	[SerializeField] private ToggleGroup _locationsGroup = null;
-	[SerializeField] private ToggleGroup _amountTypeGroup = null;
-	[SerializeField] private InputField _chanceField = null;
-	[SerializeField] private InputField _countField = null;
+	private ToggleGroup _typeGroup = null;
+	private Dropdown _textureDropdown = null;
+	private Dropdown _locationDropdown = null;
+	private Transform _locationTogglesRoot = null;
+	private List<Toggle> _locationToggles = new List<Toggle>();
+	private ToggleGroup _amountTypeGroup = null;
+	private InputField _chanceField = null;
+	private InputField _countField = null;
+
+	public void Awake()
+	{
+		_typeGroup = transform.Find("Type").GetComponent<ToggleGroup>();
+		_textureDropdown = transform.Find("Texture").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+		_locationDropdown = transform.Find("Location").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+		_locationTogglesRoot = transform.Find("Locations");
+		for (int i = 0; i < _locationTogglesRoot.childCount; i++)
+			_locationToggles.Add(_locationTogglesRoot.GetChild(i).GetComponent<Toggle>());
+		_amountTypeGroup = transform.Find("AmountType").GetComponent<ToggleGroup>();
+		_chanceField = transform.Find("Chance").Find("Value").Find("InputField").GetComponent<InputField>();
+		_countField = transform.Find("Count").Find("Value").Find("InputField").GetComponent<InputField>();
+
+		for (int i = 0; i < _typeGroup.transform.childCount; i++)
+			_typeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener( (bool b) => TypeChanged() );
+		_textureDropdown.onValueChanged.AddListener(TextureChanged);
+		_locationDropdown.onValueChanged.AddListener(LocationChanged);
+		foreach (Toggle toggle in _locationToggles)
+			toggle.onValueChanged.AddListener( (bool b) => LocationChanged() );
+		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
+			_amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener( (bool b) => AmountTypeChanged() );
+		_chanceField.onEndEdit.AddListener(ChanceChanged);
+		_countField.onEndEdit.AddListener(CountChanged);
+	}
 
 	public void UpdateValues()
 	{
@@ -31,7 +56,6 @@ public class FlavourTileEntry : MonoBehaviour
 
 		_locationDropdown.ClearOptions();
         _locationDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(FlavourTileRuleset.Location))));
-        _locationDropdown.value = (int)flavourTileRuleset.location;
 
 		_textureDropdown.ClearOptions();
         string[] textures = new string[themeManager.textures.Count];
@@ -71,13 +95,13 @@ public class FlavourTileEntry : MonoBehaviour
 		{
 			case FlavourTileRuleset.Type.Single:
 				_locationDropdown.transform.parent.parent.gameObject.SetActive(true);
-				_locationsGroup.gameObject.SetActive(false);
-				// ChanceChanged(flavourTileRuleset.amount);
+				_locationTogglesRoot.gameObject.SetActive(false);
+				LocationChanged(_locationDropdown.value);
 				break;
 			case FlavourTileRuleset.Type.Tile:
-				_locationsGroup.gameObject.SetActive(true);
+				_locationTogglesRoot.gameObject.SetActive(true);
 				_locationDropdown.transform.parent.parent.gameObject.SetActive(false);
-				// CountChanged(flavourTileRuleset.amount);
+				LocationChanged();
 				break;
 		}
 	}
@@ -99,8 +123,10 @@ public class FlavourTileEntry : MonoBehaviour
 
 	public void LocationChanged()
 	{
-		List<Toggle> toggles = new List<Toggle>(_locationsGroup.ActiveToggles());
-		byte location = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.AmountType), toggles[0].name);
+		byte location = 0;
+		foreach (Toggle toggle in _locationToggles)
+			if (toggle.isOn)
+				location |= (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), toggle.name);
 		if (location != flavourTileRuleset.location)
 			flavourTileRuleset.SetLocation(location);
 	}
