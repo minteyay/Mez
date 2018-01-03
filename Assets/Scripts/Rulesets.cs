@@ -44,6 +44,7 @@ public class RoomStyle
     public string tileset = "default";
 
     public DecorationRuleset[] decorations;
+    public FlavourTileRuleset[] flavourTiles;
 
     public void SetName(string newName, MazeRuleset mazeRuleset)
     {
@@ -71,6 +72,10 @@ public class RoomStyle
         if (decorations != null)
         foreach (DecorationRuleset decoration in decorations)
             decoration.Validate(themeManager);
+        
+        if (flavourTiles != null)
+        foreach (FlavourTileRuleset flavourTile in flavourTiles)
+            flavourTile.Validate(themeManager);
     }
 }
 
@@ -132,6 +137,93 @@ public class DecorationRuleset
     public void Validate(ThemeManager themeManager)
     {
         SetTexture(texture, themeManager);
+        SetAmount(amount);
+    }
+}
+
+[System.Serializable]
+public class FlavourTileRuleset
+{
+    public enum Type { Single, Tile }
+    public enum Location:byte { Floor = 1, Wall = 2, Ceiling = 4 }
+    public enum AmountType { Chance, Count }
+
+    public Type type = Type.Single;
+    public string texture = "";
+    public byte location = 0;
+    public AmountType amountType = AmountType.Chance;
+    public string amount = "";
+
+    public bool TryParseChance(out float chance) { return float.TryParse(amount, out chance); }
+    public bool TryParseCount(out Range countRange) { return Utils.TryParseRange(amount, out countRange); }
+
+    public void SetType(Type newType)
+    {
+        type = newType;
+        SetLocation(location);
+    }
+    
+    public void SetTexture(string newTexture, ThemeManager themeManager)
+    {
+        if (!themeManager.textures.ContainsKey(newTexture))
+            texture = "default";
+        else
+            texture = newTexture;
+    }
+
+    public void SetLocation(byte newLocation)
+    {
+        switch (type)
+        {
+            case Type.Single:
+                if (!System.Enum.IsDefined(typeof(Location), newLocation))
+                    location = (byte)Location.Floor;
+                else
+                    location = newLocation;
+                break;
+            case Type.Tile:
+                location = (byte)Mathf.Min(newLocation, 7);
+                break;
+        }
+    }
+
+    public void SetAmountType(AmountType newAmountType)
+    {
+        amountType = newAmountType;
+        SetAmount(amount);
+    }
+
+    public void SetAmount(string newAmount)
+    {
+        amount = newAmount;
+        switch (amountType)
+        {
+            case AmountType.Chance:
+                float chance;
+                if (!TryParseChance(out chance))
+                {
+                    amount = 0.0f.ToString();
+                    break;
+                }
+                amount = Mathf.Max(0.0f, Mathf.Min(chance, 100.0f)).ToString();
+                break;
+            case AmountType.Count:
+                Range countRange;
+                if (!TryParseCount(out countRange))
+                {
+                    amount = 0.ToString();
+                    break;
+                }
+                countRange.Set(Mathf.Max(countRange.x, 0), Mathf.Max(countRange.y, 0));
+                amount = countRange.ToString();
+                break;
+        }
+    }
+
+    public void Validate(ThemeManager themeManager)
+    {
+        SetTexture(texture, themeManager);
+        SetLocation(location);
         SetAmount(amount);
     }
 }

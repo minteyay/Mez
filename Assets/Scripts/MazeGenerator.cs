@@ -32,6 +32,7 @@ public class MazeGenerator : MonoBehaviour
 		Idle,
 		RunningSprawlers,
 		AddingDecorations,
+		AddingFlavourTiles,
 		Finished
 	}
 	[SerializeField] private State _state;
@@ -124,10 +125,10 @@ public class MazeGenerator : MonoBehaviour
 		if (ruleset.rooms != null && ruleset.rooms.Length > 0)
 		{
 			NextSprawlerRuleset();
-			state = State.RunningSprawlers;
+			_state = State.RunningSprawlers;
 		}
 		else
-			state = State.AddingDecorations;
+			_state = State.AddingDecorations;
 		
 		if (!_stepThrough)
 			while (Step()) {}
@@ -138,7 +139,6 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void FinishMaze()
 	{
-		TextureMaze();
 		UpdateMazeUVs();
 
 		if (_onComplete != null)
@@ -352,7 +352,77 @@ public class MazeGenerator : MonoBehaviour
 											break;
 									}
 								}
+								break;
+						}
+					}
+				}
+				_state = State.AddingFlavourTiles;
+				break;
+			
+			case State.AddingFlavourTiles:
+				foreach (RoomStyle roomStyle in _ruleset.roomStyles)
+				{
+					List<Tile> tiles = new List<Tile>();
+					for (int y = 0; y < _maze.size.y; y++)
+					{
+						for (int x = 0; x < _maze.size.x; x++)
+						{
+							Tile tile = _maze.GetTile(x, y);
+							if (tile.theme == roomStyle.name)
+								tiles.Add(tile);
+						}
+					}
 
+					if (roomStyle.flavourTiles != null && roomStyle.flavourTiles.Length > 0)
+					foreach (FlavourTileRuleset flavourTileRuleset in roomStyle.flavourTiles)
+					{
+						if (!_materials.ContainsKey(flavourTileRuleset.texture))
+						{
+							Material flavourTileMaterial = new Material(_seamlessShader);
+							flavourTileMaterial.mainTexture = _themeManager.textures[flavourTileRuleset.texture];
+							_materials.Add(flavourTileRuleset.texture, flavourTileMaterial);
+						}
+
+						switch (flavourTileRuleset.amountType)
+						{
+							case FlavourTileRuleset.AmountType.Chance:
+								Utils.Shuffle(Random.instance, tiles);
+								float chance = float.Parse(flavourTileRuleset.amount);
+								foreach (Tile tile in tiles)
+								{
+									if (Random.YesOrNo(chance / 100.0f))
+									{
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
+											TextureTileFloor(tile, flavourTileRuleset.texture);
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
+											TextureTileWalls(tile, flavourTileRuleset.texture);
+										if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+											TextureTileCeiling(tile, flavourTileRuleset.texture);
+									}
+								}
+								break;
+							
+							case FlavourTileRuleset.AmountType.Count:
+								Range countRange;
+								flavourTileRuleset.TryParseCount(out countRange);
+								if (tiles.Count < countRange.x)
+								{
+									Debug.LogWarning("Not enough tiles of style \"" + roomStyle.name + "\" to satisfy decoration count range. (requires at least " + countRange.x + ")");
+									continue;
+								}
+
+								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, tiles.Count) + 1);
+								for (int i = 0; i < decorationCount; i++)
+								{
+									Tile tile = tiles[i];
+
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
+										TextureTileFloor(tile, flavourTileRuleset.texture);
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Wall))
+										TextureTileWalls(tile, flavourTileRuleset.texture);
+									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Ceiling))
+										TextureTileCeiling(tile, flavourTileRuleset.texture);
+								}
 								break;
 						}
 					}
@@ -381,6 +451,7 @@ public class MazeGenerator : MonoBehaviour
 			// If we've run all the SprawlerRulesets in the MazeRuleset, move to the next state.
 			_currentSprawlerRulesetIndex = -1;
 			state = State.AddingDecorations;
+			TextureMaze();
 		}
 		else
 		{
@@ -543,44 +614,60 @@ public class MazeGenerator : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Updates the textures of a tile.
+	/// Updates a given tile's textures to those of its theme.
 	/// </summary>
 	private void TextureTile(Tile tile)
 	{
-		string tilesetName = _roomStyles[tile.theme].tileset;
-		string floorTilesetName = tilesetName + TilesetFloorSuffix;
-		string ceilingTilesetName = tilesetName + TilesetCeilingSuffix;
+		TextureTile(tile, _roomStyles[tile.theme].tileset);
+	}
+	
+	/// <summary>
+	/// Sets the textures of a tile to a given tileset.
+	/// </summary>
+	private void TextureTile(Tile tile, string tilesetName)
+	{
+		TextureTileWalls(tile, tilesetName);
+		TextureTileFloor(tile, tilesetName);
+		TextureTileCeiling(tile, tilesetName);
+	}
 
-		// Create the material(s) for the tile if they haven't been created yet.
+	/// <summary>
+	/// Sets the floor texture of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileFloor(Tile tile, string tilesetName)
+	{
+		string floorTilesetName = tilesetName + TilesetFloorSuffix;
+
+		if (!_materials.ContainsKey(floorTilesetName))
+		{
+			Material floorMaterial = _materials[tilesetName];
+			// Create a seamless material for the floor if one exists.
+			if (_themeManager.textures.ContainsKey(floorTilesetName))
+			{
+				floorMaterial = new Material(_seamlessShader);
+				floorMaterial.mainTexture = _themeManager.textures[tilesetName];
+				floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[floorTilesetName]);
+				floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
+			}
+			_materials.Add(floorTilesetName, floorMaterial);
+		}
+
+		tile.floor.GetComponent<MeshRenderer>().material = _materials[floorTilesetName];
+	}
+
+	/// <summary>
+	/// Sets the wall textures of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileWalls(Tile tile, string tilesetName)
+	{
 		if (!_materials.ContainsKey(tilesetName))
 		{
 			Material regularMaterial = new Material(_regularShader);
-			Material floorMaterial = regularMaterial;
-			Material ceilingMaterial = regularMaterial;
 
 			// Use the tile's tileset if it's loaded.
 			if (_themeManager.textures.ContainsKey(tilesetName))
 			{
-				Texture2D tileset = _themeManager.textures[tilesetName];
-				regularMaterial.mainTexture = tileset;
-
-				// Create a seamless material for the floor if one exists.
-				if (_themeManager.textures.ContainsKey(floorTilesetName))
-				{
-					floorMaterial = new Material(_seamlessShader);
-					floorMaterial.mainTexture = tileset;
-					floorMaterial.SetTexture("_SeamlessTex", _themeManager.textures[floorTilesetName]);
-					floorMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
-				}
-
-				// Create a seamless material for the ceiling if one exists.
-				if (_themeManager.textures.ContainsKey(ceilingTilesetName))
-				{
-					ceilingMaterial = new Material(_seamlessShader);
-					ceilingMaterial.mainTexture = tileset;
-					ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[ceilingTilesetName]);
-					ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
-				}
+				regularMaterial.mainTexture = _themeManager.textures[tilesetName];
 			}
 			// If the tile's tileset isn't loaded, use the default one.
 			else
@@ -589,15 +676,34 @@ public class MazeGenerator : MonoBehaviour
 				if (tilesetName != "default")
 					Debug.LogWarning("Tried using tileset called \"" + tilesetName + "\" but it isn't loaded, using the default tileset.", tile.instance);
 			}
-
 			_materials.Add(tilesetName, regularMaterial);
-			_materials.Add(floorTilesetName, floorMaterial);
-			_materials.Add(ceilingTilesetName, ceilingMaterial);
 		}
 
 		foreach (GameObject wall in tile.walls)
 			wall.GetComponent<MeshRenderer>().material = _materials[tilesetName];
-		tile.floor.GetComponent<MeshRenderer>().material = _materials[floorTilesetName];
+	}
+
+	/// <summary>
+	/// Sets the ceiling texture of a tile to a given tileset.
+	/// </summary>
+	private void TextureTileCeiling(Tile tile, string tilesetName)
+	{
+		string ceilingTilesetName = tilesetName + TilesetCeilingSuffix;
+
+		if (!_materials.ContainsKey(ceilingTilesetName))
+		{
+			Material ceilingMaterial = _materials[tilesetName];
+			// Create a seamless material for the ceiling if one exists.
+			if (_themeManager.textures.ContainsKey(ceilingTilesetName))
+			{
+				ceilingMaterial = new Material(_seamlessShader);
+				ceilingMaterial.mainTexture = _themeManager.textures[tilesetName];
+				ceilingMaterial.SetTexture("_SeamlessTex", _themeManager.textures[ceilingTilesetName]);
+				ceilingMaterial.SetTextureScale("_SeamlessTex", new Vector2(1.0f / _tileSize.x, 1.0f / _tileSize.y));
+			}
+			_materials.Add(ceilingTilesetName, ceilingMaterial);
+		}
+
 		tile.ceiling.GetComponent<MeshRenderer>().material = _materials[ceilingTilesetName];
 	}
 
@@ -667,7 +773,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
-	#if DEBUG
+#if DEBUG
 	private void OnDrawGizmos()
 	{
 		if (_newSprawlerTiles != null)

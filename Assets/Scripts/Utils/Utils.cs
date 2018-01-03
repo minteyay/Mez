@@ -132,6 +132,14 @@ public class Utils
     }
 
     /// <summary>
+    /// Checks if a bit in the given value is up (1).
+    /// </summary>
+    public static bool IsBitUp(byte value, byte bit)
+    {
+        return (value & bit) > 0;
+    }
+
+    /// <summary>
     /// Parses a file name from a path by stripping it of the folder structure and file extension.
     /// </summary>
     public static string ParseFileName(string path)
