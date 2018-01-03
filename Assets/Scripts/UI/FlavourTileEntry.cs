@@ -17,11 +17,14 @@ public class FlavourTileEntry : MonoBehaviour
 	private InputField _chanceField = null;
 	private InputField _countField = null;
 
+	private bool _disableCallbacks = false;
+
 	public void Awake()
 	{
 		_typeGroup = transform.Find("Type").GetComponent<ToggleGroup>();
 		_textureDropdown = transform.Find("Texture").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
 		_locationDropdown = transform.Find("Location").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+        _locationDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(FlavourTileRuleset.Location))));
 		_locationTogglesRoot = transform.Find("Locations");
 		for (int i = 0; i < _locationTogglesRoot.childCount; i++)
 			_locationToggles.Add(_locationTogglesRoot.GetChild(i).GetComponent<Toggle>());
@@ -43,6 +46,8 @@ public class FlavourTileEntry : MonoBehaviour
 
 	public void UpdateValues()
 	{
+		_disableCallbacks = true;
+
 		string type = flavourTileRuleset.type.ToString();
 		for (int i = 0; i < _typeGroup.transform.childCount; i++)
 		{
@@ -54,8 +59,7 @@ public class FlavourTileEntry : MonoBehaviour
 			}
 		}
 
-		_locationDropdown.ClearOptions();
-        _locationDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(FlavourTileRuleset.Location))));
+		UpdateLocationUI();
 
 		_textureDropdown.ClearOptions();
         string[] textures = new string[themeManager.textures.Count];
@@ -84,26 +88,53 @@ public class FlavourTileEntry : MonoBehaviour
 		_chanceField.text = _countField.text = flavourTileRuleset.amount;
 	}
 
-	public void TypeChanged()
+	private void UpdateLocationUI()
 	{
-		List<Toggle> toggles = new List<Toggle>(_typeGroup.ActiveToggles());
-		FlavourTileRuleset.Type type = (FlavourTileRuleset.Type)System.Enum.Parse(typeof(FlavourTileRuleset.Type), toggles[0].name);
-		if (type != flavourTileRuleset.type)
-			flavourTileRuleset.SetType(type);
-		
-		switch (type)
+		_disableCallbacks = true;
+		switch (flavourTileRuleset.type)
 		{
 			case FlavourTileRuleset.Type.Single:
 				_locationDropdown.transform.parent.parent.gameObject.SetActive(true);
 				_locationTogglesRoot.gameObject.SetActive(false);
-				LocationChanged(_locationDropdown.value);
+
+				string[] locations = System.Enum.GetNames(typeof(FlavourTileRuleset.Location));
+				for (int i = 0; i < locations.Length; i++)
+				{
+					if (locations[i] == ((FlavourTileRuleset.Location)flavourTileRuleset.location).ToString())
+					{
+						_locationDropdown.value = i;
+						break;
+					}
+				}
 				break;
 			case FlavourTileRuleset.Type.Tile:
 				_locationTogglesRoot.gameObject.SetActive(true);
 				_locationDropdown.transform.parent.parent.gameObject.SetActive(false);
-				LocationChanged();
+
+				foreach (Toggle toggle in _locationToggles)
+				{
+					byte toggleValue = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), toggle.name);
+					toggle.isOn = Utils.IsBitUp(flavourTileRuleset.location, toggleValue);
+				}
 				break;
 		}
+		_disableCallbacks = false;
+	}
+
+	public void TypeChanged()
+	{
+		if (_disableCallbacks)
+			return;
+		
+		List<Toggle> toggles = new List<Toggle>(_typeGroup.ActiveToggles());
+		FlavourTileRuleset.Type type = (FlavourTileRuleset.Type)System.Enum.Parse(typeof(FlavourTileRuleset.Type), toggles[0].name);
+		if (type != flavourTileRuleset.type)
+		{
+			flavourTileRuleset.location = 0;
+			flavourTileRuleset.SetType(type);
+		}
+		
+		UpdateLocationUI();
 	}
 
 	public void TextureChanged(System.Int32 index)
@@ -115,6 +146,9 @@ public class FlavourTileEntry : MonoBehaviour
 
 	public void LocationChanged(System.Int32 index)
 	{
+		if (_disableCallbacks)
+			return;
+
 		string[] locationNames = System.Enum.GetNames(typeof(FlavourTileRuleset.Location));
 		byte location = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), locationNames[index]);
 		if (location != flavourTileRuleset.location)
@@ -123,6 +157,9 @@ public class FlavourTileEntry : MonoBehaviour
 
 	public void LocationChanged()
 	{
+		if (_disableCallbacks)
+			return;
+
 		byte location = 0;
 		foreach (Toggle toggle in _locationToggles)
 			if (toggle.isOn)
