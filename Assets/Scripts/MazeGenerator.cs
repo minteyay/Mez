@@ -386,12 +386,20 @@ public class MazeGenerator : MonoBehaviour
 							_materials.Add(flavourTileRuleset.texture, flavourTileMaterial);
 						}
 
+						List<Tile> flavourTiles = new List<Tile>();
+						foreach (Tile tile in tiles)
+						{
+							if (!_maze.IsTileValid(tile.position, flavourTileRuleset.validLocations))
+								continue;
+							flavourTiles.Add(tile);
+						}
+						Utils.Shuffle(Random.instance, flavourTiles);
+
 						switch (flavourTileRuleset.amountType)
 						{
 							case FlavourTileRuleset.AmountType.Chance:
-								Utils.Shuffle(Random.instance, tiles);
 								float chance = float.Parse(flavourTileRuleset.amount);
-								foreach (Tile tile in tiles)
+								foreach (Tile tile in flavourTiles)
 								{
 									if (Random.YesOrNo(chance / 100.0f))
 									{
