@@ -279,6 +279,9 @@ public class MazeGenerator : MonoBehaviour
 						List<GameObject> decorationSpots = new List<GameObject>();
 						foreach (Tile tile in tiles)
 						{
+							if (!_maze.IsTileValid(tile.position, decorationRuleset.validLocations))
+								continue;
+							
 							if (decorationRuleset.location == DecorationRuleset.Location.Wall)
 								foreach (GameObject wall in tile.walls)
 									decorationSpots.Add(wall);

@@ -81,6 +81,38 @@ public class Maze : MonoBehaviour
 		return connections;
 	}
 
+	public bool IsTileValid(Point location, TileLocationRule rule)
+    {
+		Tile tile = GetTile(location);
+		if (tile == null)
+		{
+			Debug.LogError("Tile at " + location + " is null.");
+			return false;
+		}
+
+		// Check tile types.
+        if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileO)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.O)
+			return false;
+		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileU)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.U)
+			return false;
+		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileI)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.I)
+			return false;
+		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileL)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.L)
+			return false;
+		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileT)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.T)
+			return false;
+		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileX)
+			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.X)
+			return false;
+
+        return true;
+    }
+
 	public enum MovementPreference { Leftmost, Straight	}
 
     /// <summary>

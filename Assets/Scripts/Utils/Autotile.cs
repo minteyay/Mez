@@ -18,6 +18,8 @@ class Autotile
         180.0f, 90.0f, 0.0f, 180.0f, 0.0f, 90.0f, 0.0f, 0.0f
     };
 
+    public enum TileType : byte { O = 0, U = 1, I = 2, L = 3, T = 4, X = 5 }
+
     /// Tile index offset based on a tile's 4-bit bitwise value.
     public static uint[] fourBitTileIndices = {
         0, 1, 1, 3, 1, 2, 3, 4,
