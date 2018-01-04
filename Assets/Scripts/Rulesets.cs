@@ -296,7 +296,7 @@ public class RoomRuleset
 [System.Serializable]
 public class TileLocationRule
 {
-    public enum Bits : uint
+    public enum Option : uint
     {
         TileO           = 1,
         TileU           = 2,

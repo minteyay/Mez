@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7360101fb49d04742b5a520c167d73d0
+timeCreated: 1515091542
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _togglePrefab: {fileID: 1811933364558946, guid: 4fe64d74ef6f649dc9657ed04b8edc7b,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
