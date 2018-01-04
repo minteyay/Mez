@@ -416,16 +416,16 @@ public class MazeGenerator : MonoBehaviour
 							case FlavourTileRuleset.AmountType.Count:
 								Range countRange;
 								flavourTileRuleset.TryParseCount(out countRange);
-								if (tiles.Count < countRange.x)
+								if (flavourTiles.Count < countRange.x)
 								{
 									Debug.LogWarning("Not enough tiles of style \"" + roomStyle.name + "\" to satisfy decoration count range. (requires at least " + countRange.x + ")");
 									continue;
 								}
 
-								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, tiles.Count) + 1);
+								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, flavourTiles.Count) + 1);
 								for (int i = 0; i < decorationCount; i++)
 								{
-									Tile tile = tiles[i];
+									Tile tile = flavourTiles[i];
 
 									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
 										TextureTileFloor(tile, flavourTileRuleset.texture);
