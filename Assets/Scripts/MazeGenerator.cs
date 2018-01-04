@@ -279,6 +279,9 @@ public class MazeGenerator : MonoBehaviour
 						List<GameObject> decorationSpots = new List<GameObject>();
 						foreach (Tile tile in tiles)
 						{
+							if (!_maze.IsTileValid(tile.position, decorationRuleset.validLocations))
+								continue;
+							
 							if (decorationRuleset.location == DecorationRuleset.Location.Wall)
 								foreach (GameObject wall in tile.walls)
 									decorationSpots.Add(wall);
@@ -383,12 +386,20 @@ public class MazeGenerator : MonoBehaviour
 							_materials.Add(flavourTileRuleset.texture, flavourTileMaterial);
 						}
 
+						List<Tile> flavourTiles = new List<Tile>();
+						foreach (Tile tile in tiles)
+						{
+							if (!_maze.IsTileValid(tile.position, flavourTileRuleset.validLocations))
+								continue;
+							flavourTiles.Add(tile);
+						}
+						Utils.Shuffle(Random.instance, flavourTiles);
+
 						switch (flavourTileRuleset.amountType)
 						{
 							case FlavourTileRuleset.AmountType.Chance:
-								Utils.Shuffle(Random.instance, tiles);
 								float chance = float.Parse(flavourTileRuleset.amount);
-								foreach (Tile tile in tiles)
+								foreach (Tile tile in flavourTiles)
 								{
 									if (Random.YesOrNo(chance / 100.0f))
 									{
@@ -405,16 +416,16 @@ public class MazeGenerator : MonoBehaviour
 							case FlavourTileRuleset.AmountType.Count:
 								Range countRange;
 								flavourTileRuleset.TryParseCount(out countRange);
-								if (tiles.Count < countRange.x)
+								if (flavourTiles.Count < countRange.x)
 								{
 									Debug.LogWarning("Not enough tiles of style \"" + roomStyle.name + "\" to satisfy decoration count range. (requires at least " + countRange.x + ")");
 									continue;
 								}
 
-								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, tiles.Count) + 1);
+								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, flavourTiles.Count) + 1);
 								for (int i = 0; i < decorationCount; i++)
 								{
-									Tile tile = tiles[i];
+									Tile tile = flavourTiles[i];
 
 									if (Utils.IsBitUp(flavourTileRuleset.location, (byte)FlavourTileRuleset.Location.Floor))
 										TextureTileFloor(tile, flavourTileRuleset.texture);
@@ -726,17 +737,7 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void UpdateTileUV(Tile tile)
 	{
-		uint fixedValue = tile.value;
-		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
-		{
-			if ((tile.value & Nav.bits[dir]) != 0)
-			{
-				Point neighbourPos = tile.position + new Point(Nav.DX[dir], Nav.DY[dir]);
-				Tile neighbourTile = _maze.GetTile(neighbourPos);
-				if (neighbourTile == null || tile.theme != neighbourTile.theme)
-					fixedValue &= ~Nav.bits[dir];
-			}
-		}
+		uint fixedValue = _maze.GetGraphicalTileValue(tile);
 
 		// Update the floor's UVs.
 		tile.floor.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);

@@ -89,6 +89,7 @@ public class DecorationRuleset
     public Location location = Location.Floor;
     public AmountType amountType = AmountType.Chance;
     public string amount = "";
+    public TileLocationRule validLocations = new TileLocationRule();
 
     public bool TryParseChance(out float chance) { return float.TryParse(amount, out chance); }
     public bool TryParseCount(out Range countRange) { return Utils.TryParseRange(amount, out countRange); }
@@ -153,6 +154,7 @@ public class FlavourTileRuleset
     public byte location = 0;
     public AmountType amountType = AmountType.Chance;
     public string amount = "";
+    public TileLocationRule validLocations = new TileLocationRule();
 
     public bool TryParseChance(out float chance) { return float.TryParse(amount, out chance); }
     public bool TryParseCount(out Range countRange) { return Utils.TryParseRange(amount, out countRange); }
@@ -289,4 +291,28 @@ public class RoomRuleset
         SetCount(count);
         SetSize(size);
     }
+}
+
+[System.Serializable]
+public class TileLocationRule
+{
+    public enum Option : uint
+    {
+        TileO           = 1,
+        TileU           = 2,
+        TileI           = 4,
+        TileL           = 8,
+        TileT           = 16,
+        TileX           = 32,
+        TileGraphicalO  = 64,
+        TileGraphicalU  = 128,
+        TileGraphicalI  = 256,
+        TileGraphicalL  = 512,
+        TileGraphicalT  = 1024,
+        TileGraphicalX  = 2048,
+        Entrance        = 4096,
+        Exit            = 8192
+    }
+
+    public uint value = uint.MaxValue;
 }

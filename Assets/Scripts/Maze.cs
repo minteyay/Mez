@@ -81,6 +81,95 @@ public class Maze : MonoBehaviour
 		return connections;
 	}
 
+	public uint GetGraphicalTileValue(Tile tile)
+	{
+		uint fixedValue = tile.value;
+		List<Dir> connections = Nav.GetConnections(tile.value);
+		foreach (Dir dir in connections)
+		{
+			Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+			if (neighbour == null || tile.theme != neighbour.theme)
+				fixedValue &= ~Nav.bits[dir];
+		}
+		return fixedValue;
+	}
+
+	public bool IsTileValid(Point location, TileLocationRule rule)
+    {
+		Tile tile = GetTile(location);
+		if (tile == null)
+		{
+			Debug.LogError("Tile at " + location + " is null.");
+			return false;
+		}
+
+		// Check tile types.
+		bool validTileType = true;
+		Autotile.TileType tileType = (Autotile.TileType)Autotile.fourBitTileIndices[tile.value];
+		switch (tileType)
+		{
+			case Autotile.TileType.O:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileO))
+					validTileType = false;
+				break;
+			case Autotile.TileType.U:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileU))
+					validTileType = false;
+				break;
+			case Autotile.TileType.I:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileI))
+					validTileType = false;
+				break;
+			case Autotile.TileType.L:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileL))
+					validTileType = false;
+				break;
+			case Autotile.TileType.T:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileT))
+					validTileType = false;
+				break;
+			case Autotile.TileType.X:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileX))
+					validTileType = false;
+				break;
+		}
+
+		bool validGraphicalTileType = true;
+		Autotile.TileType graphicalTileType = (Autotile.TileType)Autotile.fourBitTileIndices[GetGraphicalTileValue(tile)];
+		switch (graphicalTileType)
+		{
+			case Autotile.TileType.O:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalO))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.U:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalU))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.I:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalI))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.L:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalL))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.T:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalT))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.X:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Option.TileGraphicalX))
+					validGraphicalTileType = false;
+				break;
+		}
+
+		if (!validTileType && !validGraphicalTileType)
+			return false;
+
+        return true;
+    }
+
 	public enum MovementPreference { Leftmost, Straight	}
 
     /// <summary>

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class FlavourTileEntry : MonoBehaviour
 {
 	[HideInInspector] public int index = 0;
-	[HideInInspector] public FlavourTileRuleset flavourTileRuleset = null;
+	private FlavourTileRuleset _flavourTileRuleset = null;
 	[HideInInspector] public ThemeManager themeManager = null;
 
 	private ToggleGroup _typeGroup = null;
@@ -16,11 +16,14 @@ public class FlavourTileEntry : MonoBehaviour
 	private ToggleGroup _amountTypeGroup = null;
 	private InputField _chanceField = null;
 	private InputField _countField = null;
+	private TileLocationRuleEntry _tileLocationRule = null;
 
 	private bool _disableCallbacks = false;
 
-	public void Awake()
+	public void Initialise(FlavourTileRuleset flavourTileRuleset)
 	{
+		_flavourTileRuleset = flavourTileRuleset;
+
 		_typeGroup = transform.Find("Type").GetComponent<ToggleGroup>();
 		_textureDropdown = transform.Find("Texture").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
 		_locationDropdown = transform.Find("Location").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
@@ -31,6 +34,8 @@ public class FlavourTileEntry : MonoBehaviour
 		_amountTypeGroup = transform.Find("AmountType").GetComponent<ToggleGroup>();
 		_chanceField = transform.Find("Chance").Find("Value").Find("InputField").GetComponent<InputField>();
 		_countField = transform.Find("Count").Find("Value").Find("InputField").GetComponent<InputField>();
+		_tileLocationRule = transform.Find("TileLocationRule").GetComponent<TileLocationRuleEntry>();
+		_tileLocationRule.Initialise(flavourTileRuleset.validLocations);
 
 		for (int i = 0; i < _typeGroup.transform.childCount; i++)
 			_typeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener( (bool b) => TypeChanged() );
@@ -48,7 +53,7 @@ public class FlavourTileEntry : MonoBehaviour
 	{
 		_disableCallbacks = true;
 
-		string type = flavourTileRuleset.type.ToString();
+		string type = _flavourTileRuleset.type.ToString();
 		for (int i = 0; i < _typeGroup.transform.childCount; i++)
 		{
 			Toggle toggle = _typeGroup.transform.GetChild(i).GetComponent<Toggle>();
@@ -67,14 +72,14 @@ public class FlavourTileEntry : MonoBehaviour
         _textureDropdown.AddOptions(new List<string>(textures));
         for (int i = 0; i < textures.Length; i++)
         {
-            if (textures[i] == flavourTileRuleset.texture)
+            if (textures[i] == _flavourTileRuleset.texture)
             {
                 _textureDropdown.value = i;
                 break;
             }
         }
 
-		string amountType = flavourTileRuleset.amountType.ToString();
+		string amountType = _flavourTileRuleset.amountType.ToString();
 		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
 		{
 			Toggle toggle = _amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>();
@@ -85,13 +90,13 @@ public class FlavourTileEntry : MonoBehaviour
 			}
 		}
 
-		_chanceField.text = _countField.text = flavourTileRuleset.amount;
+		_chanceField.text = _countField.text = _flavourTileRuleset.amount;
 	}
 
 	private void UpdateLocationUI()
 	{
 		_disableCallbacks = true;
-		switch (flavourTileRuleset.type)
+		switch (_flavourTileRuleset.type)
 		{
 			case FlavourTileRuleset.Type.Single:
 				_locationDropdown.transform.parent.parent.gameObject.SetActive(true);
@@ -100,7 +105,7 @@ public class FlavourTileEntry : MonoBehaviour
 				string[] locations = System.Enum.GetNames(typeof(FlavourTileRuleset.Location));
 				for (int i = 0; i < locations.Length; i++)
 				{
-					if (locations[i] == ((FlavourTileRuleset.Location)flavourTileRuleset.location).ToString())
+					if (locations[i] == ((FlavourTileRuleset.Location)_flavourTileRuleset.location).ToString())
 					{
 						_locationDropdown.value = i;
 						break;
@@ -114,7 +119,7 @@ public class FlavourTileEntry : MonoBehaviour
 				foreach (Toggle toggle in _locationToggles)
 				{
 					byte toggleValue = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), toggle.name);
-					toggle.isOn = Utils.IsBitUp(flavourTileRuleset.location, toggleValue);
+					toggle.isOn = Utils.IsBitUp(_flavourTileRuleset.location, toggleValue);
 				}
 				break;
 		}
@@ -128,10 +133,10 @@ public class FlavourTileEntry : MonoBehaviour
 		
 		List<Toggle> toggles = new List<Toggle>(_typeGroup.ActiveToggles());
 		FlavourTileRuleset.Type type = (FlavourTileRuleset.Type)System.Enum.Parse(typeof(FlavourTileRuleset.Type), toggles[0].name);
-		if (type != flavourTileRuleset.type)
+		if (type != _flavourTileRuleset.type)
 		{
-			flavourTileRuleset.location = 0;
-			flavourTileRuleset.SetType(type);
+			_flavourTileRuleset.location = 0;
+			_flavourTileRuleset.SetType(type);
 		}
 		
 		UpdateLocationUI();
@@ -139,8 +144,8 @@ public class FlavourTileEntry : MonoBehaviour
 
 	public void TextureChanged(System.Int32 index)
 	{
-		flavourTileRuleset.SetTexture(_textureDropdown.options[index].text, themeManager);
-		if (flavourTileRuleset.texture != _textureDropdown.options[index].text)
+		_flavourTileRuleset.SetTexture(_textureDropdown.options[index].text, themeManager);
+		if (_flavourTileRuleset.texture != _textureDropdown.options[index].text)
             Debug.LogError("Couldn't set texture to " + _textureDropdown.options[index].text);
 	}
 
@@ -151,8 +156,8 @@ public class FlavourTileEntry : MonoBehaviour
 
 		string[] locationNames = System.Enum.GetNames(typeof(FlavourTileRuleset.Location));
 		byte location = (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), locationNames[index]);
-		if (location != flavourTileRuleset.location)
-			flavourTileRuleset.SetLocation(location);
+		if (location != _flavourTileRuleset.location)
+			_flavourTileRuleset.SetLocation(location);
 	}
 
 	public void LocationChanged()
@@ -164,41 +169,41 @@ public class FlavourTileEntry : MonoBehaviour
 		foreach (Toggle toggle in _locationToggles)
 			if (toggle.isOn)
 				location |= (byte)System.Enum.Parse(typeof(FlavourTileRuleset.Location), toggle.name);
-		if (location != flavourTileRuleset.location)
-			flavourTileRuleset.SetLocation(location);
+		if (location != _flavourTileRuleset.location)
+			_flavourTileRuleset.SetLocation(location);
 	}
 
 	public void AmountTypeChanged()
 	{
 		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
 		FlavourTileRuleset.AmountType amountType = (FlavourTileRuleset.AmountType)System.Enum.Parse(typeof(FlavourTileRuleset.AmountType), toggles[0].name);
-		if (amountType != flavourTileRuleset.amountType)
-			flavourTileRuleset.SetAmountType(amountType);
+		if (amountType != _flavourTileRuleset.amountType)
+			_flavourTileRuleset.SetAmountType(amountType);
 		
 		switch (amountType)
 		{
 			case FlavourTileRuleset.AmountType.Chance:
 				_chanceField.transform.parent.parent.gameObject.SetActive(true);
 				_countField.transform.parent.parent.gameObject.SetActive(false);
-				ChanceChanged(flavourTileRuleset.amount);
+				ChanceChanged(_flavourTileRuleset.amount);
 				break;
 			case FlavourTileRuleset.AmountType.Count:
 				_countField.transform.parent.parent.gameObject.SetActive(true);
 				_chanceField.transform.parent.parent.gameObject.SetActive(false);
-				CountChanged(flavourTileRuleset.amount);
+				CountChanged(_flavourTileRuleset.amount);
 				break;
 		}
 	}
 
 	public void ChanceChanged(string newChance)
 	{
-		flavourTileRuleset.SetAmount(newChance);
-		_chanceField.text = flavourTileRuleset.amount;
+		_flavourTileRuleset.SetAmount(newChance);
+		_chanceField.text = _flavourTileRuleset.amount;
 	}
 
 	public void CountChanged(string newCount)
 	{
-		flavourTileRuleset.SetAmount(newCount);
-		_countField.text = flavourTileRuleset.amount;
+		_flavourTileRuleset.SetAmount(newCount);
+		_countField.text = _flavourTileRuleset.amount;
 	}
 }

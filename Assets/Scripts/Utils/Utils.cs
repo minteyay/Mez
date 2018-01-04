@@ -131,10 +131,12 @@ public class Utils
         b = temp;
     }
 
-    /// <summary>
-    /// Checks if a bit in the given value is up (1).
-    /// </summary>
     public static bool IsBitUp(byte value, byte bit)
+    {
+        return (value & bit) > 0;
+    }
+
+    public static bool IsBitUp(uint value, uint bit)
     {
         return (value & bit) > 0;
     }
