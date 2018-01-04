@@ -81,6 +81,19 @@ public class Maze : MonoBehaviour
 		return connections;
 	}
 
+	public uint GetGraphicalTileValue(Tile tile)
+	{
+		uint fixedValue = tile.value;
+		List<Dir> connections = Nav.GetConnections(tile.value);
+		foreach (Dir dir in connections)
+		{
+			Tile neighbour = GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+			if (neighbour == null || tile.theme != neighbour.theme)
+				fixedValue &= ~Nav.bits[dir];
+		}
+		return fixedValue;
+	}
+
 	public bool IsTileValid(Point location, TileLocationRule rule)
     {
 		Tile tile = GetTile(location);
@@ -91,23 +104,67 @@ public class Maze : MonoBehaviour
 		}
 
 		// Check tile types.
-        if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileO)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.O)
-			return false;
-		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileU)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.U)
-			return false;
-		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileI)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.I)
-			return false;
-		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileL)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.L)
-			return false;
-		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileT)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.T)
-			return false;
-		if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileX)
-			&& Autotile.fourBitTileIndices[tile.value] == (byte)Autotile.TileType.X)
+		bool validTileType = true;
+		Autotile.TileType tileType = (Autotile.TileType)Autotile.fourBitTileIndices[tile.value];
+		switch (tileType)
+		{
+			case Autotile.TileType.O:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileO))
+					validTileType = false;
+				break;
+			case Autotile.TileType.U:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileU))
+					validTileType = false;
+				break;
+			case Autotile.TileType.I:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileI))
+					validTileType = false;
+				break;
+			case Autotile.TileType.L:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileL))
+					validTileType = false;
+				break;
+			case Autotile.TileType.T:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileT))
+					validTileType = false;
+				break;
+			case Autotile.TileType.X:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileX))
+					validTileType = false;
+				break;
+		}
+
+		bool validGraphicalTileType = true;
+		Autotile.TileType graphicalTileType = (Autotile.TileType)Autotile.fourBitTileIndices[GetGraphicalTileValue(tile)];
+		switch (graphicalTileType)
+		{
+			case Autotile.TileType.O:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalO))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.U:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalU))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.I:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalI))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.L:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalL))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.T:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalT))
+					validGraphicalTileType = false;
+				break;
+			case Autotile.TileType.X:
+				if (!Utils.IsBitUp(rule.value, (uint)TileLocationRule.Bits.TileGraphicalX))
+					validGraphicalTileType = false;
+				break;
+		}
+
+		if (!validTileType && !validGraphicalTileType)
 			return false;
 
         return true;

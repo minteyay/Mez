@@ -737,17 +737,7 @@ public class MazeGenerator : MonoBehaviour
 	/// </summary>
 	private void UpdateTileUV(Tile tile)
 	{
-		uint fixedValue = tile.value;
-		foreach (Dir dir in System.Enum.GetValues(typeof(Dir)))
-		{
-			if ((tile.value & Nav.bits[dir]) != 0)
-			{
-				Point neighbourPos = tile.position + new Point(Nav.DX[dir], Nav.DY[dir]);
-				Tile neighbourTile = _maze.GetTile(neighbourPos);
-				if (neighbourTile == null || tile.theme != neighbourTile.theme)
-					fixedValue &= ~Nav.bits[dir];
-			}
-		}
+		uint fixedValue = _maze.GetGraphicalTileValue(tile);
 
 		// Update the floor's UVs.
 		tile.floor.GetComponent<UVRect>().offset = Autotile.GetUVOffsetByIndex(Autotile.floorTileStartIndex + Autotile.fourBitTileIndices[fixedValue]);

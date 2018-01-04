@@ -298,14 +298,20 @@ public class TileLocationRule
 {
     public enum Bits : uint
     {
-        TileO       = 1,
-        TileU       = 2,
-        TileI       = 4,
-        TileL       = 8,
-        TileT       = 16,
-        TileX       = 32,
-        Entrance    = 64,
-        Exit        = 128
+        TileO           = 1,
+        TileU           = 2,
+        TileI           = 4,
+        TileL           = 8,
+        TileT           = 16,
+        TileX           = 32,
+        TileGraphicalO  = 64,
+        TileGraphicalU  = 128,
+        TileGraphicalI  = 256,
+        TileGraphicalL  = 512,
+        TileGraphicalT  = 1024,
+        TileGraphicalX  = 2048,
+        Entrance        = 4096,
+        Exit            = 8192
     }
 
     public uint value = uint.MaxValue;
