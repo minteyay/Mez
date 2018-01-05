@@ -76,9 +76,7 @@ public class RoomStyleEntry : MonoBehaviour
 			flavourTileSelectable.selectEvent.AddListener((data) => { FlavourTileSelected(data.selectedObject); } );
 
 			FlavourTileEntry flavourTileUI = flavourTileEntry.GetComponent<FlavourTileEntry>();
-            flavourTileUI.index = i;
-            flavourTileUI.themeManager = themeManager;
-            flavourTileUI.Initialise(roomStyle.flavourTiles[i]);
+            flavourTileUI.Initialise(i, roomStyle.flavourTiles[i], themeManager);
             flavourTileUI.UpdateValues();
 			_flavourTileEntries.Add(flavourTileUI);
 		}
