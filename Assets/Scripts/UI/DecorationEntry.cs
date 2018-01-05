@@ -37,6 +37,8 @@ public class DecorationEntry : MonoBehaviour
 			amountTypeRoot.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener(AmountTypeChanged);
 		_chanceField.onEndEdit.AddListener(ChanceChanged);
 		_countField.onEndEdit.AddListener(CountChanged);
+
+		UpdateValues();
 	}
 
 	public void UpdateValues()

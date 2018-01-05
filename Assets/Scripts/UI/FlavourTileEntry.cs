@@ -49,6 +49,8 @@ public class FlavourTileEntry : MonoBehaviour
 			_amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener(AmountTypeChanged);
 		_chanceField.onEndEdit.AddListener(ChanceChanged);
 		_countField.onEndEdit.AddListener(CountChanged);
+
+		UpdateValues();
 	}
 
 	public void UpdateValues()

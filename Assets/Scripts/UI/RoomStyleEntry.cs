@@ -83,7 +83,6 @@ public class RoomStyleEntry : MonoBehaviour
 
 			DecorationEntry decorationUI = decorationEntry.GetComponent<DecorationEntry>();
             decorationUI.Initialise(i, _roomStyle.decorations[i], _themeManager);
-            decorationUI.UpdateValues();
 			_decorationEntries.Add(decorationUI);
 		}
 
@@ -102,7 +101,6 @@ public class RoomStyleEntry : MonoBehaviour
 
 			FlavourTileEntry flavourTileUI = flavourTileEntry.GetComponent<FlavourTileEntry>();
             flavourTileUI.Initialise(i, _roomStyle.flavourTiles[i], _themeManager);
-            flavourTileUI.UpdateValues();
 			_flavourTileEntries.Add(flavourTileUI);
 		}
     }
