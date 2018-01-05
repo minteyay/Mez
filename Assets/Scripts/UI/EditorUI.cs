@@ -124,10 +124,7 @@ public class EditorUI : MonoBehaviour
 			roomSelectable.selectEvent.AddListener((data) => { RoomSelected(data.selectedObject); } );
 
 			RoomEntry roomUI = roomEntry.GetComponent<RoomEntry>();
-			roomUI.index = i;
-			roomUI.mazeRuleset = ruleset;
-			roomUI.roomRuleset = ruleset.rooms[i];
-			roomUI.UpdateValues();
+			roomUI.Initialise(i, ruleset);
 			_roomEntries.Add(roomUI);
 		}
 	}
