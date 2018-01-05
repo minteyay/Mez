@@ -8,22 +8,22 @@ public class EditorUI : MonoBehaviour
 	private GameManager _gameManager = null;
 	private ThemeManager _themeManager = null;
 
-	[SerializeField] private GameObject _busyScreen = null;
+	private GameObject _busyScreen = null;
 
-	[SerializeField] private Dropdown _themeDropdown = null;
+	private Dropdown _themeDropdown = null;
 
-	[SerializeField] private InputField _mazeNameField = null;
-	[SerializeField] private InputField _mazeWidthField = null;
-	[SerializeField] private InputField _mazeHeightField = null;
+	private InputField _mazeNameField = null;
+	private InputField _mazeWidthField = null;
+	private InputField _mazeHeightField = null;
 
-	[SerializeField] private GameObject _roomStyleList = null;
-	[SerializeField] private Button _removeRoomStyleButton = null;
+	private Transform _roomStyleList = null;
+	private Button _removeRoomStyleButton = null;
 	[SerializeField] private GameObject _roomStyleEntryPrefab = null;
 	private List<RoomStyleEntry> _roomStyleEntries = new List<RoomStyleEntry>();
 	private GameObject _selectedRoomStyle = null;
 
-	[SerializeField] private GameObject _roomList = null;
-	[SerializeField] private Button _removeRoomButton = null;
+	private Transform _roomList = null;
+	private Button _removeRoomButton = null;
 	[SerializeField] private GameObject _roomEntryPrefab = null;
 	private List<RoomEntry> _roomEntries = new List<RoomEntry>();
 	private GameObject _selectedRoom = null;
@@ -37,6 +37,36 @@ public class EditorUI : MonoBehaviour
 	{
 		_gameManager = GameManager.instance;
 		_themeManager = _gameManager.themeManager;
+
+		_busyScreen = transform.Find("BusyScreen").gameObject;
+
+		Transform generationPanelRoot = transform.Find("GenerationPanel");
+		_themeDropdown = generationPanelRoot.Find("ThemeDropdown").GetComponent<Dropdown>();
+		_themeDropdown.onValueChanged.AddListener(ThemeChanged);
+		generationPanelRoot.Find("NewRulesetButton").GetComponent<Button>().onClick.AddListener(ShowAddMazeRulesetModal);
+		generationPanelRoot.Find("RunMazeButton").GetComponent<Button>().onClick.AddListener(_gameManager.LoadRunningMazeState);
+		generationPanelRoot.Find("GenerateMazeButton").GetComponent<Button>().onClick.AddListener(GenerateMaze);
+
+		Transform mazeSettingsRoot = transform.Find("RulesetPanel").Find("MazeSettings");
+		mazeSettingsRoot.Find("Header").Find("SaveButton").GetComponent<Button>().onClick.AddListener(SaveRuleset);
+		_mazeNameField = mazeSettingsRoot.Find("MazeName").Find("Value").Find("InputField").GetComponent<InputField>();
+		_mazeNameField.onEndEdit.AddListener(MazeNameChanged);
+		_mazeWidthField = mazeSettingsRoot.Find("MazeSize").Find("Value").Find("WidthField").GetComponent<InputField>();
+		_mazeWidthField.onEndEdit.AddListener(MazeWidthChanged);
+		_mazeHeightField = mazeSettingsRoot.Find("MazeSize").Find("Value").Find("HeightField").GetComponent<InputField>();
+		_mazeHeightField.onEndEdit.AddListener(MazeHeightChanged);
+
+		Transform roomStylesRoot = transform.Find("RulesetPanel").Find("RoomStyles");
+		roomStylesRoot.Find("Titlebar").Find("AddButton").GetComponent<Button>().onClick.AddListener(AddRoomStyle);
+		_removeRoomStyleButton = roomStylesRoot.Find("Titlebar").Find("RemoveButton").GetComponent<Button>();
+		_removeRoomStyleButton.onClick.AddListener(RemoveRoomStyle);
+		_roomStyleList = roomStylesRoot.Find("Entries").Find("Viewport").Find("Content");
+
+		Transform roomsRoot = transform.Find("RulesetPanel").Find("Rooms");
+		roomsRoot.Find("Titlebar").Find("AddButton").GetComponent<Button>().onClick.AddListener(AddRoom);
+		_removeRoomButton = roomsRoot.Find("Titlebar").Find("RemoveButton").GetComponent<Button>();
+		_removeRoomButton.onClick.AddListener(RemoveRoom);
+		_roomList = roomsRoot.Find("Entries").Find("Viewport").Find("Content");
 
 		_busyScreen.SetActive(false);
 
@@ -100,7 +130,7 @@ public class EditorUI : MonoBehaviour
 		for (int i = 0; i < ruleset.roomStyles.Length; i++)
 		{
 			GameObject roomStyleEntry = Instantiate(_roomStyleEntryPrefab);
-			roomStyleEntry.transform.SetParent(_roomStyleList.transform);
+			roomStyleEntry.transform.SetParent(_roomStyleList);
 
 			SelectableEntry roomStyleSelectable = roomStyleEntry.GetComponent<SelectableEntry>();
 			roomStyleSelectable.selectEvent.AddListener((data) => { RoomStyleSelected(data.selectedObject); } );
@@ -118,7 +148,7 @@ public class EditorUI : MonoBehaviour
 		for (int i = 0; i < ruleset.rooms.Length; i++)
 		{
 			GameObject roomEntry = Instantiate(_roomEntryPrefab);
-			roomEntry.transform.SetParent(_roomList.transform);
+			roomEntry.transform.SetParent(_roomList);
 
 			SelectableEntry roomSelectable = roomEntry.GetComponent<SelectableEntry>();
 			roomSelectable.selectEvent.AddListener((data) => { RoomSelected(data.selectedObject); } );
