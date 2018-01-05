@@ -70,19 +70,19 @@ public class DecorationEntry : MonoBehaviour
 		_chanceField.text = _countField.text = _decorationRuleset.amount;
 	}
 
-	public void LocationChanged(System.Int32 index)
+	private void LocationChanged(System.Int32 index)
 	{
 		_decorationRuleset.location = (DecorationRuleset.Location)index;
 	}
 
-	public void TextureChanged(System.Int32 index)
+	private void TextureChanged(System.Int32 index)
 	{
 		_decorationRuleset.SetTexture(_textureDropdown.options[index].text, _themeManager);
 		if (_decorationRuleset.texture != _textureDropdown.options[index].text)
             Debug.LogError("Couldn't set texture to " + _textureDropdown.options[index].text);
 	}
 
-	public void AmountTypeChanged(bool newValue)
+	private void AmountTypeChanged(bool newValue)
 	{
 		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
 		DecorationRuleset.AmountType amountType = (DecorationRuleset.AmountType)System.Enum.Parse(typeof(DecorationRuleset.AmountType), toggles[0].name);
@@ -104,13 +104,13 @@ public class DecorationEntry : MonoBehaviour
 		}
 	}
 
-	public void ChanceChanged(string newChance)
+	private void ChanceChanged(string newChance)
 	{
 		_decorationRuleset.SetAmount(newChance);
 		_chanceField.text = _decorationRuleset.amount;
 	}
 
-	public void CountChanged(string newCount)
+	private void CountChanged(string newCount)
 	{
 		_decorationRuleset.SetAmount(newCount);
 		_countField.text = _decorationRuleset.amount;
