@@ -34,7 +34,7 @@ public class RoomEntry : MonoBehaviour
         UpdateValues();
     }
 
-    public void UpdateValues()
+    private void UpdateValues()
     {
         _styleDropdown.ClearOptions();
         int selectedIndex = 0;

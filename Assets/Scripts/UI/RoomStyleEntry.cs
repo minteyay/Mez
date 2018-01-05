@@ -51,7 +51,7 @@ public class RoomStyleEntry : MonoBehaviour
         UpdateValues();
     }
 
-    public void UpdateValues()
+    private void UpdateValues()
     {
         _nameField.text = _roomStyle.name;
 

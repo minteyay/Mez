@@ -41,7 +41,7 @@ public class DecorationEntry : MonoBehaviour
 		UpdateValues();
 	}
 
-	public void UpdateValues()
+	private void UpdateValues()
 	{
         _locationDropdown.value = (int)_decorationRuleset.location;
 

@@ -53,7 +53,7 @@ public class FlavourTileEntry : MonoBehaviour
 		UpdateValues();
 	}
 
-	public void UpdateValues()
+	private void UpdateValues()
 	{
 		_disableCallbacks = true;
 
