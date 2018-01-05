@@ -57,9 +57,7 @@ public class RoomStyleEntry : MonoBehaviour
 			decorationSelectable.selectEvent.AddListener((data) => { DecorationSelected(data.selectedObject); } );
 
 			DecorationEntry decorationUI = decorationEntry.GetComponent<DecorationEntry>();
-            decorationUI.index = i;
-            decorationUI.themeManager = themeManager;
-            decorationUI.Initialise(roomStyle.decorations[i]);
+            decorationUI.Initialise(i, roomStyle.decorations[i], themeManager);
             decorationUI.UpdateValues();
 			_decorationEntries.Add(decorationUI);
 		}
