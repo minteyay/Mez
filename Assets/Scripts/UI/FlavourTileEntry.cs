@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class FlavourTileEntry : MonoBehaviour
 {
-	[HideInInspector] public int index = 0;
+	public int index { get; private set; }
 	private FlavourTileRuleset _flavourTileRuleset = null;
-	[HideInInspector] public ThemeManager themeManager = null;
+	private ThemeManager _themeManager = null;
 
 	private ToggleGroup _typeGroup = null;
 	private Dropdown _textureDropdown = null;
@@ -20,9 +20,11 @@ public class FlavourTileEntry : MonoBehaviour
 
 	private bool _disableCallbacks = false;
 
-	public void Initialise(FlavourTileRuleset flavourTileRuleset)
+	public void Initialise(int index, FlavourTileRuleset flavourTileRuleset, ThemeManager themeManager)
 	{
+		this.index = index;
 		_flavourTileRuleset = flavourTileRuleset;
+		_themeManager = themeManager;
 
 		_typeGroup = transform.Find("Type").GetComponent<ToggleGroup>();
 		_textureDropdown = transform.Find("Texture").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
@@ -38,18 +40,20 @@ public class FlavourTileEntry : MonoBehaviour
 		_tileLocationRule.Initialise(flavourTileRuleset.validLocations);
 
 		for (int i = 0; i < _typeGroup.transform.childCount; i++)
-			_typeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener( (bool b) => TypeChanged() );
+			_typeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener(TypeChanged);
 		_textureDropdown.onValueChanged.AddListener(TextureChanged);
 		_locationDropdown.onValueChanged.AddListener(LocationChanged);
 		foreach (Toggle toggle in _locationToggles)
-			toggle.onValueChanged.AddListener( (bool b) => LocationChanged() );
+			toggle.onValueChanged.AddListener(LocationChanged);
 		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
-			_amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener( (bool b) => AmountTypeChanged() );
+			_amountTypeGroup.transform.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener(AmountTypeChanged);
 		_chanceField.onEndEdit.AddListener(ChanceChanged);
 		_countField.onEndEdit.AddListener(CountChanged);
+
+		UpdateValues();
 	}
 
-	public void UpdateValues()
+	private void UpdateValues()
 	{
 		_disableCallbacks = true;
 
@@ -67,8 +71,8 @@ public class FlavourTileEntry : MonoBehaviour
 		UpdateLocationUI();
 
 		_textureDropdown.ClearOptions();
-        string[] textures = new string[themeManager.textures.Count];
-        themeManager.textures.Keys.CopyTo(textures, 0);
+        string[] textures = new string[_themeManager.textures.Count];
+        _themeManager.textures.Keys.CopyTo(textures, 0);
         _textureDropdown.AddOptions(new List<string>(textures));
         for (int i = 0; i < textures.Length; i++)
         {
@@ -126,7 +130,7 @@ public class FlavourTileEntry : MonoBehaviour
 		_disableCallbacks = false;
 	}
 
-	public void TypeChanged()
+	private void TypeChanged(bool newValue)
 	{
 		if (_disableCallbacks)
 			return;
@@ -142,14 +146,14 @@ public class FlavourTileEntry : MonoBehaviour
 		UpdateLocationUI();
 	}
 
-	public void TextureChanged(System.Int32 index)
+	private void TextureChanged(System.Int32 index)
 	{
-		_flavourTileRuleset.SetTexture(_textureDropdown.options[index].text, themeManager);
+		_flavourTileRuleset.SetTexture(_textureDropdown.options[index].text, _themeManager);
 		if (_flavourTileRuleset.texture != _textureDropdown.options[index].text)
             Debug.LogError("Couldn't set texture to " + _textureDropdown.options[index].text);
 	}
 
-	public void LocationChanged(System.Int32 index)
+	private void LocationChanged(System.Int32 index)
 	{
 		if (_disableCallbacks)
 			return;
@@ -160,7 +164,7 @@ public class FlavourTileEntry : MonoBehaviour
 			_flavourTileRuleset.SetLocation(location);
 	}
 
-	public void LocationChanged()
+	private void LocationChanged(bool newValue)
 	{
 		if (_disableCallbacks)
 			return;
@@ -173,7 +177,7 @@ public class FlavourTileEntry : MonoBehaviour
 			_flavourTileRuleset.SetLocation(location);
 	}
 
-	public void AmountTypeChanged()
+	private void AmountTypeChanged(bool newValue)
 	{
 		List<Toggle> toggles = new List<Toggle>(_amountTypeGroup.ActiveToggles());
 		FlavourTileRuleset.AmountType amountType = (FlavourTileRuleset.AmountType)System.Enum.Parse(typeof(FlavourTileRuleset.AmountType), toggles[0].name);
@@ -195,13 +199,13 @@ public class FlavourTileEntry : MonoBehaviour
 		}
 	}
 
-	public void ChanceChanged(string newChance)
+	private void ChanceChanged(string newChance)
 	{
 		_flavourTileRuleset.SetAmount(newChance);
 		_chanceField.text = _flavourTileRuleset.amount;
 	}
 
-	public void CountChanged(string newCount)
+	private void CountChanged(string newCount)
 	{
 		_flavourTileRuleset.SetAmount(newCount);
 		_countField.text = _flavourTileRuleset.amount;

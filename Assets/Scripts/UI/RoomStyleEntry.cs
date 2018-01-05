@@ -5,38 +5,63 @@ using System.Collections.Generic;
 
 public class RoomStyleEntry : MonoBehaviour
 {
-    [HideInInspector] public int index = 0;
-    [HideInInspector] public RoomStyle roomStyle = null;
-    [HideInInspector] public MazeRuleset mazeRuleset = null;
-    [HideInInspector] public EditorUI editorUI = null;
-    [HideInInspector] public ThemeManager themeManager = null;
+    public int index { get; private set; }
+    private MazeRuleset _mazeRuleset = null;
+    private RoomStyle _roomStyle = null;
+    private EditorUI _editorUI = null;
+    private ThemeManager _themeManager = null;
 
-    [SerializeField] private InputField _nameField = null;
-    [SerializeField] private Dropdown _tilesetDropdown = null;
+    private InputField _nameField = null;
+    private Dropdown _tilesetDropdown = null;
 
-    [SerializeField] private GameObject _decorationList = null;
-	[SerializeField] private Button _removeDecorationButton = null;
+    private Transform _decorationList = null;
+	private Button _removeDecorationButton = null;
 	[SerializeField] private GameObject _decorationEntryPrefab = null;
 	private List<DecorationEntry> _decorationEntries = new List<DecorationEntry>();
 	private GameObject _selectedDecoration = null;
 
-    [SerializeField] private GameObject _flavourTileList = null;
-    [SerializeField] private Button _removeFlavourTileButton = null;
+    private Transform _flavourTileList = null;
+    private Button _removeFlavourTileButton = null;
     [SerializeField] private GameObject _flavourTileEntryPrefab = null;
     private List<FlavourTileEntry> _flavourTileEntries = new List<FlavourTileEntry>();
     private GameObject _selectedFlavourTile = null;
 
-    public void UpdateValues()
+    public void Initialise(int index, MazeRuleset mazeRuleset, EditorUI editorUI, ThemeManager themeManager)
     {
-        _nameField.text = roomStyle.name;
+        this.index = index;
+        _mazeRuleset = mazeRuleset;
+        _roomStyle = _mazeRuleset.roomStyles[index];
+        _editorUI = editorUI;
+        _themeManager = themeManager;
+
+        _nameField = transform.Find("Name").Find("Value").Find("InputField").GetComponent<InputField>();
+        _tilesetDropdown = transform.Find("Tileset").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+        _decorationList = transform.Find("Decorations").Find("Entries");
+        _removeDecorationButton = transform.Find("Decorations").Find("Titlebar").Find("RemoveButton").GetComponent<Button>();
+        _flavourTileList = transform.Find("FlavourTiles").Find("Entries");
+        _removeFlavourTileButton = transform.Find("FlavourTiles").Find("Titlebar").Find("RemoveButton").GetComponent<Button>();
+
+        _nameField.onEndEdit.AddListener(NameChanged);
+        _tilesetDropdown.onValueChanged.AddListener(TilesetChanged);
+        transform.Find("Decorations").Find("Titlebar").Find("AddButton").GetComponent<Button>().onClick.AddListener(AddDecoration);
+        _removeDecorationButton.onClick.AddListener(RemoveDecoration);
+        transform.Find("FlavourTiles").Find("Titlebar").Find("AddButton").GetComponent<Button>().onClick.AddListener(AddFlavourTile);
+        _removeFlavourTileButton.onClick.AddListener(RemoveFlavourTile);
+
+        UpdateValues();
+    }
+
+    private void UpdateValues()
+    {
+        _nameField.text = _roomStyle.name;
 
         _tilesetDropdown.ClearOptions();
-        string[] tilesets = new string[themeManager.textures.Count];
-        themeManager.textures.Keys.CopyTo(tilesets, 0);
+        string[] tilesets = new string[_themeManager.textures.Count];
+        _themeManager.textures.Keys.CopyTo(tilesets, 0);
         _tilesetDropdown.AddOptions(new List<string>(tilesets));
         for (int i = 0; i < tilesets.Length; i++)
         {
-            if (tilesets[i] == roomStyle.tileset)
+            if (tilesets[i] == _roomStyle.tileset)
             {
                 _tilesetDropdown.value = i;
                 break;
@@ -47,20 +72,17 @@ public class RoomStyleEntry : MonoBehaviour
 			Destroy(decorationEntry.gameObject);
 		_decorationEntries.Clear();
 		
-		if (roomStyle.decorations != null)
-		for (int i = 0; i < roomStyle.decorations.Length; i++)
+		if (_roomStyle.decorations != null)
+		for (int i = 0; i < _roomStyle.decorations.Length; i++)
 		{
 			GameObject decorationEntry = Instantiate(_decorationEntryPrefab);
-			decorationEntry.transform.SetParent(_decorationList.transform);
+			decorationEntry.transform.SetParent(_decorationList);
 
             SelectableEntry decorationSelectable = decorationEntry.GetComponent<SelectableEntry>();
 			decorationSelectable.selectEvent.AddListener((data) => { DecorationSelected(data.selectedObject); } );
 
 			DecorationEntry decorationUI = decorationEntry.GetComponent<DecorationEntry>();
-            decorationUI.index = i;
-            decorationUI.themeManager = themeManager;
-            decorationUI.Initialise(roomStyle.decorations[i]);
-            decorationUI.UpdateValues();
+            decorationUI.Initialise(i, _roomStyle.decorations[i], _themeManager);
 			_decorationEntries.Add(decorationUI);
 		}
 
@@ -68,79 +90,76 @@ public class RoomStyleEntry : MonoBehaviour
             Destroy(flavourTileEntry.gameObject);
         _flavourTileEntries.Clear();
 
-        if (roomStyle.flavourTiles != null)
-		for (int i = 0; i < roomStyle.flavourTiles.Length; i++)
+        if (_roomStyle.flavourTiles != null)
+		for (int i = 0; i < _roomStyle.flavourTiles.Length; i++)
 		{
 			GameObject flavourTileEntry = Instantiate(_flavourTileEntryPrefab);
-			flavourTileEntry.transform.SetParent(_flavourTileList.transform);
+			flavourTileEntry.transform.SetParent(_flavourTileList);
 
             SelectableEntry flavourTileSelectable = flavourTileEntry.GetComponent<SelectableEntry>();
 			flavourTileSelectable.selectEvent.AddListener((data) => { FlavourTileSelected(data.selectedObject); } );
 
 			FlavourTileEntry flavourTileUI = flavourTileEntry.GetComponent<FlavourTileEntry>();
-            flavourTileUI.index = i;
-            flavourTileUI.themeManager = themeManager;
-            flavourTileUI.Initialise(roomStyle.flavourTiles[i]);
-            flavourTileUI.UpdateValues();
+            flavourTileUI.Initialise(i, _roomStyle.flavourTiles[i], _themeManager);
 			_flavourTileEntries.Add(flavourTileUI);
 		}
     }
 
-    public void NameChanged(string newName)
+    private void NameChanged(string newName)
     {
-        roomStyle.SetName(newName, mazeRuleset);
-        _nameField.text = roomStyle.name;
+        _roomStyle.SetName(newName, _mazeRuleset);
+        _nameField.text = _roomStyle.name;
     }
 
-    public void TilesetChanged(System.Int32 index)
+    private void TilesetChanged(System.Int32 index)
     {
-        roomStyle.SetTileset(_tilesetDropdown.options[index].text, themeManager);
-        if (roomStyle.tileset != _tilesetDropdown.options[index].text)
+        _roomStyle.SetTileset(_tilesetDropdown.options[index].text, _themeManager);
+        if (_roomStyle.tileset != _tilesetDropdown.options[index].text)
             Debug.LogError("Couldn't set tileset to " + _tilesetDropdown.options[index].text);
     }
 
-    public void AddDecoration()
+    private void AddDecoration()
 	{
-		Utils.PushToArray(ref roomStyle.decorations, new DecorationRuleset());
-		editorUI.UnselectEntries();
+		Utils.PushToArray(ref _roomStyle.decorations, new DecorationRuleset());
+		_editorUI.UnselectEntries();
 		UpdateValues();
 	}
 
-    public void AddFlavourTile()
+    private void AddFlavourTile()
     {
-        Utils.PushToArray(ref roomStyle.flavourTiles, new FlavourTileRuleset());
-        editorUI.UnselectEntries();
+        Utils.PushToArray(ref _roomStyle.flavourTiles, new FlavourTileRuleset());
+        _editorUI.UnselectEntries();
         UpdateValues();
     }
 
-	public void RemoveDecoration()
+	private void RemoveDecoration()
 	{
-		Utils.RemoveAtIndex(ref roomStyle.decorations, _selectedDecoration.GetComponent<DecorationEntry>().index);
-		editorUI.UnselectEntries();
+		Utils.RemoveAtIndex(ref _roomStyle.decorations, _selectedDecoration.GetComponent<DecorationEntry>().index);
+		_editorUI.UnselectEntries();
 		UpdateValues();
 	}
 
-    public void RemoveFlavourTile()
+    private void RemoveFlavourTile()
     {
-        Utils.RemoveAtIndex(ref roomStyle.flavourTiles, _selectedFlavourTile.GetComponent<FlavourTileEntry>().index);
-		editorUI.UnselectEntries();
+        Utils.RemoveAtIndex(ref _roomStyle.flavourTiles, _selectedFlavourTile.GetComponent<FlavourTileEntry>().index);
+		_editorUI.UnselectEntries();
 		UpdateValues();
     }
 
-    public void DecorationSelected(GameObject selected)
+    private void DecorationSelected(GameObject selected)
 	{
-        editorUI.UnselectEntries();
+        _editorUI.UnselectEntries();
 		_selectedDecoration = selected;
 		_removeDecorationButton.interactable = true;
-        editorUI.EntrySelected();
+        _editorUI.EntrySelected();
 	}
 
-    public void FlavourTileSelected(GameObject selected)
+    private void FlavourTileSelected(GameObject selected)
 	{
-        editorUI.UnselectEntries();
+        _editorUI.UnselectEntries();
 		_selectedFlavourTile = selected;
 		_removeFlavourTileButton.interactable = true;
-        editorUI.EntrySelected();
+        _editorUI.EntrySelected();
 	}
 
 	public void EntryDeselected()

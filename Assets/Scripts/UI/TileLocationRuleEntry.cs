@@ -29,7 +29,7 @@ public class TileLocationRuleEntry : MonoBehaviour
 		UpdateValues();
 	}
 
-	public void UpdateValues()
+	private void UpdateValues()
 	{
 		_disableCallbacks = true;
 		uint tileLocationValue = _tileLocationRule.value;

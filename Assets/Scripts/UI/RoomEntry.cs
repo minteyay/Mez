@@ -6,25 +6,44 @@ using System.Collections.Generic;
 
 public class RoomEntry : MonoBehaviour
 {
-    [HideInInspector] public int index = 0;
-    [HideInInspector] public MazeRuleset mazeRuleset = null;
-    [HideInInspector] public RoomRuleset roomRuleset = null;
+    public int index { get; private set; }
+    private MazeRuleset _mazeRuleset = null;
+    private RoomRuleset _roomRuleset = null;
 
-    [SerializeField] private Dropdown _styleDropdown = null;
-    [SerializeField] private Dropdown _startDropdown = null;
-    [SerializeField] private InputField _sizeField = null;
-    [SerializeField] private InputField _countField = null;
+    private Dropdown _styleDropdown = null;
+    private Dropdown _startDropdown = null;
+    private InputField _sizeField = null;
+    private InputField _countField = null;
 
-    public void UpdateValues()
+    public void Initialise(int index, MazeRuleset mazeRuleset)
+    {
+        this.index = index;
+        _mazeRuleset = mazeRuleset;
+        _roomRuleset = _mazeRuleset.rooms[index];
+
+        _styleDropdown = transform.Find("Style").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+        _startDropdown = transform.Find("Start").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+        _sizeField = transform.Find("Size").Find("Value").Find("InputField").GetComponent<InputField>();
+        _countField = transform.Find("Count").Find("Value").Find("InputField").GetComponent<InputField>();
+
+        _styleDropdown.onValueChanged.AddListener(StyleChanged);
+        _startDropdown.onValueChanged.AddListener(StartChanged);
+        _sizeField.onEndEdit.AddListener(SizeChanged);
+        _countField.onEndEdit.AddListener(CountChanged);
+
+        UpdateValues();
+    }
+
+    private void UpdateValues()
     {
         _styleDropdown.ClearOptions();
         int selectedIndex = 0;
         List<string> roomStyles = new List<string>();
-        for (int i = 0; i < mazeRuleset.roomStyles.Length; i++)
+        for (int i = 0; i < _mazeRuleset.roomStyles.Length; i++)
         {
-            string roomStyleName = mazeRuleset.roomStyles[i].name;
+            string roomStyleName = _mazeRuleset.roomStyles[i].name;
             roomStyles.Add(roomStyleName);
-            if (roomStyleName == roomRuleset.style)
+            if (roomStyleName == _roomRuleset.style)
                 selectedIndex = i;
         }
         _styleDropdown.AddOptions(roomStyles);
@@ -32,34 +51,34 @@ public class RoomEntry : MonoBehaviour
 
         _startDropdown.ClearOptions();
         _startDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(RoomRuleset.Start))));
-        _startDropdown.value = (int)roomRuleset.start;
+        _startDropdown.value = (int)_roomRuleset.start;
 
-        _sizeField.text = roomRuleset.size;
+        _sizeField.text = _roomRuleset.size;
         
-        _countField.text = roomRuleset.count;
+        _countField.text = _roomRuleset.count;
     }
 
-    public void StyleChanged(System.Int32 index)
+    private void StyleChanged(System.Int32 index)
     {
-        roomRuleset.SetStyle(_styleDropdown.options[index].text, mazeRuleset);
-        if (roomRuleset.style != _styleDropdown.options[index].text)
+        _roomRuleset.SetStyle(_styleDropdown.options[index].text, _mazeRuleset);
+        if (_roomRuleset.style != _styleDropdown.options[index].text)
             Debug.LogError("Couldn't set style to " + _styleDropdown.options[index].text);
     }
 
-    public void StartChanged(System.Int32 index)
+    private void StartChanged(System.Int32 index)
     {
-        roomRuleset.start = (RoomRuleset.Start)index;
+        _roomRuleset.start = (RoomRuleset.Start)index;
     }
 
-    public void SizeChanged(string newSize)
+    private void SizeChanged(string newSize)
     {
-        roomRuleset.SetSize(newSize);
-        _sizeField.text = roomRuleset.size;
+        _roomRuleset.SetSize(newSize);
+        _sizeField.text = _roomRuleset.size;
     }
 
-    public void CountChanged(string newCount)
+    private void CountChanged(string newCount)
     {
-        roomRuleset.SetCount(newCount);
-        _countField.text = roomRuleset.count;
+        _roomRuleset.SetCount(newCount);
+        _countField.text = _roomRuleset.count;
     }
 }
