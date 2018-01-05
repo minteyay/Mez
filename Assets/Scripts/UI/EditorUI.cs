@@ -249,7 +249,7 @@ public class EditorUI : MonoBehaviour
 	public void AddRoomStyle()
 	{
 		RoomStyle roomStyle = new RoomStyle();
-		roomStyle.SetName("default", _themeManager.ruleset);
+		roomStyle.Validate(_themeManager.ruleset, _themeManager);
 		Utils.PushToArray(ref _themeManager.ruleset.roomStyles, roomStyle);
 		UnselectEntries();
 		UpdateValues();
@@ -272,7 +272,10 @@ public class EditorUI : MonoBehaviour
 
 	public void AddRoom()
 	{
-		Utils.PushToArray(ref _themeManager.ruleset.rooms, new RoomRuleset());
+		RoomRuleset room = new RoomRuleset();
+		room.Validate(_themeManager.ruleset);
+		Utils.PushToArray(ref _themeManager.ruleset.rooms, room);
+		UnselectEntries();
 		UpdateValues();
 	}
 
