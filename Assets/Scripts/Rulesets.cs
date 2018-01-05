@@ -255,9 +255,16 @@ public class RoomRuleset
             }
         }
         if (!styleExists)
-            style = "default";
+        {
+            if (mazeRuleset.roomStyles.Length <= 0)
+                Debug.LogError("There are no RoomStyles for the Room to use.");
+            else
+                style = mazeRuleset.roomStyles[0].name;
+        }
         else
+        {
             style = newStyle;
+        }
     }
 
     public void SetCount(string newCount)
