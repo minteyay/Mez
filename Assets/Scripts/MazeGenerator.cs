@@ -287,6 +287,17 @@ public class MazeGenerator : MonoBehaviour
 								float chance = float.Parse(decorationRuleset.amount);
 								foreach (DecorationLocation decorationLocation in decorationLocations)
 								{
+									bool validLocation = true;
+									foreach (Tile tile in decorationLocation.tiles)
+									{
+										if (decorationRuleset.location == DecorationRuleset.Location.Floor && tile.floorDecoration
+											|| decorationRuleset.location == DecorationRuleset.Location.Ceiling && tile.ceilingDecoration
+											|| decorationRuleset.location == DecorationRuleset.Location.Wall && tile.wallDecorations.Contains((Dir)System.Enum.Parse(typeof(Dir), decorationLocation.location.name)))
+											validLocation = false;	
+									}
+									if (!validLocation)
+										continue;
+
 									if (Random.YesOrNo(chance / 100.0f))
 									{
 										GameObject decoration = Instantiate(_plane, new Vector3(), Quaternion.identity);
@@ -299,6 +310,8 @@ public class MazeGenerator : MonoBehaviour
 												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocation.axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
 												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent, false);
+												foreach (Tile tile in decorationLocation.tiles)
+													tile.floorDecoration = true;
 												break;
 											case DecorationRuleset.Location.Ceiling:
 												decoration.transform.position += new Vector3((decorationLocation.axis == Axis.Y) ? lengthOffset : 0.0f,
@@ -306,6 +319,8 @@ public class MazeGenerator : MonoBehaviour
 												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocation.axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
 												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, -1.0f, -1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent, false);
+												foreach (Tile tile in decorationLocation.tiles)
+													tile.ceilingDecoration = true;
 												break;
 											case DecorationRuleset.Location.Wall:
 												Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), decorationLocation.location.name);
@@ -315,6 +330,8 @@ public class MazeGenerator : MonoBehaviour
 													1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon) + ((wallAxis == Axis.Y) ? lengthOffset : 0.0f));
 												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent.parent, false);
+												foreach (Tile tile in decorationLocation.tiles)
+													tile.wallDecorations.Add(wallDir);
 												break;
 										}
 									}
@@ -333,6 +350,17 @@ public class MazeGenerator : MonoBehaviour
 								int decorationCount = Random.instance.Next(countRange.x, Mathf.Min(countRange.y, decorationLocations.Count) + 1);
 								for (int i = 0; i < decorationCount; i++)
 								{
+									bool validLocation = true;
+									foreach (Tile tile in decorationLocations[i].tiles)
+									{
+										if (decorationRuleset.location == DecorationRuleset.Location.Floor && tile.floorDecoration
+											|| decorationRuleset.location == DecorationRuleset.Location.Ceiling && tile.ceilingDecoration
+											|| decorationRuleset.location == DecorationRuleset.Location.Wall && tile.wallDecorations.Contains((Dir)System.Enum.Parse(typeof(Dir), decorationLocations[i].location.name)))
+											validLocation = false;	
+									}
+									if (!validLocation)
+										continue;
+
 									GameObject decoration = Instantiate(_plane, new Vector3(), Quaternion.identity);
 									decoration.GetComponent<MeshRenderer>().material = _materials[decorationRuleset.texture];
 									switch (decorationRuleset.location)
@@ -343,6 +371,8 @@ public class MazeGenerator : MonoBehaviour
 												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocations[i].axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
 												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 											decoration.transform.SetParent(decorationLocations[i].location.transform.parent, false);
+											foreach (Tile tile in decorationLocations[i].tiles)
+												tile.floorDecoration = true;
 											break;
 										case DecorationRuleset.Location.Ceiling:
 											decoration.transform.position += new Vector3((decorationLocations[i].axis == Axis.Y) ? lengthOffset : 0.0f,
@@ -814,11 +844,13 @@ public class MazeGenerator : MonoBehaviour
 	{
 		public Axis axis;
 		public GameObject location;
+		public Tile[] tiles;
 
-		public DecorationLocation(Axis axis, GameObject location)
+		public DecorationLocation(Axis axis, GameObject location, Tile[] tiles)
 		{
 			this.axis = axis;
 			this.location = location;
+			this.tiles = tiles;
 		}
 	}
 
@@ -835,9 +867,9 @@ public class MazeGenerator : MonoBehaviour
 
 				if (ruleset.location == DecorationRuleset.Location.Wall)
 					foreach (GameObject wall in tile.walls)
-						decorationLocations.Add(new DecorationLocation(Axis.X, wall));
+						decorationLocations.Add(new DecorationLocation(Axis.X, wall, new Tile[] { tile }));
 				else
-					decorationLocations.Add(new DecorationLocation(Axis.X, tile.floor));
+					decorationLocations.Add(new DecorationLocation(Axis.X, tile.floor, new Tile[] { tile }));
 			}
 		}
 		// Multi-tile decoration.
@@ -887,7 +919,10 @@ public class MazeGenerator : MonoBehaviour
 					{
 						for (int i = 0; i < locations; i++)
 						{
-							DecorationLocation decorationLocation = new DecorationLocation(Axis.X, line.walls[i].wall);
+							Tile[] decorationTiles = new Tile[ruleset.length];
+							for (int j = 0; j < ruleset.length; j++)
+								decorationTiles[j] = line.walls[i + j].tile;
+							DecorationLocation decorationLocation = new DecorationLocation(Axis.X, line.walls[i].wall, decorationTiles);
 							decorationLocations.Add(decorationLocation);
 						}
 					}
@@ -940,7 +975,10 @@ public class MazeGenerator : MonoBehaviour
 					{
 						for (int i = 0; i < locations; i++)
 						{
-							DecorationLocation decorationLocation = new DecorationLocation(line.axis, line.tiles[i].floor);
+							Tile[] decorationTiles = new Tile[ruleset.length];
+							for (int j = 0; j < ruleset.length; j++)
+								decorationTiles[j] = line.tiles[i + j];
+							DecorationLocation decorationLocation = new DecorationLocation(line.axis, line.tiles[i].floor, decorationTiles);
 							decorationLocations.Add(decorationLocation);
 						}
 					}
