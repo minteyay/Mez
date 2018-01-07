@@ -2175,8 +2175,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7360101fb49d04742b5a520c167d73d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileLocationRule:
-    value: 4294967295
   _togglePrefab: {fileID: 1811933364558946, guid: 4fe64d74ef6f649dc9657ed04b8edc7b,
     type: 2}
 --- !u!114 &114231176769709674
@@ -3167,10 +3165,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 10
-    m_Right: 10
-    m_Top: 10
-    m_Bottom: 10
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
   m_ChildAlignment: 0
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
@@ -4154,16 +4152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 651a60798d1624776913622062c34fe8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  index: 0
-  flavourTileRuleset:
-    type: 0
-    texture: 
-    location: 0
-    amountType: 0
-    amount: 
-    validLocations:
-      value: 4294967295
-  themeManager: {fileID: 0}
 --- !u!114 &114899753625621476
 MonoBehaviour:
   m_ObjectHideFlags: 1
