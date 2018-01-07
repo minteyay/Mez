@@ -86,7 +86,7 @@ public class DecorationRuleset
     public enum AmountType { Chance, Count }
 
     public string texture = "";
-    public uint length = 1;
+    public int length = 1;
     public Location location = Location.Floor;
     public AmountType amountType = AmountType.Chance;
     public string amount = "";
@@ -105,7 +105,7 @@ public class DecorationRuleset
 
     public void SetLength(int newLength)
     {
-        length = (uint)Mathf.Max(1, newLength);
+        length = Mathf.Max(1, newLength);
     }
 
     public void SetAmountType(AmountType newAmountType)
