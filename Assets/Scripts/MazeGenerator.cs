@@ -309,8 +309,11 @@ public class MazeGenerator : MonoBehaviour
 												break;
 											case DecorationRuleset.Location.Wall:
 												Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), decorationLocation.location.name);
+												Axis wallAxis = (wallDir == Dir.E || wallDir == Dir.W) ? Axis.X : Axis.Y;
 												decoration.transform.rotation = Quaternion.Euler(90.0f, Nav.FacingToAngle(wallDir), -90.0f);
-												decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon), 1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon));
+												decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon) + ((wallAxis == Axis.X) ? lengthOffset : 0.0f),
+													1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon) + ((wallAxis == Axis.Y) ? lengthOffset : 0.0f));
+												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent.parent, false);
 												break;
 										}
@@ -350,8 +353,11 @@ public class MazeGenerator : MonoBehaviour
 											break;
 										case DecorationRuleset.Location.Wall:
 											Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), decorationLocations[i].location.name);
+											Axis wallAxis = (wallDir == Dir.E || wallDir == Dir.W) ? Axis.X : Axis.Y;
 											decoration.transform.rotation = Quaternion.Euler(90.0f, Nav.FacingToAngle(wallDir), -90.0f);
-											decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon), 1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon));
+											decoration.transform.position += new Vector3(Nav.DY[wallDir] * (_maze.tileSize.y / 2.0f - Epsilon) + ((wallAxis == Axis.X) ? lengthOffset : 0.0f),
+												1.0f, Nav.DX[wallDir] * (_maze.tileSize.x / 2.0f - Epsilon) + ((wallAxis == Axis.Y) ? lengthOffset : 0.0f));
+											decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 											decoration.transform.SetParent(decorationLocations[i].location.transform.parent.parent, false);
 											break;
 									}
@@ -775,7 +781,7 @@ public class MazeGenerator : MonoBehaviour
 		}
 	}
 
-	private class TileLine
+	private struct TileLine
 	{
 		public Axis axis;
 		public List<Tile> tiles;
@@ -785,6 +791,23 @@ public class MazeGenerator : MonoBehaviour
 			this.axis = axis;
 			this.tiles = new List<Tile>();
 		}
+	}
+
+	private class WallLine
+	{
+		public struct Wall
+		{
+			public Tile tile;
+			public GameObject wall;
+
+			public Wall(Tile tile, GameObject wall)
+			{
+				this.tile = tile;
+				this.wall = wall;
+			}
+		}
+
+		public List<Wall> walls = new List<Wall>();
 	}
 
 	private struct DecorationLocation
@@ -807,6 +830,9 @@ public class MazeGenerator : MonoBehaviour
 		{
 			foreach (Tile tile in themeTiles)
 			{
+				if (!_maze.IsTileValid(tile.position, ruleset.validLocations))
+					continue;
+
 				if (ruleset.location == DecorationRuleset.Location.Wall)
 					foreach (GameObject wall in tile.walls)
 						decorationLocations.Add(new DecorationLocation(Axis.X, wall));
@@ -817,53 +843,106 @@ public class MazeGenerator : MonoBehaviour
 		// Multi-tile decoration.
 		else
 		{
-			List<TileLine> tileLines = new List<TileLine>();
-			foreach (Tile tile in themeTiles)
+			if (ruleset.location == DecorationRuleset.Location.Wall)
 			{
-				if (!_maze.IsTileValid(tile.position, ruleset.validLocations))
-					continue;
-				
-				List<Dir> connections = _maze.GetConnections(tile);
-				foreach (Dir dir in connections)
+				List<WallLine> wallLines = new List<WallLine>();
+				foreach (Tile tile in themeTiles)
 				{
-					Tile neighbour = _maze.GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
-					Axis lineAxis = (dir == Dir.E || dir == Dir.W) ? Axis.X : Axis.Y;
-					bool lineExists = false;
-					foreach (TileLine line in tileLines)
+					if (!_maze.IsTileValid(tile.position, ruleset.validLocations))
+						continue;
+					
+					List<Tile> neighbours = _maze.GetNeighbours(tile);
+					foreach (GameObject wall in tile.walls)
 					{
-						if (line.axis == lineAxis)
+						Dir wallDir = (Dir)System.Enum.Parse(typeof(Dir), wall.name);
+						bool lineExists = false;
+						foreach (WallLine line in wallLines)
 						{
-							foreach (Tile lineTile in line.tiles)
+							foreach (WallLine.Wall lineWall in line.walls)
 							{
-								if (lineTile == neighbour)
+								Dir lineWallDir = (Dir)System.Enum.Parse(typeof(Dir), lineWall.wall.name);
+								if (neighbours.Contains(lineWall.tile) && lineWallDir == wallDir)
 								{
 									lineExists = true;
-									line.tiles.Add(tile);
+									line.walls.Add(new WallLine.Wall(tile, wall));
 									break;
 								}
 							}
+							if (lineExists)
+								break;
 						}
-						if (lineExists)
-							break;
+						if (!lineExists)
+						{
+							WallLine newLine = new WallLine();
+							newLine.walls.Add(new WallLine.Wall(tile, wall));
+							wallLines.Add(newLine);
+						}
 					}
-					if (!lineExists)
+				}
+
+				foreach (WallLine line in wallLines)
+				{
+					int locations = line.walls.Count - ruleset.length + 1;
+					if (locations > 0)
 					{
-						TileLine newLine = new TileLine(lineAxis);
-						newLine.tiles.Add(tile);
-						tileLines.Add(newLine);
+						for (int i = 0; i < locations; i++)
+						{
+							DecorationLocation decorationLocation = new DecorationLocation(Axis.X, line.walls[i].wall);
+							decorationLocations.Add(decorationLocation);
+						}
 					}
 				}
 			}
-
-			foreach (TileLine line in tileLines)
+			else
 			{
-				int locations = line.tiles.Count - ruleset.length + 1;
-				if (locations > 0)
+				List<TileLine> tileLines = new List<TileLine>();
+				foreach (Tile tile in themeTiles)
 				{
-					for (int i = 0; i < locations; i++)
+					if (!_maze.IsTileValid(tile.position, ruleset.validLocations))
+						continue;
+
+					List<Dir> connections = _maze.GetConnections(tile);
+					foreach (Dir dir in connections)
 					{
-						DecorationLocation decorationLocation = new DecorationLocation(line.axis, line.tiles[i].floor);
-						decorationLocations.Add(decorationLocation);
+						Tile neighbour = _maze.GetTile(tile.position + new Point(Nav.DX[dir], Nav.DY[dir]));
+						Axis lineAxis = (dir == Dir.E || dir == Dir.W) ? Axis.X : Axis.Y;
+						bool lineExists = false;
+						foreach (TileLine line in tileLines)
+						{
+							if (line.axis == lineAxis)
+							{
+								foreach (Tile lineTile in line.tiles)
+								{
+									if (lineTile == neighbour)
+									{
+										lineExists = true;
+										line.tiles.Add(tile);
+										break;
+									}
+								}
+							}
+							if (lineExists)
+								break;
+						}
+						if (!lineExists)
+						{
+							TileLine newLine = new TileLine(lineAxis);
+							newLine.tiles.Add(tile);
+							tileLines.Add(newLine);
+						}
+					}
+				}
+
+				foreach (TileLine line in tileLines)
+				{
+					int locations = line.tiles.Count - ruleset.length + 1;
+					if (locations > 0)
+					{
+						for (int i = 0; i < locations; i++)
+						{
+							DecorationLocation decorationLocation = new DecorationLocation(line.axis, line.tiles[i].floor);
+							decorationLocations.Add(decorationLocation);
+						}
 					}
 				}
 			}
