@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 /// Cardinal directions.
 public enum Dir { N, S, E, W };
+public enum Axis { X, Y };
 
 /// <summary>
 /// Class containing utilities for navigating around the maze.

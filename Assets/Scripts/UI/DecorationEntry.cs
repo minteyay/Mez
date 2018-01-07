@@ -10,6 +10,7 @@ public class DecorationEntry : MonoBehaviour
 
 	private Dropdown _locationDropdown = null;
 	private Dropdown _textureDropdown = null;
+	private InputField _lengthField = null;
 	private ToggleGroup _amountTypeGroup = null;
 	private InputField _chanceField = null;
 	private InputField _countField = null;
@@ -24,6 +25,7 @@ public class DecorationEntry : MonoBehaviour
 		_locationDropdown = transform.Find("Location").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
         _locationDropdown.AddOptions(new List<string>(System.Enum.GetNames(typeof(DecorationRuleset.Location))));
 		_textureDropdown = transform.Find("Texture").Find("Value").Find("Dropdown").GetComponent<Dropdown>();
+		_lengthField = transform.Find("Length").Find("Value").Find("InputField").GetComponent<InputField>();
 		_amountTypeGroup = transform.Find("AmountType").GetComponent<ToggleGroup>();
 		_chanceField = transform.Find("Chance").Find("Value").Find("InputField").GetComponent<InputField>();
 		_countField = transform.Find("Count").Find("Value").Find("InputField").GetComponent<InputField>();
@@ -32,6 +34,7 @@ public class DecorationEntry : MonoBehaviour
 
 		_locationDropdown.onValueChanged.AddListener(LocationChanged);
 		_textureDropdown.onValueChanged.AddListener(TextureChanged);
+		_lengthField.onEndEdit.AddListener(LengthChanged);
 		Transform amountTypeRoot = _amountTypeGroup.transform;
 		for (int i = 0; i < amountTypeRoot.childCount; i++)
 			amountTypeRoot.GetChild(i).GetComponent<Toggle>().onValueChanged.AddListener(AmountTypeChanged);
@@ -58,6 +61,8 @@ public class DecorationEntry : MonoBehaviour
             }
         }
 
+		_lengthField.text = _decorationRuleset.length.ToString();
+
 		string amountType = _decorationRuleset.amountType.ToString();
 		for (int i = 0; i < _amountTypeGroup.transform.childCount; i++)
 		{
@@ -82,6 +87,17 @@ public class DecorationEntry : MonoBehaviour
 		_decorationRuleset.SetTexture(_textureDropdown.options[index].text, _themeManager);
 		if (_decorationRuleset.texture != _textureDropdown.options[index].text)
             Debug.LogError("Couldn't set texture to " + _textureDropdown.options[index].text);
+	}
+
+	private void LengthChanged(string newLength)
+	{
+		int length;
+		if (int.TryParse(newLength, out length))
+		{
+			length = Mathf.Min(Mathf.Max(_themeManager.ruleset.size.x, _themeManager.ruleset.size.y), length);
+			_decorationRuleset.SetLength(length);
+		}
+		_lengthField.text = _decorationRuleset.length.ToString();
 	}
 
 	private void AmountTypeChanged(bool newValue)

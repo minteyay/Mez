@@ -1,8 +1,8 @@
 {
     "name": "dark",
     "size": {
-        "x": 5,
-        "y": 5
+        "x": 6,
+        "y": 4
     },
     "roomStyles": [
         {
@@ -11,11 +11,12 @@
             "decorations": [
                 {
                     "texture": "welcomeMat",
-                    "location": 0,
+                    "length": 2,
+                    "location": 1,
                     "amountType": 0,
                     "amount": "100",
                     "validLocations": {
-                        "value": 128
+                        "value": 4294967295
                     }
                 }
             ],
