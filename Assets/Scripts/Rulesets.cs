@@ -86,6 +86,7 @@ public class DecorationRuleset
     public enum AmountType { Chance, Count }
 
     public string texture = "";
+    public uint length = 1;
     public Location location = Location.Floor;
     public AmountType amountType = AmountType.Chance;
     public string amount = "";
@@ -100,6 +101,11 @@ public class DecorationRuleset
             texture = "default";
         else
             texture = newTexture;
+    }
+
+    public void SetLength(int newLength)
+    {
+        length = (uint)Mathf.Max(1, newLength);
     }
 
     public void SetAmountType(AmountType newAmountType)
@@ -138,6 +144,7 @@ public class DecorationRuleset
     public void Validate(ThemeManager themeManager)
     {
         SetTexture(texture, themeManager);
+        SetLength((int)length);
         SetAmount(amount);
     }
 }
