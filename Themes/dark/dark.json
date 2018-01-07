@@ -10,9 +10,29 @@
             "tileset": "blinds",
             "decorations": [
                 {
-                    "texture": "welcomeMat",
+                    "texture": "welcomeMat3",
+                    "length": 3,
+                    "location": 0,
+                    "amountType": 0,
+                    "amount": "100",
+                    "validLocations": {
+                        "value": 4294967295
+                    }
+                },
+                {
+                    "texture": "welcomeMat2",
                     "length": 2,
-                    "location": 1,
+                    "location": 0,
+                    "amountType": 0,
+                    "amount": "100",
+                    "validLocations": {
+                        "value": 4294967295
+                    }
+                },
+                {
+                    "texture": "welcomeMat",
+                    "length": 1,
+                    "location": 0,
                     "amountType": 0,
                     "amount": "100",
                     "validLocations": {
@@ -20,18 +40,7 @@
                     }
                 }
             ],
-            "flavourTiles": [
-                {
-                    "type": 1,
-                    "texture": "paperhouse",
-                    "location": 7,
-                    "amountType": 0,
-                    "amount": "100",
-                    "validLocations": {
-                        "value": 0
-                    }
-                }
-            ]
+            "flavourTiles": []
         }
     ],
     "rooms": [
@@ -39,13 +48,13 @@
             "style": "hallway",
             "start": 1,
             "count": "1",
-            "size": "3"
+            "size": "6"
         },
         {
             "style": "hallway",
             "start": 2,
             "count": "1",
-            "size": "3"
+            "size": "6"
         }
     ]
 }
