@@ -279,6 +279,8 @@ public class MazeGenerator : MonoBehaviour
 						List<DecorationLocation> decorationLocations = CalculatePossibleDecorationLocations(tiles, decorationRuleset);
 						Utils.Shuffle(Random.instance, decorationLocations);
 
+						float lengthOffset = (decorationRuleset.length - 1) * 1.0f;
+
 						switch (decorationRuleset.amountType)
 						{
 							case DecorationRuleset.AmountType.Chance:
@@ -292,12 +294,17 @@ public class MazeGenerator : MonoBehaviour
 										switch (decorationRuleset.location)
 										{
 											case DecorationRuleset.Location.Floor:
-												decoration.transform.position += new Vector3(0.0f, Epsilon, 0.0f);
+												decoration.transform.position += new Vector3((decorationLocation.axis == Axis.Y) ? lengthOffset : 0.0f,
+													Epsilon, (decorationLocation.axis == Axis.X) ? lengthOffset : 0.0f);
+												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocation.axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
+												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent, false);
 												break;
 											case DecorationRuleset.Location.Ceiling:
-												decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
-												decoration.transform.localScale = new Vector3(1.0f, -1.0f, -1.0f);
+												decoration.transform.position += new Vector3((decorationLocation.axis == Axis.Y) ? lengthOffset : 0.0f,
+													2.0f - Epsilon, (decorationLocation.axis == Axis.X) ? lengthOffset : 0.0f);
+												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocation.axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
+												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, -1.0f, -1.0f);
 												decoration.transform.SetParent(decorationLocation.location.transform.parent, false);
 												break;
 											case DecorationRuleset.Location.Wall:
@@ -328,12 +335,17 @@ public class MazeGenerator : MonoBehaviour
 									switch (decorationRuleset.location)
 									{
 										case DecorationRuleset.Location.Floor:
-											decoration.transform.position += new Vector3(0.0f, Epsilon, 0.0f);
+											decoration.transform.position += new Vector3((decorationLocations[i].axis == Axis.Y) ? lengthOffset : 0.0f,
+													Epsilon, (decorationLocations[i].axis == Axis.X) ? lengthOffset : 0.0f);
+												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocations[i].axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
+												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, 1.0f, 1.0f);
 											decoration.transform.SetParent(decorationLocations[i].location.transform.parent, false);
 											break;
 										case DecorationRuleset.Location.Ceiling:
-											decoration.transform.position += new Vector3(0.0f, 2.0f - Epsilon, 0.0f);
-											decoration.transform.localScale = new Vector3(1.0f, -1.0f, -1.0f);
+											decoration.transform.position += new Vector3((decorationLocations[i].axis == Axis.Y) ? lengthOffset : 0.0f,
+													2.0f - Epsilon, (decorationLocations[i].axis == Axis.X) ? lengthOffset : 0.0f);
+												decoration.transform.rotation = Quaternion.Euler(0.0f, (decorationLocations[i].axis == Axis.X) ? 90.0f : 0.0f, 0.0f);
+												decoration.transform.localScale = new Vector3(1.0f * decorationRuleset.length, -1.0f, -1.0f);
 											decoration.transform.SetParent(decorationLocations[i].location.transform.parent, false);
 											break;
 										case DecorationRuleset.Location.Wall:
